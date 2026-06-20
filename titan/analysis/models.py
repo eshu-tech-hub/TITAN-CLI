@@ -1,14 +1,14 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
 @dataclass(slots=True)
 class IndicatorResult:
     """
-    Standard result returned by every indicator.
+    Standardized result returned by all technical indicators.
     """
 
     name: str
     value: float
-    signal: str
-    metadata: dict[str, Any]
+    signal: str = "Neutral"
+    metadata: dict[str, Any] = field(default_factory=dict)
