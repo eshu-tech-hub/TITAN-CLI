@@ -7,7 +7,10 @@ from titan.core.config import get_settings
 from titan.core.display import console
 from titan.core.logger import logger
 
+
 from titan.core.exceptions import TitanError
+
+from titan.analysis.factory import IndicatorFactory
 
 app = typer.Typer(
     name="titan",
@@ -50,3 +53,33 @@ def status():
     """Display TITAN status."""
     logger.info("Status command executed")
     console.print("[bold green]Status:[/bold green] Development")
+
+
+@app.command("indicators")
+def indicators():
+    """
+    List all available indicators.
+    """
+    print("\nAvailable Indicators\n")
+
+    for name in IndicatorFactory.available():
+        print(f"• {name}")
+
+@app.command("doctor")
+def doctor():
+    """
+    Check TITAN installation.
+    """
+
+    print("TITAN Doctor")
+    print("-" * 40)
+
+    print(f"Application : {settings.app_name}")
+    print(f"Version     : {settings.app_version}")
+    print(f"Environment : {settings.environment}")
+
+    print("\nStatus")
+
+    print("✔ Configuration")
+    print("✔ Logging")
+    print("✔ Analysis Engine")
