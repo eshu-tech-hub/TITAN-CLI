@@ -1,7 +1,13 @@
 import typer
 
+from rich.panel import Panel
+from rich.text import Text
+
 from titan.core.config import get_settings
+from titan.core.display import console
 from titan.core.logger import logger
+
+from titan.core.exceptions import TitanError
 
 app = typer.Typer(
     name="titan",
@@ -14,18 +20,33 @@ settings = get_settings()
 @app.command("version")
 def version():
     """Display TITAN version information."""
-    logger.info("Version command executed")
+    try:
+        logger.info("Version command executed")
 
-    print("=" * 50)
-    print(settings.app_name)
-    print("Institutional Trading Intelligence System")
-    print(f"Version : {settings.app_version}")
-    print(f"Status  : {settings.environment}")
-    print("=" * 50)
+        text = Text()
+        text.append(f"{settings.app_name}\n", style="bold cyan")
+        text.append("Institutional Trading Intelligence System\n")
+        text.append(f"Version : {settings.app_version}\n")
+        text.append(f"Status  : {settings.environment}")
 
+        console.print(
+            Panel(
+                text,
+                title="TITAN",
+                expand=False,
+            )
+        )
+
+    except TitanError as e:
+        logger.error(str(e))
+        console.print(f"[bold red]Error:[/bold red] {e}")
+
+    except Exception as e:
+        logger.exception(e)
+        console.print("[bold red]Unexpected error occurred.[/bold red]")
 
 @app.command("status")
 def status():
     """Display TITAN status."""
     logger.info("Status command executed")
-    print("Status : Development")
+    console.print("[bold green]Status:[/bold green] Development")
