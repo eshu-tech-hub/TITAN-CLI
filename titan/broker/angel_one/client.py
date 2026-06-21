@@ -1,7 +1,11 @@
 from titan.broker.base import Broker
 from titan.core.logger import logger
 from titan.market.series import MarketDataSeries
+from titan.broker.angel_one.auth import AngelOneAuthenticator
 
+
+self._authenticator = AngelOneAuthenticator()
+self._session = None
 
 class AngelOneBroker(Broker):
     """
@@ -11,16 +15,21 @@ class AngelOneBroker(Broker):
     def __init__(self) -> None:
         self._authenticated = False
 
-    def login(self) -> None:
-        logger.info("Angel One login requested.")
-        self._authenticated = True
+    def login(self) -> bool:
+        self._session = self._authenticator.authenticate()
+        self._logged_in = self._session.authenticated
+        return self._logged_in
 
-    def logout(self) -> None:
-        logger.info("Angel One logout requested.")
-        self._authenticated = False
+    def logout(self) -> bool:
+        self._session = None
+        self._logged_in = False
+        return True
 
-    def is_authenticated(self) -> bool:
-        return self._authenticated
+    def is_logged_in(self) -> bool:
+        return (
+            self._session is not None
+            and self._session.authenticated
+        )
 
     def get_history(
         self,
