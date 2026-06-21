@@ -3,24 +3,28 @@ class TitanError(Exception):
 
 
 class ConfigurationError(TitanError):
-    """Configuration related errors."""
+    """Configuration-related errors."""
 
 
-class BrokerError(TitanError):
-    """Broker related errors."""
+class AnalysisError(TitanError):
+    """Analysis engine errors."""
 
 
-class AuthenticationError(BrokerError):
-    """Authentication failed."""
+class IndicatorError(AnalysisError):
+    """Indicator calculation errors."""
 
 
-class NetworkError(BrokerError):
-    """Network communication failed."""
+class FactoryError(AnalysisError):
+    """Indicator factory errors."""
+
+
+class PipelineError(AnalysisError):
+    """Pipeline execution errors."""
 
 
 class MarketDataError(TitanError):
-    """Market data retrieval failed."""
+    """Market data validation errors."""
 
 
-class RiskError(TitanError):
-    """Risk engine blocked an operation."""
+class BrokerError(TitanError):
+    """Broker communication errors."""

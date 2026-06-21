@@ -1,5 +1,7 @@
 from titan.analysis.indicators import EMA, RSI, SMA
 
+from titan.core.exceptions import FactoryError
+
 
 class IndicatorFactory:
     """
