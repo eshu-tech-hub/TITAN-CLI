@@ -26,8 +26,8 @@ class RSI(PeriodIndicator):
             gains.append(max(change, 0))
             losses.append(abs(min(change, 0)))
 
-        avg_gain = sum(gains[-self.period:]) / self.period
-        avg_loss = sum(losses[-self.period:]) / self.period
+        avg_gain = sum(gains[-self.period :]) / self.period
+        avg_loss = sum(losses[-self.period :]) / self.period
 
         if avg_loss == 0:
             value = 100.0

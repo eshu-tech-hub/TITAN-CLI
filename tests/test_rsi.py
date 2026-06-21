@@ -23,9 +23,7 @@ def make_series(prices):
 
 
 def test_rsi_returns_float():
-    series = make_series(
-        [44, 45, 46, 44, 43, 45, 48, 50, 49, 51, 53, 55, 54, 56, 58]
-    )
+    series = make_series([44, 45, 46, 44, 43, 45, 48, 50, 49, 51, 53, 55, 54, 56, 58])
 
     indicator = RSI(period=14)
     result = indicator.calculate(series)
@@ -34,9 +32,7 @@ def test_rsi_returns_float():
 
 
 def test_rsi_range():
-    series = make_series(
-        [44, 45, 46, 44, 43, 45, 48, 50, 49, 51, 53, 55, 54, 56, 58]
-    )
+    series = make_series([44, 45, 46, 44, 43, 45, 48, 50, 49, 51, 53, 55, 54, 56, 58])
 
     indicator = RSI(period=14)
     result = indicator.calculate(series)

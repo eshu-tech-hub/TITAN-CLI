@@ -26,3 +26,17 @@ titan = "titan.cli:app"
 
 [tool.setuptools]
 packages = ["titan"]
+
+
+[tool.black]
+line-length = 88
+target-version = ["py314"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.14"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true

@@ -48,6 +48,7 @@ def version():
         logger.exception(e)
         console.print("[bold red]Unexpected error occurred.[/bold red]")
 
+
 @app.command("status")
 def status():
     """Display TITAN status."""
@@ -64,6 +65,7 @@ def indicators():
 
     for name in IndicatorFactory.available():
         print(f"• {name}")
+
 
 @app.command("doctor")
 def doctor():
