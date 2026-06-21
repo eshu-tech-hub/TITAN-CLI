@@ -1,33 +1,36 @@
-from typing import Any
-
-from titan.broker.base import BrokerBase
+from titan.broker.base import Broker
 from titan.core.logger import logger
+from titan.market.series import MarketDataSeries
 
 
-class AngelOneBroker(BrokerBase):
+class AngelOneBroker(Broker):
     """
-    Angel One Broker Adapter.
+    Angel One broker implementation.
     """
 
     def __init__(self) -> None:
-        self._logged_in = False
+        self._authenticated = False
 
-    def login(self) -> bool:
+    def login(self) -> None:
         logger.info("Angel One login requested.")
-        return False
+        self._authenticated = True
 
-    def logout(self) -> bool:
+    def logout(self) -> None:
         logger.info("Angel One logout requested.")
-        self._logged_in = False
-        return True
+        self._authenticated = False
 
-    def is_logged_in(self) -> bool:
-        return self._logged_in
+    def is_authenticated(self) -> bool:
+        return self._authenticated
 
-    def get_profile(self) -> dict[str, Any]:
-        logger.info("Fetching profile.")
-        return {}
-
-    def get_quote(self, symbol: str) -> dict[str, Any]:
-        logger.info(f"Fetching quote for {symbol}")
-        return {}
+    def get_history(
+        self,
+        symbol: str,
+        timeframe: str,
+        limit: int,
+    ) -> MarketDataSeries:
+        logger.info(
+            f"History requested: {symbol} {timeframe} ({limit} candles)"
+        )
+        raise NotImplementedError(
+            "SmartAPI integration will be implemented in Sprint 3."
+        )

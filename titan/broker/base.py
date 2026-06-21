@@ -1,33 +1,30 @@
 from abc import ABC, abstractmethod
-from typing import Any
+
+from titan.market.series import MarketDataSeries
 
 
-class BrokerBase(ABC):
+class Broker(ABC):
     """
-    Abstract base class for all broker implementations.
+    Abstract broker interface.
     """
 
     @abstractmethod
-    def login(self) -> bool:
-        """Authenticate with the broker."""
-        raise NotImplementedError
+    def login(self) -> None:
+        """Authenticate with broker."""
 
     @abstractmethod
-    def logout(self) -> bool:
-        """Terminate the broker session."""
-        raise NotImplementedError
+    def logout(self) -> None:
+        """Logout from broker."""
 
     @abstractmethod
-    def is_logged_in(self) -> bool:
-        """Return True if an active session exists."""
-        raise NotImplementedError
+    def is_authenticated(self) -> bool:
+        """Return authentication state."""
 
     @abstractmethod
-    def get_profile(self) -> dict[str, Any]:
-        """Return the authenticated user's profile."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_quote(self, symbol: str) -> dict[str, Any]:
-        """Fetch the latest market quote."""
-        raise NotImplementedError
+    def get_history(
+        self,
+        symbol: str,
+        timeframe: str,
+        limit: int,
+    ) -> MarketDataSeries:
+        """Fetch historical candles."""
