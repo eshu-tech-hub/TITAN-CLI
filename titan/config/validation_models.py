@@ -38,3 +38,50 @@ class ConfigurationReport:
     @property
     def recommendations(self) -> List[ValidationResult]:
         return [r for r in self.results if r.level == ValidationLevel.INFO]
+
+
+class ValidationSeverity(str, Enum):
+    """Severity level of a validation issue."""
+
+    INFO = "info"
+    WARNING = "warning"
+    CRITICAL = "critical"
+
+
+@dataclass(frozen=True, slots=True)
+class ValidationIssue:
+    """A single issue detected during validation."""
+
+    component: str
+    severity: ValidationSeverity
+    message: str
+
+
+@dataclass(frozen=True, slots=True)
+class ValidationReport:
+    """Immutable report containing all pre-flight check results."""
+
+    issues: tuple[ValidationIssue, ...] = field(default_factory=tuple)
+
+    @property
+    def is_valid(self) -> bool:
+        """Return False if there are any CRITICAL issues."""
+        return not any(
+            issue.severity == ValidationSeverity.CRITICAL for issue in self.issues
+        )
+
+    @property
+    def critical_issues(self) -> tuple[ValidationIssue, ...]:
+        return tuple(
+            issue
+            for issue in self.issues
+            if issue.severity == ValidationSeverity.CRITICAL
+        )
+
+    @property
+    def warnings(self) -> tuple[ValidationIssue, ...]:
+        return tuple(
+            issue
+            for issue in self.issues
+            if issue.severity == ValidationSeverity.WARNING
+        )

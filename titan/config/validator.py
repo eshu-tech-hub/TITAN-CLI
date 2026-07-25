@@ -3,6 +3,15 @@ from __future__ import annotations
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
+import os
+import sys
+
+from titan.config.validation_models import (
+    ValidationIssue,
+    ValidationReport,
+    ValidationSeverity,
+)
+from titan.core.config import get_settings
 
 from titan.config.models import (
     BrokerProvider,
@@ -201,3 +210,79 @@ def _type_name(expected: type | tuple[type, ...]) -> str:
     if isinstance(expected, tuple):
         return " or ".join(t.__name__ for t in expected)
     return expected.__name__
+
+
+class ConfigurationValidator:
+    """Performs deterministic checks on the TITAN operational environment."""
+
+    def validate_all(self) -> ValidationReport:
+        """Run all configured validation checks."""
+        issues: list[ValidationIssue] = []
+        issues.extend(self.validate_environment())
+        issues.extend(self.validate_directories())
+        issues.extend(self.validate_broker_config())
+        return ValidationReport(issues=tuple(issues))
+
+    def validate_environment(self) -> list[ValidationIssue]:
+        """Check for correct Python versions and core environment requirements."""
+        issues: list[ValidationIssue] = []
+        # TITAN strictly requires Python 3.14+
+        if sys.version_info < (3, 14):
+            issues.append(
+                ValidationIssue(
+                    component="Environment",
+                    severity=ValidationSeverity.CRITICAL,
+                    message=f"Python 3.14+ required. Found {sys.version_info[0]}.{sys.version_info[1]}",
+                )
+            )
+        return issues
+
+    def validate_directories(self) -> list[ValidationIssue]:
+        """Verify that necessary data and log directories exist and are writable."""
+        issues: list[ValidationIssue] = []
+        for dir_name in ["data", "logs"]:
+            path = Path(dir_name)
+            if not path.exists():
+                issues.append(
+                    ValidationIssue(
+                        component="FileSystem",
+                        severity=ValidationSeverity.WARNING,
+                        message=f"Directory '{dir_name}' is missing and should be created.",
+                    )
+                )
+            elif not os.access(path, os.W_OK):
+                issues.append(
+                    ValidationIssue(
+                        component="FileSystem",
+                        severity=ValidationSeverity.CRITICAL,
+                        message=f"Directory '{dir_name}' is not writable.",
+                    )
+                )
+        return issues
+
+    def validate_broker_config(self) -> list[ValidationIssue]:
+        """Verify broker keys exist if not running in paper trading mode."""
+        issues: list[ValidationIssue] = []
+        try:
+            settings = get_settings()
+            provider = getattr(settings, "broker", "paper").lower()
+
+            if provider != "paper":
+                api_key = os.getenv("TITAN_BROKER_API_KEY", "")
+                if not api_key:
+                    issues.append(
+                        ValidationIssue(
+                            component="Broker",
+                            severity=ValidationSeverity.CRITICAL,
+                            message=f"TITAN_BROKER_API_KEY is missing for live provider '{provider}'.",
+                        )
+                    )
+        except Exception as e:
+            issues.append(
+                ValidationIssue(
+                    component="Configuration",
+                    severity=ValidationSeverity.CRITICAL,
+                    message=f"Failed to load settings during validation: {e}",
+                )
+            )
+        return issues
