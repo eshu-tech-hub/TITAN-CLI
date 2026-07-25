@@ -1051,3 +1051,40 @@ class PortfolioScreenState:
     drawdown: DrawdownAnalysis = field(default_factory=DrawdownAnalysis)
     performance: PortfolioPerformance = field(default_factory=PortfolioPerformance)
     last_refresh: str = ""
+
+
+# ─── Strategy Intelligence Dashboard models ──────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class RegimePerformanceEntry:
+    """Snapshot of a strategy's performance in a specific regime."""
+
+    regime: str = ""
+    trades: int = 0
+    win_rate: str = "0.0%"
+    profit_factor: str = "0.00"
+    net_pnl: str = "₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class StrategyScorecardInfo:
+    """Snapshot of a strategy's overall evaluation."""
+
+    strategy_name: str = ""
+    total_trades: int = 0
+    win_rate: str = "0.0%"
+    profit_factor: str = "0.00"
+    expectancy: str = "0.00R"
+    net_pnl: str = "₹0"
+    max_drawdown: str = "₹0"
+    regimes: tuple[RegimePerformanceEntry, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class StrategyEvalScreenState:
+    """Complete snapshot for the Strategy Intelligence screen."""
+
+    best_strategy: str = ""
+    scorecards: tuple[StrategyScorecardInfo, ...] = ()
+    last_refresh: str = ""

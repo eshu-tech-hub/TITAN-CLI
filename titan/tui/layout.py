@@ -2218,3 +2218,61 @@ def build_replay_state(entry_id: str | None = None) -> "ReplayScreenState":
         metadata=metadata,
         last_refresh=datetime.now().strftime("%H:%M:%S"),
     )
+
+
+# ─── Strategy Evaluation state builder ──────────────────────────────
+
+
+def build_strategy_eval_state() -> "StrategyEvalScreenState":
+    """Build StrategyEvalScreenState by reading the historical journal (read-only)."""
+    from titan.tui.models import (
+        StrategyEvalScreenState,
+        StrategyScorecardInfo,
+        RegimePerformanceEntry,
+    )
+    from titan.cli.common import get_runtime_engine
+    from titan.backtesting.evaluation import StrategyEvaluator
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.trade_journal.repository.list(page=1, page_size=100000)
+
+        evaluator = StrategyEvaluator()
+        report = evaluator.evaluate_trades(entries)
+
+        scorecards = []
+        for strat in report.strategies:
+            regimes = tuple(
+                RegimePerformanceEntry(
+                    regime=r.regime,
+                    trades=r.total_trades,
+                    win_rate=f"{r.win_rate * 100:.1f}%",
+                    profit_factor=f"{r.profit_factor:.2f}",
+                    net_pnl=f"₹{r.net_pnl:,.2f}",
+                )
+                for r in strat.regime_breakdown.values()
+            )
+
+            scorecards.append(
+                StrategyScorecardInfo(
+                    strategy_name=strat.strategy_name,
+                    total_trades=strat.total_trades,
+                    win_rate=f"{strat.win_rate * 100:.1f}%",
+                    profit_factor=f"{strat.profit_factor:.2f}",
+                    expectancy=f"{strat.expectancy:.2f}R",
+                    net_pnl=f"₹{strat.net_pnl:,.2f}",
+                    max_drawdown=f"₹{strat.max_drawdown:,.2f}",
+                    regimes=regimes,
+                )
+            )
+
+        return StrategyEvalScreenState(
+            best_strategy=report.overall_best_strategy,
+            scorecards=tuple(scorecards),
+            last_refresh=now,
+        )
+    except Exception:
+        return StrategyEvalScreenState(last_refresh=now)
