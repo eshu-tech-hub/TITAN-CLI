@@ -12,6 +12,9 @@ from typing import TYPE_CHECKING, Any
 
 from textual.app import App
 
+if TYPE_CHECKING:
+    from titan.tui.models import StrategyEvalScreenState
+
 from titan.tui.models import (
     AccountInfo,
     BrokerStatusInfo,
