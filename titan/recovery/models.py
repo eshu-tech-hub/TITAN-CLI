@@ -26,6 +26,8 @@ class RecoveryStrategy(str, Enum):
     FAILOVER = "failover"
     SHUTDOWN = "shutdown"
     ESCALATE = "escalate"
+    RESTART_COMPONENT = "restart_component"
+    RESTART_RUNTIME = "restart_runtime"
 
 
 class RecoveryLevel(int, Enum):
@@ -182,3 +184,16 @@ class ShutdownPlan:
     close_broker_sessions: bool = True
     flush_logs: bool = True
     cancel_workers: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class RecoveryHistoryEntry:
+    """Immutable record of a recovery action."""
+
+    request_id: str
+    component: str
+    strategy: RecoveryStrategy
+    status: RecoveryStatus
+    total_attempts: int
+    failure_reason: str
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

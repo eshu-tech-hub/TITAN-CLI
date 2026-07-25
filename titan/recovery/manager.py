@@ -20,6 +20,7 @@ from titan.recovery.models import (
     RecoveryStrategy,
     RecoveryLevel,
     RetryPolicy,
+    RecoveryHistoryEntry,
 )
 from titan.recovery.reconnect import BrokerReconnector
 from titan.recovery.retry import RetryEngine
@@ -42,6 +43,14 @@ class RecoveryManager:
         default_factory=lambda: datetime.now(timezone.utc), init=False
     )
     _lock: Lock = field(default_factory=Lock, init=False)
+
+    # Escalating Recovery Support
+    max_retries: int = 2
+    max_restarts: int = 1
+    _failures: dict[str, int] = field(default_factory=dict, init=False)
+    _escalation_history: list[RecoveryHistoryEntry] = field(
+        default_factory=list, init=False
+    )
 
     def __post_init__(self) -> None:
         self._health_recovery.set_recovery_trigger(self._auto_recovery)
@@ -357,3 +366,60 @@ class RecoveryManager:
             self._reconnect.reset()
             self._recovery_history.clear()
             self._start_time = datetime.now(timezone.utc)
+            self._failures.clear()
+            self._escalation_history.clear()
+
+    def handle_failure(self, component: str, reason: str) -> RecoveryStrategy:
+        """
+        Determine the appropriate recovery strategy based on failure history.
+        Increments the failure count for the specified component.
+        """
+        import uuid
+        from titan.core.logger import logger
+
+        with self._lock:
+            current_failures = self._failures.get(component, 0) + 1
+            self._failures[component] = current_failures
+
+            if current_failures <= self.max_retries:
+                strategy = RecoveryStrategy.RETRY
+            elif current_failures <= self.max_retries + self.max_restarts:
+                strategy = RecoveryStrategy.RESTART_COMPONENT
+            elif current_failures <= self.max_retries + self.max_restarts + 1:
+                strategy = RecoveryStrategy.RESTART_RUNTIME
+            else:
+                strategy = RecoveryStrategy.SHUTDOWN
+
+            entry = RecoveryHistoryEntry(
+                request_id=str(uuid.uuid4()),
+                component=component,
+                strategy=strategy,
+                status=RecoveryStatus.IN_PROGRESS,
+                total_attempts=current_failures,
+                failure_reason=reason,
+            )
+            self._escalation_history.append(entry)
+
+        logger.warning(
+            f"[RecoveryManager] Escalating {component} to {strategy.value.upper()} "
+            f"(Attempt {current_failures}) - Reason: {reason}"
+        )
+        return strategy
+
+    def mark_recovered(self, component: str) -> None:
+        """
+        Clear the failure count for a component upon successful recovery.
+        """
+        from titan.core.logger import logger
+
+        with self._lock:
+            if component in self._failures:
+                del self._failures[component]
+                logger.info(
+                    f"[RecoveryManager] Component '{component}' successfully recovered."
+                )
+
+    def get_escalation_history(self) -> tuple[RecoveryHistoryEntry, ...]:
+        """Return a read-only snapshot of the escalation history."""
+        with self._lock:
+            return tuple(self._escalation_history)
