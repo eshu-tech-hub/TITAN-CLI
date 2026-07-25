@@ -1,78 +1,39 @@
-from dataclasses import dataclass
+"""Synchronous heartbeat registry for component liveness tracking."""
+
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import Dict, Optional
-
-
-@dataclass(slots=True)
-class SubsystemHeartbeat:
-    """Tracks the heartbeat status of a single subsystem."""
-
-    last_heartbeat: datetime
-    missed_count: int = 0
-    is_healthy: bool = True
+from typing import Dict, List
 
 
 class HeartbeatRegistry:
-    """
-    Centralized registry for subsystem heartbeats.
-    Subsystems call `touch()` to assert liveness.
-    The RuntimeSupervisor synchronously evaluates this registry.
-    """
+    """Deterministic registry for component check-ins without background threads."""
 
     def __init__(self, timeout_seconds: float = 30.0) -> None:
         self.timeout_seconds = timeout_seconds
-        self._heartbeats: Dict[str, SubsystemHeartbeat] = {}
+        self._beats: Dict[str, datetime] = {}
+
+    def register(self, component: str) -> None:
+        """Register a component for heartbeat tracking."""
+        self._beats[component] = datetime.now(timezone.utc)
 
     def touch(self, component: str) -> None:
-        """Record a manual heartbeat for the given component."""
-        now = datetime.now(timezone.utc)
-        if component not in self._heartbeats:
-            self._heartbeats[component] = SubsystemHeartbeat(last_heartbeat=now)
+        """Update the last active timestamp for a registered component."""
+        # Auto-register if not present to match the engine's lazy usage pattern
+        if component not in self._beats:
+            self.register(component)
         else:
-            hb = self._heartbeats[component]
-            hb.last_heartbeat = now
-            hb.missed_count = 0
-            hb.is_healthy = True
+            self._beats[component] = datetime.now(timezone.utc)
 
-    def evaluate_health(self) -> dict[str, str]:
-        """
-        Evaluate the health of all registered subsystems.
-        Returns a dictionary mapping component name to its status ("healthy", "degraded", "dead").
-        """
+    def get_dead_components(self) -> List[str]:
+        """Identify components that have not checked in within the timeout window."""
         now = datetime.now(timezone.utc)
-        status_report = {}
+        dead = []
+        for comp, last_beat in self._beats.items():
+            if (now - last_beat).total_seconds() > self.timeout_seconds:
+                dead.append(comp)
+        return dead
 
-        for component, hb in self._heartbeats.items():
-            elapsed = (now - hb.last_heartbeat).total_seconds()
-
-            if elapsed > self.timeout_seconds:
-                hb.missed_count += 1
-                hb.is_healthy = False
-
-                if hb.missed_count > 3:
-                    status_report[component] = "dead"
-                else:
-                    status_report[component] = "degraded"
-            else:
-                hb.is_healthy = True
-                status_report[component] = "healthy"
-
-        return status_report
-
-    def get_last_heartbeat(self, component: str) -> Optional[datetime]:
-        """Get the last heartbeat timestamp for a component."""
-        if component in self._heartbeats:
-            return self._heartbeats[component].last_heartbeat
-        return None
-
-    def get_missed_count(self, component: str) -> int:
-        """Get the number of missed heartbeats for a component."""
-        if component in self._heartbeats:
-            return self._heartbeats[component].missed_count
-        return 0
-
-    def is_healthy(self, component: str) -> bool:
-        """Check if a specific component is healthy."""
-        if component in self._heartbeats:
-            return self._heartbeats[component].is_healthy
-        return False
+    def clear(self) -> None:
+        """Clear all registered heartbeats."""
+        self._beats.clear()

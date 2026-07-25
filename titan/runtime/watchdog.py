@@ -20,9 +20,5 @@ class Watchdog:
         Returns a dictionary mapping anomalous component names to their status
         (e.g., 'degraded', 'dead'). Returns an empty dict if all is well.
         """
-        report = self.registry.evaluate_health()
-        return {
-            component: status
-            for component, status in report.items()
-            if status != "healthy"
-        }
+        dead = self.registry.get_dead_components()
+        return {component: "dead" for component in dead}

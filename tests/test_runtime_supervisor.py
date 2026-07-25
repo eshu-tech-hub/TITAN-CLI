@@ -1,47 +1,48 @@
-from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock
+import time
+import pytest
 
-from titan.recovery.manager import RecoveryManager
-from titan.recovery.models import RecoveryLevel
+from titan.runtime.exceptions import RuntimeError
+from titan.runtime.heartbeat import HeartbeatRegistry
 from titan.runtime.supervisor import RuntimeSupervisor
 
 
-def test_heartbeat_registry_touch_and_evaluate():
+def test_heartbeat_registry_registration_and_touch():
+    """Verify that touching components prevents them from being flagged as dead."""
+    registry = HeartbeatRegistry(timeout_seconds=5.0)
+    registry.register("pipeline")
+
+    assert len(registry.get_dead_components()) == 0
+
+    registry.touch("pipeline")
+    assert len(registry.get_dead_components()) == 0
+
+
+def test_heartbeat_registry_timeout():
+    """Verify that elapsed time triggers a dead component detection."""
+    registry = HeartbeatRegistry(timeout_seconds=0.1)
+    registry.register("broker")
+
+    time.sleep(0.15)
+    dead = registry.get_dead_components()
+    assert "broker" in dead
+
+
+def test_supervisor_evaluation_healthy():
+    """Ensure the supervisor evaluates healthy components without raising exceptions."""
     supervisor = RuntimeSupervisor()
+    supervisor.touch("scheduler")
 
-    # Simulate a subsystem touching the registry
-    supervisor.touch("pipeline")
-    assert supervisor.registry.is_healthy("pipeline")
-
-    # Evaluate immediately, should still be healthy
+    # Should safely pass
     supervisor.evaluate()
-    assert supervisor.registry.is_healthy("pipeline")
-
-    # Simulate time passing by manipulating the last heartbeat
-    old_time = datetime.now(timezone.utc) - timedelta(seconds=40)
-    supervisor.registry._heartbeats["pipeline"].last_heartbeat = old_time
-
-    # Now it should be degraded
-    supervisor.evaluate()
-    assert not supervisor.registry.is_healthy("pipeline")
-    assert supervisor.registry.get_missed_count("pipeline") == 1
 
 
-def test_watchdog_timeout_escalation():
-    recovery_manager = MagicMock(spec=RecoveryManager)
-    supervisor = RuntimeSupervisor(recovery_manager=recovery_manager)
+def test_supervisor_evaluation_unhealthy():
+    """Ensure the supervisor raises a deterministic RuntimeError on watchdog timeout."""
+    registry = HeartbeatRegistry(timeout_seconds=0.01)
+    supervisor = RuntimeSupervisor(registry=registry)
 
-    # Make it dead by missing 4 heartbeats
-    old_time = datetime.now(timezone.utc) - timedelta(seconds=40)
-    supervisor.touch("pipeline")
+    supervisor.touch("stream")
+    time.sleep(0.05)
 
-    for _ in range(4):
-        supervisor.registry._heartbeats["pipeline"].last_heartbeat = old_time
+    with pytest.raises(RuntimeError, match="Watchdog timeout"):
         supervisor.evaluate()
-
-    # The coordinator should have requested RESTART_SUBSYSTEM because it hit dead
-    recovery_manager.execute.assert_called_with(
-        RecoveryLevel.RESTART_SUBSYSTEM,
-        "pipeline",
-        {"reason": "component_dead", "attempt": 1},
-    )
