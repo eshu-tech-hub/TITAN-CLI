@@ -602,3 +602,89 @@ def list_backtests(
         return
 
     _print_backtest_list()
+
+
+@app.command("evaluate")
+def evaluate(
+    strategy: str = typer.Argument(
+        None, help="Specific strategy name to evaluate. Evaluates all if omitted."
+    ),
+    json_output: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+):
+    """Evaluate historical strategy performance and regime breakdown."""
+    try:
+        from titan.cli.common import get_runtime_engine
+        from titan.backtesting.evaluation import StrategyEvaluator
+
+        # Extract historical entries from the central repository
+        engine = get_runtime_engine()
+        entries = engine.trade_journal.repository.list(page=1, page_size=100000)
+
+        evaluator = StrategyEvaluator()
+        report = evaluator.evaluate_trades(entries)
+
+        if json_output:
+            import dataclasses
+            import json
+
+            def default_serializer(o):
+                if hasattr(o, "isoformat"):
+                    return o.isoformat()
+                return str(o)
+
+            console.print(
+                json.dumps(
+                    dataclasses.asdict(report), default=default_serializer, indent=2
+                )
+            )
+            return
+
+        if not report.strategies:
+            console.print(
+                "[yellow]No strategies found in the historical journal.[/yellow]"
+            )
+            return
+
+        for strat in report.strategies:
+            if strategy and strat.strategy_name.lower() != strategy.lower():
+                continue
+
+            # Core Performance Table
+            table = Table(
+                title=f"Strategy Scorecard: {strat.strategy_name}", show_header=False
+            )
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+
+            table.add_row("Total Trades", str(strat.total_trades))
+            table.add_row("Win Rate", f"{strat.win_rate * 100:.1f}%")
+            table.add_row("Profit Factor", f"{strat.profit_factor:.2f}")
+            table.add_row("Expectancy", f"{strat.expectancy:.2f}")
+            table.add_row("Net PnL", f"₹{strat.net_pnl:,.2f}")
+            table.add_row("Max Drawdown", f"₹{strat.max_drawdown:,.2f}")
+
+            console.print(table)
+
+            # Regime Breakdown Table
+            if strat.regime_breakdown:
+                regime_table = Table(title=f"{strat.strategy_name} - Regime Breakdown")
+                regime_table.add_column("Market Regime", style="magenta")
+                regime_table.add_column("Trades", justify="right")
+                regime_table.add_column("Win Rate", justify="right")
+                regime_table.add_column("Profit Factor", justify="right")
+                regime_table.add_column("Net PnL", justify="right", style="green")
+
+                for regime, perf in sorted(strat.regime_breakdown.items()):
+                    regime_table.add_row(
+                        regime,
+                        str(perf.total_trades),
+                        f"{perf.win_rate * 100:.1f}%",
+                        f"{perf.profit_factor:.2f}",
+                        f"₹{perf.net_pnl:,.2f}",
+                    )
+                console.print(regime_table)
+                console.print()
+
+    except Exception as e:
+        console.print(f"[bold red]Error during strategy evaluation:[/bold red] {e}")
+        raise typer.Exit(1)
