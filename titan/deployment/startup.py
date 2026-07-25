@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import time
+import signal
+import sys
 from typing import Any, Callable
 
 from titan.deployment.models import (
@@ -8,6 +10,9 @@ from titan.deployment.models import (
     StartupReport,
     StartupStep,
 )
+from titan.core.readiness import ProductionReadinessReview
+from titan.runtime.runtime import RuntimeEngine
+from titan.core.logger import logger
 
 
 class StartupManager:
@@ -103,6 +108,42 @@ def build_default_steps() -> list[tuple[str, Callable[[], Any]]]:
         ("initialize_runtime", _step_initialize_runtime),
     ]
     return steps
+
+
+class ProductionBootstrapper:
+    """Orchestrates the secure startup and graceful shutdown of TITAN."""
+
+    def __init__(self, engine: RuntimeEngine) -> None:
+        self.engine = engine
+        self._setup_signals()
+
+    def _setup_signals(self) -> None:
+        """Capture OS signals to ensure graceful shutdown in Docker/systemd environments."""
+        signal.signal(signal.SIGINT, self._handle_termination)
+        signal.signal(signal.SIGTERM, self._handle_termination)
+
+    def _handle_termination(self, signum: int, frame: Any) -> None:
+        """Intercept termination signals and safely spin down the runtime."""
+        logger.warning(f"OS Signal {signum} received. Initiating graceful shutdown...")
+        if self.engine and self.engine.is_running:
+            self.engine.stop()
+        sys.exit(0)
+
+    def boot(self) -> None:
+        """Execute strict pre-flight checks and hand over to the RuntimeEngine."""
+        logger.info("Initializing TITAN Production Boot Sequence...")
+
+        # 1. Strict Pre-flight Gatekeeper
+        readiness = ProductionReadinessReview()
+        readiness.run_pre_flight_checks()
+
+        # 2. Handoff to Runtime
+        logger.info("Readiness checks passed. Booting Runtime Engine.")
+        try:
+            self.engine.start()
+        except Exception as e:
+            logger.critical(f"Catastrophic runtime failure: {e}")
+            sys.exit(1)
 
 
 def _step_validate_configuration() -> None:
