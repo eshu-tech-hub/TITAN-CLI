@@ -1,0 +1,4770 @@
+=== TITAN ARCHITECTURE TREE ===
+
+./
+    .env
+    .env.example
+    .gitignore
+    AGENTS.md
+    audit_exporter.py
+    CHANGELOG.md
+    generate_doc.py
+    LICENSE
+    mypy_out.txt
+    pyproject.toml
+    README.md
+    RELEASE_NOTES.md
+    runtime_daemon.log
+    titan_audit_export.txt
+    titan_full_audit_export -1.txt
+    VERSION
+    .agents/
+    data/
+    docker/
+        .dockerignore
+        docker-compose.yml
+        Dockerfile
+    docs/
+        ALERTING.md
+        ARCHITECTURE_AUDIT.md
+        ARCHITECTURE_CERTIFICATION.md
+        AUDIT_COMPLIANCE.md
+        BACKTESTING_ENGINE.md
+        BREADTH_INTELLIGENCE.md
+        BROKER_ABSTRACTION.md
+        BROKER_CERTIFICATION.md
+        BROKER_COMPLIANCE.md
+        BROKER_ORDER_CERTIFICATION.md
+        BURN_IN_REPORT.md
+        CHARM_EXPOSURE.md
+        CLI_REFERENCE.md
+        CODE_QUALITY_REPORT.md
+        CONFIGURATION.md
+        DEALER_POSITIONING.md
+        DECISION_ENGINE.md
+        DEPENDENCY_AUDIT.md
+        DEPLOYMENT.md
+        DOCUMENTATION_INDEX.md
+        DOCUMENTATION_REPORT.md
+        END_TO_END_VALIDATION.md
+        EVENT_INTELLIGENCE.md
+        EVIDENCE_ENGINE.md
+        EXECUTION_ORCHESTRATOR.md
+        EXECUTION_RECONCILIATION.md
+        FINAL_ARCHITECTURE_REVIEW.md
+        GAMMA_EXPOSURE.md
+        GREEKS_INTELLIGENCE.md
+        INSTALLATION.md
+        INTELLIGENCE_FUSION.md
+        LIQUIDITY_INTELLIGENCE.md
+        LIVE_RUNTIME.md
+        LOGGING_FRAMEWORK.md
+        MARKET_DATA.md
+        MONITORING.md
+        OPEN_INTEREST.md
+        OPERATIONAL_EXCELLENCE.md
+        OPERATIONS.md
+        OPERATIONS_CERTIFICATION.md
+        OPTION_ANALYTICS.md
+        OPTION_CHAIN_INTELLIGENCE.md
+        ORDER_MANAGEMENT.md
+        PAPER_TRADING.md
+        PAPER_TRADING_CERTIFICATION.md
+        PERFORMANCE_ANALYTICS.md
+        PERFORMANCE_BASELINE.md
+        PERFORMANCE_REPORT.md
+        PORTFOLIO_ANALYTICS.md
+        PRODUCTION.md
+        PRODUCTION_READINESS_CERTIFICATE.md
+        RECOVERY.md
+        RELEASE_CERTIFICATION.md
+        RELIABILITY_REPORT.md
+        RISK_INTELLIGENCE.md
+        RUNTIME_SERVICE.md
+        SECURITY_AUDIT.md
+        STRESS_TEST_REPORT.md
+        TEST_CERTIFICATION.md
+        TRADE_JOURNAL.md
+        TRADE_LIFECYCLE.md
+        TRADE_PIPELINE.md
+        TRADE_QUALIFICATION.md
+        TUI.md
+        VALIDATION.md
+        VANNA_EXPOSURE.md
+        VOLATILITY_INTELLIGENCE.md
+        VOLATILITY_SKEW.md
+        VOLATILITY_SMILE.md
+        VOLATILITY_SURFACE.md
+        VOLATILITY_SURFACE_INTELLIGENCE.md
+        VOLATILITY_TERM_STRUCTURE.md
+        VOLUME_INTELLIGENCE.md
+        VWAP_INTELLIGENCE.md
+        adr/
+            ADR-001-Term-Structure.md
+            ADR-002-Volatility-Surface.md
+            ADR-003-Dealer-Positioning.md
+            ADR-004-Gamma-Exposure.md
+            ADR-005-Vanna-Exposure.md
+            ADR-006-Charm-Exposure.md
+            ADR-008-VWAP-Intelligence.md
+            ADR-009-Volume-Intelligence.md
+            ADR-010-Breadth-Intelligence.md
+            ADR-012-Event-Intelligence.md
+            ADR-014-Trade-Qualification.md
+            ADR-015-Risk-Intelligence.md
+            ADR-016-Decision-Engine.md
+            ADR-018-Broker-Abstraction.md
+            ADR-019-Order-Management.md
+            ADR-021-Execution-Orchestrator.md
+            ADR-022-Trade-Pipeline.md
+            ADR-023-Paper-Trading.md
+            ADR-024-Backtesting-Engine.md
+            ADR-025-Live-Runtime.md
+            ADR-026-Configuration-System.md
+            ADR-027-Logging-Framework.md
+            ADR-028-Monitoring-Telemetry.md
+            ADR-029-Alerting-Engine.md
+            ADR-030-Recovery-Fault-Tolerance.md
+            ADR-031-Audit-Compliance.md
+            ADR-032-Deployment-Platform.md
+            ADR-033-CLI-Foundation.md
+            ADR-034-TUI.md
+            ADR-035-Runtime-Reliability.md
+            ADR-036-Recovery-Framework.md
+            ADR-037-Configuration-Validation.md
+            ADR-038-Production-Readiness.md
+    pilot/
+        BUG_TRACKER.md
+        DAILY_CHECKLIST.md
+        DAILY_SUMMARY.md
+        INCIDENT_LOG.md
+        PERFORMANCE_LOG.md
+        WEEKLY_REVIEW.md
+    scripts/
+        backup.sh
+        healthcheck.ps1
+        healthcheck.sh
+        restart.ps1
+        restart.sh
+        restore.sh
+        start.ps1
+        start.sh
+        stop.ps1
+        stop.sh
+    systemd/
+        titan.service
+    tests/
+        test_ai_decision_engine.py
+        test_alerting.py
+        test_analysis_engine_integration.py
+        test_analysis_models.py
+        test_angelone_adapter.py
+        test_audit.py
+        test_backtesting.py
+        test_breadth_intelligence.py
+        test_broker_abstraction.py
+        test_broker_account_certification.py
+        test_broker_adapter_certification.py
+        test_broker_authentication.py
+        test_broker_certification_models.py
+        test_broker_certification_reports.py
+        test_broker_certification_runner.py
+        test_broker_certification_validator.py
+        test_broker_order_lifecycle.py
+        test_broker_recovery.py
+        test_charm_exposure.py
+        test_cli.py
+        test_cli_live.py
+        test_cli_monitor_alert.py
+        test_cli_operations.py
+        test_config.py
+        test_configuration_validators.py
+        test_dealer_positioning.py
+        test_decision_engine.py
+        test_decision_journal.py
+        test_decision_replay.py
+        test_deployment.py
+        test_e2e_paper_trading.py
+        test_ema.py
+        test_engine.py
+        test_event_intelligence.py
+        test_evidence_engine.py
+        test_execution.py
+        test_execution_orchestrator.py
+        test_factory.py
+        test_gamma_exposure.py
+        test_greeks_intelligence.py
+        test_indicator_base.py
+        test_intelligence_fusion.py
+        test_liquidity_intelligence.py
+        test_logging.py
+        test_market_data_foundation.py
+        test_market_options.py
+        test_market_regime.py
+        test_market_series.py
+        test_market_structure.py
+        test_models.py
+        test_monitoring.py
+        test_news_intelligence.py
+        test_open_interest_engine.py
+        test_option_analytics.py
+        test_option_chain_intelligence.py
+        test_paper_trading.py
+        test_performance.py
+        test_pipeline.py
+        test_portfolio_analytics.py
+        test_portfolio_intelligence.py
+        test_readiness.py
+        test_recovery.py
+        test_recovery_sequence.py
+        test_registry.py
+        test_report.py
+        test_risk_intelligence.py
+        test_rsi.py
+        test_runtime.py
+        test_runtime_supervisor.py
+        test_settings.py
+        test_skew_intelligence.py
+        test_sma.py
+        test_smartapi.py
+        test_smile_intelligence.py
+        test_surface_intelligence.py
+        test_term_structure_intelligence.py
+        test_trade_journal.py
+        test_trade_performance.py
+        test_trade_pipeline.py
+        test_trade_qualification.py
+        test_tui_audit.py
+        test_tui_configuration.py
+        test_tui_dashboard.py
+        test_tui_decision.py
+        test_tui_decision_replay.py
+        test_tui_live.py
+        test_tui_market.py
+        test_tui_monitor.py
+        test_tui_navigation.py
+        test_tui_paper.py
+        test_tui_portfolio.py
+        test_tui_runtime.py
+        test_tui_trade_journal.py
+        test_validation_fault_injection.py
+        test_validation_reports.py
+        test_validation_runner.py
+        test_validator.py
+        test_vanna_exposure.py
+        test_volatility_intelligence.py
+        test_volatility_surface.py
+        test_volume_intelligence.py
+        test_vwap_intelligence.py
+        __init__.py
+        helpers/
+            reconciliation.py
+            __init__.py
+        integration/
+            test_paper_runtime.py
+            test_runtime_detached.py
+            test_runtime_integration.py
+            test_runtime_scheduler.py
+            test_runtime_service.py
+            test_runtime_shutdown.py
+            test_runtime_status.py
+        mocks/
+            mock_broker.py
+            mock_broker_faulty.py
+            mock_broker_full.py
+            mock_broker_partial.py
+            mock_broker_rejecting.py
+            mock_broker_timeout.py
+            mock_fill_engines.py
+            __init__.py
+    titan/
+        __init__.py
+        __main__.py
+        ai/
+            decision_engine.py
+        alerting/
+            channels.py
+            engine.py
+            exceptions.py
+            history.py
+            manager.py
+            models.py
+            rules.py
+            __init__.py
+        analysis/
+            base.py
+            engine.py
+            factory.py
+            indicators.py
+            models.py
+            period_indicator.py
+            pipeline.py
+            registry.py
+            report.py
+            __init__.py
+            indicators/
+                ema.py
+                rsi.py
+                sma.py
+                __init__.py
+        audit/
+            event.py
+            exceptions.py
+            integrity.py
+            manager.py
+            models.py
+            query.py
+            storage.py
+            __init__.py
+        backtesting/
+            clock.py
+            dataset.py
+            engine.py
+            exceptions.py
+            metrics.py
+            models.py
+            replay.py
+            report.py
+            statistics.py
+            __init__.py
+        brokers/
+            broker.py
+            exceptions.py
+            factory.py
+            models.py
+            __init__.py
+            angelone/
+                account.py
+                adapter.py
+                auth.py
+                exceptions.py
+                history.py
+                mapper.py
+                market.py
+                orders.py
+                portfolio.py
+                __init__.py
+            certification/
+                adapters.py
+                models.py
+                report.py
+                runner.py
+                scenarios.py
+                validator.py
+                __init__.py
+        cli/
+            common.py
+            errors.py
+            exit_codes.py
+            formatting.py
+            __init__.py
+            commands/
+                alert.py
+                audit.py
+                backtest.py
+                broker.py
+                config.py
+                deployment.py
+                doctor.py
+                live.py
+                logs.py
+                monitor.py
+                paper.py
+                recovery.py
+                report.py
+                runtime.py
+                validate.py
+                __init__.py
+        config/
+            exceptions.py
+            loader.py
+            manager.py
+            models.py
+            profiles.py
+            secrets.py
+            settings.py
+            validation_models.py
+            validator.py
+            validators.py
+            __init__.py
+        core/
+            config.py
+            display.py
+            exceptions.py
+            logger.py
+            readiness.py
+            __init__.py
+            evidence/
+                aggregator.py
+                confidence.py
+                evidence.py
+                exceptions.py
+                models.py
+                score.py
+                __init__.py
+        decision/
+            decision.py
+            exceptions.py
+            journal.py
+            models.py
+            ranking.py
+            replay.py
+            selection.py
+            validation.py
+            __init__.py
+        deployment/
+            environment.py
+            exceptions.py
+            health.py
+            manager.py
+            models.py
+            service.py
+            startup.py
+            version.py
+            __init__.py
+        events/
+            calendar.py
+            corporate.py
+            credibility.py
+            entities.py
+            event.py
+            exceptions.py
+            impact.py
+            models.py
+            news.py
+            reaction.py
+            risk.py
+            sentiment.py
+            __init__.py
+        execution/
+            allocator.py
+            book.py
+            exceptions.py
+            execution.py
+            models.py
+            orchestrator.py
+            order.py
+            planner.py
+            router.py
+            state.py
+            validator.py
+            __init__.py
+        intelligence/
+            __init__.py
+            fusion/
+                exceptions.py
+                explanation.py
+                fusion.py
+                models.py
+                validator.py
+                weighting.py
+                __init__.py
+        logging/
+            context.py
+            exceptions.py
+            formatter.py
+            handlers.py
+            logger.py
+            manager.py
+            models.py
+            __init__.py
+        market/
+            exceptions.py
+            models.py
+            options.py
+            provider.py
+            series.py
+            service.py
+            timeframe.py
+            validator.py
+            __init__.py
+            intelligence/
+                accumulation_distribution.py
+                advance_decline.py
+                breadth.py
+                market_participation.py
+                market_regime.py
+                models.py
+                participation_regime.py
+                relative_volume.py
+                sector_breadth.py
+                strategy_suitability.py
+                structure.py
+                support_resistance.py
+                swing.py
+                trend.py
+                trend_regime.py
+                volume.py
+                volume_trend.py
+                vwap.py
+                vwap_bands.py
+                vwap_trend.py
+                __init__.py
+        monitoring/
+            collector.py
+            dashboard.py
+            exceptions.py
+            health.py
+            manager.py
+            metrics.py
+            models.py
+            telemetry.py
+            __init__.py
+        options/
+            __init__.py
+            analytics/
+                backwardation.py
+                base.py
+                buildup.py
+                butterfly.py
+                calendar.py
+                charm.py
+                charm_pressure.py
+                charm_regime.py
+                contango.py
+                dealer_bias.py
+                dealer_inventory.py
+                dealer_positioning.py
+                delta.py
+                depth.py
+                executability.py
+                gamma.py
+                gamma_walls.py
+                gex.py
+                greeks.py
+                hv.py
+                iv.py
+                iv_percentile.py
+                iv_rank.py
+                liquidity.py
+                max_pain.py
+                models.py
+                oi.py
+                option_chain.py
+                pcr.py
+                risk_reversal.py
+                sentiment.py
+                skew.py
+                slippage.py
+                smile.py
+                spread.py
+                strikes.py
+                support_resistance.py
+                surface.py
+                surface_anomalies.py
+                surface_consistency.py
+                surface_health.py
+                surface_intelligence.py
+                surface_models.py
+                term_structure.py
+                theta.py
+                vanna.py
+                vanna_pressure.py
+                vanna_regime.py
+                vega.py
+                volatility.py
+                volatility_regime.py
+                writing.py
+                zero_gamma.py
+                __init__.py
+        paper/
+            broker.py
+            exceptions.py
+            fills.py
+            journal.py
+            models.py
+            paper.py
+            performance.py
+            portfolio.py
+            positions.py
+            __init__.py
+        pipeline/
+            context.py
+            exceptions.py
+            hooks.py
+            models.py
+            pipeline.py
+            stages.py
+            __init__.py
+        portfolio/
+            allocation.py
+            analytics.py
+            correlation.py
+            exceptions.py
+            exposure.py
+            hedging.py
+            models.py
+            portfolio.py
+            positions.py
+            replay.py
+            replay_models.py
+            __init__.py
+        recovery/
+            backoff.py
+            checkpoint.py
+            circuit_breaker.py
+            exceptions.py
+            health_recovery.py
+            manager.py
+            models.py
+            reconnect.py
+            report.py
+            retry.py
+            shutdown.py
+            state.py
+            __init__.py
+        reporting/
+            service.py
+            __init__.py
+        risk/
+            allocation.py
+            exceptions.py
+            exposure.py
+            models.py
+            position.py
+            risk.py
+            stoploss.py
+            targets.py
+            __init__.py
+        runtime/
+            events.py
+            exceptions.py
+            health.py
+            heartbeat.py
+            local_transport.py
+            models.py
+            reliability.py
+            runtime.py
+            scheduler.py
+            service.py
+            stream.py
+            subscriptions.py
+            supervisor.py
+            transport.py
+            watchdog.py
+            __init__.py
+        trading/
+            confirmation.py
+            exceptions.py
+            factory.py
+            filters.py
+            journal.py
+            models.py
+            performance.py
+            qualification.py
+            scoring.py
+            __init__.py
+        tui/
+            layout.py
+            models.py
+            router.py
+            shell.py
+            theme.py
+            __init__.py
+            screens/
+                audit.py
+                configuration.py
+                dashboard.py
+                decision.py
+                decision_replay.py
+                help.py
+                live.py
+                market.py
+                monitor.py
+                paper.py
+                portfolio.py
+                portfolio_replay.py
+                runtime.py
+                trade_journal.py
+                __init__.py
+            widgets/
+                audit.py
+                configuration.py
+                decision.py
+                decision_replay.py
+                header.py
+                health_card.py
+                live.py
+                market.py
+                market_card.py
+                monitor.py
+                paper.py
+                portfolio.py
+                portfolio_replay.py
+                runtime.py
+                runtime_card.py
+                sidebar.py
+                status_bar.py
+                system_card.py
+                trade_journal.py
+                trading_card.py
+                __init__.py
+        validation/
+            fault_injection.py
+            metrics.py
+            performance.py
+            reports.py
+            runner.py
+            scenarios.py
+            stress.py
+            __init__.py
+    windows/
+        titan_service.py
+
+
+=== TARGETED FILE INSPECTION ===
+
+
+--- FILE: titan/portfolio/models.py ---
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Mapping
+
+from titan.core.evidence import Evidence
+
+
+class PortfolioScoreBand(str, Enum):
+    """Health band for the overall portfolio score (0 = best, 100 = worst)."""
+
+    EXCELLENT = "excellent"
+    GOOD = "good"
+    MODERATE = "moderate"
+    POOR = "poor"
+    CRITICAL = "critical"
+
+
+class CorrelationLevel(str, Enum):
+    """Correlation strength between portfolio positions."""
+
+    VERY_LOW = "very_low"
+    LOW = "low"
+    MODERATE = "moderate"
+    HIGH = "high"
+    EXTREME = "extreme"
+
+
+class HedgingAction(str, Enum):
+    """Recommended hedging action for the portfolio."""
+
+    NO_HEDGE_REQUIRED = "no_hedge_required"
+    REDUCE_EXPOSURE = "reduce_exposure"
+    INCREASE_HEDGE = "increase_hedge"
+    DIVERSIFY = "diversify"
+
+
+@dataclass(frozen=True, slots=True)
+class OpenPosition:
+    """A single open position in the portfolio.
+
+    Attributes:
+        symbol: Instrument symbol.
+        instrument_type: Type of instrument (underlying, option, etc.).
+        direction: Position direction (long/short/option_buying/option_selling).
+        quantity: Number of units/contracts held.
+        entry_price: Average entry price.
+        current_price: Current market price.
+        market_value: Current market value of the position.
+        pnl: Unrealised profit or loss.
+        sector: Asset sector classification.
+        weight: Position weight as fraction of total portfolio capital.
+        delta: Option delta (None for non-option positions).
+        gamma: Option gamma (None for non-option positions).
+        vega: Option vega (None for non-option positions).
+        theta: Option theta (None for non-option positions).
+    """
+
+    symbol: str
+    instrument_type: str
+    direction: str
+    quantity: int
+    entry_price: float
+    current_price: float
+    market_value: float
+    pnl: float = 0.0
+    sector: str = ""
+    weight: float = 0.0
+    delta: float | None = None
+    gamma: float | None = None
+    vega: float | None = None
+    theta: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ExistingPortfolio:
+    """The current portfolio state, supplied externally.
+
+    Attributes:
+        positions: Tuple of open positions.
+        total_capital: Total portfolio capital.
+        cash_reserve: Cash held in reserve.
+        name: Optional portfolio name.
+    """
+
+    positions: tuple[OpenPosition, ...] = field(default_factory=tuple)
+    total_capital: float = 0.0
+    cash_reserve: float = 0.0
+    name: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class PortfolioSnapshot:
+    """Current portfolio state derived by the PositionAnalyzer.
+
+    Attributes:
+        total_capital: Total portfolio capital.
+        cash_reserve: Cash held in reserve.
+        capital_used: Capital deployed in positions.
+        available_capital: Remaining deployable capital.
+        total_market_value: Sum of all position market values.
+        total_pnl: Aggregate unrealised P&L.
+        position_count: Number of open positions.
+        winning_positions: Number of positions with positive P&L.
+        losing_positions: Number of positions with negative P&L.
+        utilization: Capital used / total capital.
+    """
+
+    total_capital: float = 0.0
+    cash_reserve: float = 0.0
+    capital_used: float = 0.0
+    available_capital: float = 0.0
+    total_market_value: float = 0.0
+    total_pnl: float = 0.0
+    position_count: int = 0
+    winning_positions: int = 0
+    losing_positions: int = 0
+    utilization: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class PortfolioExposure:
+    """Aggregate portfolio Greeks and directional exposure.
+
+    Attributes:
+        net_delta: Sum of all position deltas.
+        net_gamma: Sum of all position gammas.
+        net_vega: Sum of all position vegas.
+        net_theta: Sum of all position thetas.
+        directional_bias: Net directional bias (positive = bullish, negative = bearish).
+        sector_concentration: Highest single-sector weight.
+        symbol_concentration: Highest single-symbol weight.
+    """
+
+    net_delta: float | None = None
+    net_gamma: float | None = None
+    net_vega: float | None = None
+    net_theta: float | None = None
+    directional_bias: float = 0.0
+    sector_concentration: float = 0.0
+    symbol_concentration: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class SectorExposure:
+    """Exposure breakdown by sector.
+
+    Attributes:
+        sector: Sector name.
+        total_value: Total market value in this sector.
+        weight: Sector weight as fraction of total capital.
+        position_count: Number of positions in this sector.
+    """
+
+    sector: str
+    total_value: float
+    weight: float
+    position_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class CorrelationAnalysis:
+    """Cross-position correlation assessment.
+
+    Attributes:
+        highly_correlated_pairs: Number of highly correlated position pairs.
+        duplicate_exposure: Whether duplicate exposure to the same symbol exists.
+        index_concentration: Whether the portfolio is concentrated in an index.
+        sector_correlation: Highest inter-sector correlation level.
+        overall_correlation_level: Aggregate correlation risk level.
+    """
+
+    highly_correlated_pairs: int = 0
+    duplicate_exposure: bool = False
+    index_concentration: bool = False
+    sector_correlation: CorrelationLevel = CorrelationLevel.LOW
+    overall_correlation_level: CorrelationLevel = CorrelationLevel.LOW
+
+
+@dataclass(frozen=True, slots=True)
+class HedgingRecommendation:
+    """Structured hedging recommendation.
+
+    Attributes:
+        action: Recommended hedging action.
+        reason: Human-readable reason for the recommendation.
+        suggested_instruments: Suggested hedging instruments.
+        max_cost: Maximum cost of the recommended hedge.
+    """
+
+    action: HedgingAction = HedgingAction.NO_HEDGE_REQUIRED
+    reason: str = ""
+    suggested_instruments: tuple[str, ...] = field(default_factory=tuple)
+    max_cost: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class PortfolioDecisionContext:
+    """Actionable decisions from the Portfolio Intelligence Engine.
+
+    Attributes:
+        allow_trade: Whether the new trade can be accepted.
+        reduce_position: Whether existing positions should be reduced.
+        block_trade: Whether the new trade is blocked.
+        hedging_required: Whether portfolio hedging is needed.
+        max_contracts: Maximum contracts for the new trade.
+        remaining_risk_capacity: How much risk the portfolio can absorb.
+        remaining_capital: How much capital remains for new trades.
+        confidence: Confidence in the portfolio assessment (0.0-1.0).
+    """
+
+    allow_trade: bool = False
+    reduce_position: bool = False
+    block_trade: bool = False
+    hedging_required: bool = False
+    max_contracts: int = 0
+    remaining_risk_capacity: float = 0.0
+    remaining_capital: float = 0.0
+    confidence: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class PortfolioExplanation:
+    """Structured explanation of the portfolio analysis.
+
+    Attributes:
+        portfolio_summary: Summary of the current portfolio state.
+        exposure: Explanation of portfolio exposure.
+        correlation: Explanation of correlation risks.
+        capital_allocation: Explanation of capital allocation.
+        hedging: Explanation of hedging recommendations.
+        recommendation: Summary recommendation.
+    """
+
+    portfolio_summary: str = ""
+    exposure: str = ""
+    correlation: str = ""
+    capital_allocation: str = ""
+    hedging: str = ""
+    recommendation: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class ExposureAnalysis:
+    """Institutional view of portfolio exposure."""
+
+    gross_exposure: float = 0.0
+    net_exposure: float = 0.0
+    long_exposure: float = 0.0
+    short_exposure: float = 0.0
+    position_count: int = 0
+    largest_position_symbol: str = ""
+    largest_position_weight: float = 0.0
+    smallest_position_symbol: str = ""
+    smallest_position_weight: float = 0.0
+    concentration_score: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class AllocationAnalysis:
+    """Breakdown of capital allocation."""
+
+    by_instrument: Mapping[str, float] = field(default_factory=dict)
+    by_strategy: Mapping[str, float] = field(default_factory=dict)
+    by_sector: Mapping[str, float] = field(default_factory=dict)
+    by_asset_class: Mapping[str, float] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class DiversificationAnalysis:
+    """Measurement of portfolio diversification."""
+
+    number_of_symbols: int = 0
+    number_of_strategies: int = 0
+    sector_distribution: Mapping[str, float] = field(default_factory=dict)
+    concentration_risk: float = 0.0
+    diversification_score: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class DrawdownAnalysis:
+    """Drawdown and equity curve metrics."""
+
+    current_drawdown: float = 0.0
+    max_drawdown: float = 0.0
+    peak_equity: float = 0.0
+    current_equity: float = 0.0
+    recovery_percentage: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class PortfolioPerformance:
+    """Institutional portfolio performance metrics."""
+
+    win_rate: float = 0.0
+    loss_rate: float = 0.0
+    profit_factor: float = 0.0
+    expectancy: float = 0.0
+    average_winner: float = 0.0
+    average_loser: float = 0.0
+    average_holding_time: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class PortfolioAnalysis:
+    """Complete Portfolio Intelligence Engine output.
+
+    Attributes:
+        portfolio_name: Name of the portfolio analysed.
+        snapshot: Current portfolio snapshot.
+        exposure: Portfolio Greeks and directional exposure.
+        sector_exposures: Breakdown by sector.
+        correlation: Cross-position correlation assessment.
+        hedging: Hedging recommendation.
+        portfolio_score: Portfolio health score (0-100).
+        portfolio_band: Portfolio health band.
+        decision_context: Actionable portfolio decisions.
+        allow_trade: Whether the proposed trade is allowed.
+        evidence: Evidence for the Intelligence Fusion Engine.
+        explanation: Structured explanation.
+        warnings: Non-fatal warnings.
+        metadata: Producer context.
+        timestamp: When the analysis was computed.
+    """
+
+    portfolio_name: str = ""
+    snapshot: PortfolioSnapshot = field(default_factory=PortfolioSnapshot)
+    exposure: PortfolioExposure = field(default_factory=PortfolioExposure)
+    sector_exposures: tuple[SectorExposure, ...] = field(default_factory=tuple)
+    correlation: CorrelationAnalysis = field(default_factory=CorrelationAnalysis)
+    hedging: HedgingRecommendation = field(default_factory=HedgingRecommendation)
+    portfolio_score: float = 0.0
+    portfolio_band: PortfolioScoreBand = PortfolioScoreBand.EXCELLENT
+    decision_context: PortfolioDecisionContext = field(
+        default_factory=PortfolioDecisionContext
+    )
+    allow_trade: bool = False
+    evidence: Evidence | None = None
+    explanation: PortfolioExplanation | None = None
+    warnings: tuple[str, ...] = field(default_factory=tuple)
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+
+--- FILE: titan/portfolio/analytics.py ---
+import csv
+import json
+from dataclasses import asdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Sequence
+
+from titan.portfolio.models import (
+    AllocationAnalysis,
+    DiversificationAnalysis,
+    DrawdownAnalysis,
+    ExistingPortfolio,
+    ExposureAnalysis,
+    PortfolioPerformance,
+    PortfolioSnapshot,
+)
+from titan.trading.journal import TradeJournalEntry
+from titan.trading.performance import PerformanceAnalyzer
+
+
+class PortfolioAnalytics:
+    """Read-only portfolio analytics engine.
+
+    Generates institutional-grade portfolio metrics from the Trade Journal
+    and current portfolio state, without calling broker APIs or mutating data.
+    """
+
+    def __init__(self, performance_analyzer: PerformanceAnalyzer | None = None) -> None:
+        self.performance_analyzer = performance_analyzer or PerformanceAnalyzer()
+
+    def generate_snapshot(self, portfolio: ExistingPortfolio) -> PortfolioSnapshot:
+        """Generate a current snapshot of the portfolio."""
+        capital_used = sum(p.market_value for p in portfolio.positions)
+        total_market_value = capital_used
+        total_pnl = sum(p.pnl for p in portfolio.positions)
+
+        wins = sum(1 for p in portfolio.positions if p.pnl > 0)
+        losses = sum(1 for p in portfolio.positions if p.pnl <= 0)
+
+        utilization = (
+            capital_used / portfolio.total_capital
+            if portfolio.total_capital > 0
+            else 0.0
+        )
+
+        return PortfolioSnapshot(
+            total_capital=portfolio.total_capital,
+            cash_reserve=portfolio.cash_reserve,
+            capital_used=capital_used,
+            available_capital=portfolio.total_capital - capital_used,
+            total_market_value=total_market_value,
+            total_pnl=total_pnl,
+            position_count=len(portfolio.positions),
+            winning_positions=wins,
+            losing_positions=losses,
+            utilization=utilization,
+        )
+
+    def analyze_exposure(self, portfolio: ExistingPortfolio) -> ExposureAnalysis:
+        """Analyze portfolio exposure."""
+        if not portfolio.positions:
+            return ExposureAnalysis()
+
+        gross_exposure = sum(abs(p.market_value) for p in portfolio.positions)
+        net_exposure = sum(
+            p.market_value if p.direction.lower() == "long" else -p.market_value
+            for p in portfolio.positions
+        )
+        long_exposure = sum(
+            p.market_value for p in portfolio.positions if p.direction.lower() == "long"
+        )
+        short_exposure = sum(
+            p.market_value
+            for p in portfolio.positions
+            if p.direction.lower() == "short"
+        )
+
+        sorted_pos = sorted(
+            portfolio.positions, key=lambda x: x.market_value, reverse=True
+        )
+        largest = sorted_pos[0]
+        smallest = sorted_pos[-1]
+
+        # Simple Herfindahl-Hirschman Index (HHI) for concentration
+        total_val = sum(abs(p.market_value) for p in portfolio.positions)
+        hhi = 0.0
+        if total_val > 0:
+            for p in portfolio.positions:
+                weight = abs(p.market_value) / total_val
+                hhi += (weight * 100) ** 2
+
+        return ExposureAnalysis(
+            gross_exposure=gross_exposure,
+            net_exposure=net_exposure,
+            long_exposure=long_exposure,
+            short_exposure=short_exposure,
+            position_count=len(portfolio.positions),
+            largest_position_symbol=largest.symbol,
+            largest_position_weight=(
+                largest.market_value / total_val if total_val > 0 else 0.0
+            ),
+            smallest_position_symbol=smallest.symbol,
+            smallest_position_weight=(
+                smallest.market_value / total_val if total_val > 0 else 0.0
+            ),
+            concentration_score=hhi,
+        )
+
+    def analyze_allocation(self, portfolio: ExistingPortfolio) -> AllocationAnalysis:
+        """Analyze capital allocation by various dimensions."""
+        if not portfolio.positions:
+            return AllocationAnalysis()
+
+        total_val = sum(abs(p.market_value) for p in portfolio.positions)
+        if total_val == 0:
+            return AllocationAnalysis()
+
+        by_inst: dict[str, float] = {}
+        by_strat: dict[str, float] = {}
+        by_sect: dict[str, float] = {}
+        by_class: dict[str, float] = {}
+
+        for p in portfolio.positions:
+            w = abs(p.market_value) / total_val
+            by_inst[p.symbol] = by_inst.get(p.symbol, 0.0) + w
+            by_sect[p.sector or "Unknown"] = by_sect.get(p.sector or "Unknown", 0.0) + w
+            by_class[p.instrument_type] = by_class.get(p.instrument_type, 0.0) + w
+            # Current positions model doesn't explicitly store strategy, so we assign "Default"
+            by_strat["Default"] = by_strat.get("Default", 0.0) + w
+
+        return AllocationAnalysis(
+            by_instrument=by_inst,
+            by_strategy=by_strat,
+            by_sector=by_sect,
+            by_asset_class=by_class,
+        )
+
+    def analyze_diversification(
+        self, portfolio: ExistingPortfolio
+    ) -> DiversificationAnalysis:
+        """Analyze portfolio diversification."""
+        if not portfolio.positions:
+            return DiversificationAnalysis()
+
+        symbols = {p.symbol for p in portfolio.positions}
+        # HHI interpretation: 10000 = perfectly concentrated, lower = more diversified
+        exposure = self.analyze_exposure(portfolio)
+        hhi = exposure.concentration_score
+
+        # Invert HHI for a simple 0-100 diversification score (100 = perfectly diversified)
+        div_score = max(0.0, 100.0 - (hhi / 100.0))
+
+        allocation = self.analyze_allocation(portfolio)
+
+        return DiversificationAnalysis(
+            number_of_symbols=len(symbols),
+            number_of_strategies=1,
+            sector_distribution=allocation.by_sector,
+            concentration_risk=hhi,
+            diversification_score=div_score,
+        )
+
+    def analyze_drawdown(
+        self, entries: Sequence[TradeJournalEntry], starting_capital: float = 0.0
+    ) -> DrawdownAnalysis:
+        """Analyze drawdown and equity curves from historical trades."""
+        if not entries:
+            return DrawdownAnalysis(
+                peak_equity=starting_capital, current_equity=starting_capital
+            )
+
+        # Re-use PerformanceAnalyzer for max drawdown if available, or compute locally
+        closed_entries = [e for e in entries if e.close_time is not None]
+        closed_entries.sort(
+            key=lambda x: x.close_time or datetime.min.replace(tzinfo=timezone.utc)
+        )
+
+        equity = starting_capital
+        peak = starting_capital
+        max_dd = 0.0
+
+        for e in closed_entries:
+            equity += e.net_pnl
+            if equity > peak:
+                peak = equity
+            dd = peak - equity
+            if dd > max_dd:
+                max_dd = dd
+
+        current_dd = peak - equity
+        recovery = 0.0
+        if current_dd > 0 and max_dd > 0:
+            recovery = (max_dd - current_dd) / max_dd * 100.0
+        elif max_dd > 0 and current_dd == 0:
+            recovery = 100.0
+
+        return DrawdownAnalysis(
+            current_drawdown=current_dd,
+            max_drawdown=max_dd,
+            peak_equity=peak,
+            current_equity=equity,
+            recovery_percentage=recovery,
+        )
+
+    def analyze_performance(
+        self, entries: Sequence[TradeJournalEntry]
+    ) -> PortfolioPerformance:
+        """Analyze institutional portfolio performance."""
+        # Delegate heavy lifting to PerformanceAnalyzer to avoid duplicating logic
+        trade_perf = self.performance_analyzer.analyze(entries)
+
+        loss_rate = (
+            1.0 - trade_perf.overall.win_rate
+            if trade_perf.overall.total_trades > 0
+            else 0.0
+        )
+
+        return PortfolioPerformance(
+            win_rate=trade_perf.overall.win_rate,
+            loss_rate=loss_rate,
+            profit_factor=trade_perf.overall.profit_factor,
+            expectancy=trade_perf.overall.expectancy,
+            average_winner=trade_perf.overall.average_winner,
+            average_loser=trade_perf.overall.average_loser,
+            average_holding_time=trade_perf.overall.average_hold_time_seconds,
+        )
+
+    def export_csv(
+        self,
+        filepath: Path,
+        portfolio: ExistingPortfolio,
+        entries: Sequence[TradeJournalEntry],
+    ) -> None:
+        """Export portfolio analytics to CSV."""
+        snapshot = self.generate_snapshot(portfolio)
+        exposure = self.analyze_exposure(portfolio)
+        drawdown = self.analyze_drawdown(
+            entries, starting_capital=portfolio.total_capital
+        )
+        performance = self.analyze_performance(entries)
+
+        fields = [
+            "Timestamp",
+            "Total Capital",
+            "Capital Used",
+            "Total PnL",
+            "Gross Exposure",
+            "Net Exposure",
+            "Concentration Score",
+            "Max Drawdown",
+            "Current Drawdown",
+            "Win Rate",
+            "Profit Factor",
+        ]
+
+        with open(filepath, mode="w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(fields)
+            writer.writerow(
+                [
+                    datetime.now(timezone.utc).isoformat(),
+                    snapshot.total_capital,
+                    snapshot.capital_used,
+                    snapshot.total_pnl,
+                    exposure.gross_exposure,
+                    exposure.net_exposure,
+                    exposure.concentration_score,
+                    drawdown.max_drawdown,
+                    drawdown.current_drawdown,
+                    performance.win_rate,
+                    performance.profit_factor,
+                ]
+            )
+
+    def export_json(
+        self,
+        filepath: Path,
+        portfolio: ExistingPortfolio,
+        entries: Sequence[TradeJournalEntry],
+    ) -> None:
+        """Export complete analytical state to JSON."""
+        data = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "snapshot": asdict(self.generate_snapshot(portfolio)),
+            "exposure": asdict(self.analyze_exposure(portfolio)),
+            "allocation": asdict(self.analyze_allocation(portfolio)),
+            "diversification": asdict(self.analyze_diversification(portfolio)),
+            "drawdown": asdict(
+                self.analyze_drawdown(entries, starting_capital=portfolio.total_capital)
+            ),
+            "performance": asdict(self.analyze_performance(entries)),
+        }
+
+        with open(filepath, mode="w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+--- FILE: titan/tui/models.py ---
+"""TUI dashboard data models.
+
+Lightweight snapshot of all manager states for the dashboard.
+No business logic — pure data transfer objects.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeInfo:
+    """Snapshot of runtime engine state."""
+
+    status: str = "Unknown"
+    uptime: str = "00:00:00"
+    is_running: bool = False
+    pipeline_executions: int = 0
+    broker_status: str = "Disconnected"
+    stream_status: str = "Disconnected"
+
+
+@dataclass(frozen=True, slots=True)
+class MarketInfo:
+    """Snapshot of market connectivity state."""
+
+    broker_connected: bool = False
+    broker_provider: str = "None"
+    stream_connected: bool = False
+    symbols_tracked: int = 0
+    last_quote_time: str = "Never"
+
+
+@dataclass(frozen=True, slots=True)
+class TradingInfo:
+    """Snapshot of trading subsystem state."""
+
+    live_status: str = "Stopped"
+    paper_status: str = "Stopped"
+    backtests_today: int = 0
+    active_positions: int = 0
+    pending_orders: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class HealthInfo:
+    """Snapshot of health and monitoring state."""
+
+    monitoring_status: str = "Unknown"
+    critical_alerts: int = 0
+    total_alerts: int = 0
+    recovery_status: str = "Idle"
+    recovery_attempts: int = 0
+    health_probes: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class SystemInfo:
+    """Snapshot of system/deployment state."""
+
+    version: str = "1.0.0"
+    environment: str = "Development"
+    deployment_status: str = "Stopped"
+    uptime: str = "00:00:00"
+    python_version: str = ""
+    log_level: str = "INFO"
+
+
+@dataclass(frozen=True, slots=True)
+class DashboardState:
+    """Complete snapshot of all dashboard data.
+
+    Collected from all managers in a single pass.
+    Widgets receive this object for rendering.
+    """
+
+    runtime: RuntimeInfo = field(default_factory=RuntimeInfo)
+    market: MarketInfo = field(default_factory=MarketInfo)
+    trading: TradingInfo = field(default_factory=TradingInfo)
+    health: HealthInfo = field(default_factory=HealthInfo)
+    system: SystemInfo = field(default_factory=SystemInfo)
+    last_refresh: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeEngineInfo:
+    """Snapshot of runtime engine state for the Runtime screen."""
+
+    status: str = "Unknown"
+    uptime: str = "00:00:00"
+    is_running: bool = False
+    scheduler_active: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeStreamInfo:
+    """Snapshot of market stream state for the Runtime screen."""
+
+    connected: bool = False
+    symbols_tracked: int = 0
+    tick_rate: str = "N/A"
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimePipelineInfo:
+    """Snapshot of pipeline state for the Runtime screen."""
+
+    executions: int = 0
+    avg_runtime: str = "N/A"
+    last_run: str = "Never"
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeEventBusInfo:
+    """Snapshot of event bus state for the Runtime screen."""
+
+    published: int = 0
+    subscribers: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeComponentInfo:
+    """Health of a single runtime component."""
+
+    name: str = ""
+    status: str = "Unknown"
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeEventEntry:
+    """A single runtime event for the event history."""
+
+    level: str = "info"
+    source: str = ""
+    message: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeScreenState:
+    """Complete snapshot for the Runtime screen."""
+
+    engine: RuntimeEngineInfo = field(default_factory=RuntimeEngineInfo)
+    stream: RuntimeStreamInfo = field(default_factory=RuntimeStreamInfo)
+    pipeline: RuntimePipelineInfo = field(default_factory=RuntimePipelineInfo)
+    event_bus: RuntimeEventBusInfo = field(default_factory=RuntimeEventBusInfo)
+    components: tuple[RuntimeComponentInfo, ...] = ()
+    events: tuple[RuntimeEventEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Paper Trading screen models ────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class PaperSessionInfo:
+    """Snapshot of paper trading session state."""
+
+    status: str = "Stopped"
+    started: str = "--:--"
+    duration: str = "00:00"
+
+
+@dataclass(frozen=True, slots=True)
+class PaperAccountInfo:
+    """Snapshot of paper account funds and margin state."""
+
+    available_cash: str = "₹0"
+    used_margin: str = "₹0"
+    available_margin: str = "₹0"
+    payin: str = "₹0"
+    payout: str = "₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class PaperOrderEntry:
+    """A single order for the active orders table."""
+
+    order_id: str = ""
+    symbol: str = ""
+    side: str = ""
+    order_type: str = ""
+    quantity: int = 0
+    filled_quantity: int = 0
+    price: str = ""
+    status: str = ""
+    placed_at: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class PaperPortfolioInfo:
+    """Snapshot of paper portfolio state."""
+
+    cash: str = "₹0"
+    equity: str = "₹0"
+    unrealized_pnl: str = "+₹0"
+    realized_pnl: str = "+₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class PaperPerformanceInfo:
+    """Snapshot of paper trading performance metrics."""
+
+    total_trades: int = 0
+    win_rate: str = "0%"
+    profit_factor: str = "0.00"
+    expectancy: str = "+0.00R"
+    max_drawdown: str = "0%"
+
+
+@dataclass(frozen=True, slots=True)
+class PaperPositionEntry:
+    """A single position for the position table."""
+
+    symbol: str = ""
+    quantity: int = 0
+    avg_price: str = "0"
+    current_price: str = "0"
+    unrealized_pnl: str = "+₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class PaperTradeEntry:
+    """A single trade for the trade history."""
+
+    symbol: str = ""
+    side: str = ""
+    quantity: int = 0
+    price: str = "0"
+    pnl: str = "+₹0"
+    time: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class PaperScreenState:
+    """Complete snapshot for the Paper Trading screen."""
+
+    session: PaperSessionInfo = field(default_factory=PaperSessionInfo)
+    account: PaperAccountInfo = field(default_factory=PaperAccountInfo)
+    portfolio: PaperPortfolioInfo = field(default_factory=PaperPortfolioInfo)
+    performance: PaperPerformanceInfo = field(default_factory=PaperPerformanceInfo)
+    positions: tuple[PaperPositionEntry, ...] = ()
+    orders: tuple[PaperOrderEntry, ...] = ()
+    trades: tuple[PaperTradeEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Market Intelligence screen models ────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class MarketStatusInfo:
+    """Snapshot of overall market status."""
+
+    runtime_status: str = "Unavailable"
+    broker_status: str = "Unavailable"
+    active_subscriptions: int = 0
+    last_quote_time: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeInfo:
+    """Market regime intelligence."""
+
+    regime: str = "Unavailable"
+    trend_strength: str = ""
+    participation: str = ""
+    institutional_confirmation: str = ""
+    confidence: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class VolatilityInfo:
+    """Volatility intelligence."""
+
+    current_iv: float = 0.0
+    current_hv: float = 0.0
+    iv_rank: float = 0.0
+    iv_percentile: float = 0.0
+    regime: str = "Unavailable"
+    trend: str = "Unavailable"
+    overall_bias: str = "Unavailable"
+
+
+@dataclass(frozen=True, slots=True)
+class LiquidityInfo:
+    """Liquidity intelligence."""
+
+    spread: float = 0.0
+    spread_percent: float = 0.0
+    depth_score: float = 0.0
+    execution_score: float = 0.0
+    execution_grade: str = "Unavailable"
+
+
+@dataclass(frozen=True, slots=True)
+class OptionChainSummaryInfo:
+    """Option chain summary intelligence."""
+
+    overall_bias: str = "Unavailable"
+    pcr: float = 0.0
+    support: float = 0.0
+    resistance: float = 0.0
+    bullish_score: float = 0.0
+    bearish_score: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class OpenInterestSummaryInfo:
+    """Open interest summary intelligence."""
+
+    bias: str = "Unavailable"
+    score: float = 0.0
+    confidence: float = 0.0
+    bullish_factors: tuple[str, ...] = ()
+    bearish_factors: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class GreeksSummaryInfo:
+    """Greeks summary intelligence."""
+
+    net_delta: float = 0.0
+    net_gamma: float = 0.0
+    net_theta: float = 0.0
+    net_vega: float = 0.0
+    overall_bias: str = "Unavailable"
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceSummaryInfo:
+    """Evidence engine summary."""
+
+    overall_score: float = 0.0
+    overall_signal: str = "Unavailable"
+    confidence: float = 0.0
+    evidence_count: int = 0
+    top_factors: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class MarketEventEntry:
+    """A recent market event."""
+
+    timestamp: str = ""
+    source: str = ""
+    message: str = ""
+    severity: str = "info"
+
+
+@dataclass(frozen=True, slots=True)
+class MarketScreenState:
+    """Complete snapshot for the Market Intelligence screen."""
+
+    market_status: MarketStatusInfo = field(default_factory=MarketStatusInfo)
+    regime: RegimeInfo = field(default_factory=RegimeInfo)
+    volatility: VolatilityInfo = field(default_factory=VolatilityInfo)
+    liquidity: LiquidityInfo = field(default_factory=LiquidityInfo)
+    option_chain: OptionChainSummaryInfo = field(default_factory=OptionChainSummaryInfo)
+    open_interest: OpenInterestSummaryInfo = field(
+        default_factory=OpenInterestSummaryInfo
+    )
+    greeks: GreeksSummaryInfo = field(default_factory=GreeksSummaryInfo)
+    evidence: EvidenceSummaryInfo = field(default_factory=EvidenceSummaryInfo)
+    events: tuple[MarketEventEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Live Trading screen models ────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class LiveStatusInfo:
+    """Snapshot of live trading engine status."""
+
+    status: str = "Stopped"
+    uptime: str = "00:00:00"
+    is_running: bool = False
+    broker_connected: bool = False
+    stream_connected: bool = False
+    pipeline_executions: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class BrokerStatusInfo:
+    """Snapshot of broker connection and provider state."""
+
+    provider: str = "None"
+    connection_status: str = "Disconnected"
+    is_connected: bool = False
+    exchange: str = ""
+    account_id: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AccountInfo:
+    """Snapshot of live account funds and margin state."""
+
+    available_cash: str = "₹0"
+    used_margin: str = "₹0"
+    available_margin: str = "₹0"
+    payin: str = "₹0"
+    payout: str = "₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class ExposureInfo:
+    """Snapshot of portfolio exposure metrics."""
+
+    total_positions: int = 0
+    long_positions: int = 0
+    short_positions: int = 0
+    gross_exposure: str = "₹0"
+    net_exposure: str = "₹0"
+    unrealized_pnl: str = "+₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class LivePositionEntry:
+    """A single open position for the live positions table."""
+
+    symbol: str = ""
+    exchange: str = ""
+    product: str = ""
+    quantity: int = 0
+    buy_qty: int = 0
+    sell_qty: int = 0
+    avg_price: str = "0"
+    current_price: str = "0"
+    pnl: str = "+₹0"
+    realised_pnl: str = "+₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class LiveOrderEntry:
+    """A single order for the live active orders table."""
+
+    order_id: str = ""
+    symbol: str = ""
+    side: str = ""
+    order_type: str = ""
+    quantity: int = 0
+    filled_quantity: int = 0
+    price: str = ""
+    status: str = ""
+    placed_at: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class ExecutionEntry:
+    """A single recent execution (trade fill)."""
+
+    trade_id: str = ""
+    order_id: str = ""
+    symbol: str = ""
+    side: str = ""
+    quantity: int = 0
+    price: str = ""
+    time: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class LiveScreenState:
+    """Complete snapshot for the Live Trading screen."""
+
+    live_status: LiveStatusInfo = field(default_factory=LiveStatusInfo)
+    broker_status: BrokerStatusInfo = field(default_factory=BrokerStatusInfo)
+    account: AccountInfo = field(default_factory=AccountInfo)
+    exposure: ExposureInfo = field(default_factory=ExposureInfo)
+    positions: tuple[LivePositionEntry, ...] = ()
+    orders: tuple[LiveOrderEntry, ...] = ()
+    executions: tuple[ExecutionEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Monitoring & Alerting screen models ────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class SubsystemHealthEntry:
+    """Health of a single monitored subsystem."""
+
+    name: str = ""
+    status: str = "Unknown"
+    message: str = ""
+    latency_ms: str = "0"
+    failures: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class SystemHealthInfo:
+    """Snapshot of overall system health."""
+
+    overall_status: str = "Unknown"
+    healthy_count: int = 0
+    warning_count: int = 0
+    critical_count: int = 0
+    offline_count: int = 0
+    subsystems: tuple[SubsystemHealthEntry, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class TelemetryInfo:
+    """Snapshot of telemetry collection state."""
+
+    total_metrics: int = 0
+    active_collectors: int = 0
+    failed_collections: int = 0
+    total_collections: int = 0
+    uptime: str = "00:00:00"
+
+
+@dataclass(frozen=True, slots=True)
+class ResourceMetricEntry:
+    """A single resource metric for the metrics table."""
+
+    name: str = ""
+    value: str = "0"
+    unit: str = ""
+    trend: str = "stable"
+
+
+@dataclass(frozen=True, slots=True)
+class ResourceMetricsInfo:
+    """Snapshot of resource metrics summaries."""
+
+    metrics: tuple[ResourceMetricEntry, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class AlertSummaryInfo:
+    """Snapshot of alert counts by status."""
+
+    total: int = 0
+    active: int = 0
+    critical: int = 0
+    acknowledged: int = 0
+    resolved: int = 0
+    escalated: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class AlertEntry:
+    """A single active alert for the active alerts list."""
+
+    alert_id: str = ""
+    level: str = ""
+    source: str = ""
+    title: str = ""
+    message: str = ""
+    status: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AlertHistoryEntry:
+    """A single alert history entry."""
+
+    alert_id: str = ""
+    level: str = ""
+    source: str = ""
+    title: str = ""
+    status: str = ""
+    timestamp_str: str = ""
+    duration: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class RecoveryStatusInfo:
+    """Snapshot of recovery framework state."""
+
+    status: str = "Idle"
+    total_attempts: int = 0
+    successful: int = 0
+    failed: int = 0
+    last_strategy: str = ""
+    recovered_components: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class MonitoringEventEntry:
+    """A single monitoring event for the events list."""
+
+    level: str = "info"
+    source: str = ""
+    message: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class MonitoringScreenState:
+    """Complete snapshot for the Monitoring & Alerting screen."""
+
+    system_health: SystemHealthInfo = field(default_factory=SystemHealthInfo)
+    telemetry: TelemetryInfo = field(default_factory=TelemetryInfo)
+    resource_metrics: ResourceMetricsInfo = field(default_factory=ResourceMetricsInfo)
+    alert_summary: AlertSummaryInfo = field(default_factory=AlertSummaryInfo)
+    active_alerts: tuple[AlertEntry, ...] = ()
+    alert_history: tuple[AlertHistoryEntry, ...] = ()
+    recovery_status: RecoveryStatusInfo = field(default_factory=RecoveryStatusInfo)
+    monitoring_events: tuple[MonitoringEventEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Audit, Logs & Recovery screen DTOs ──────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class AuditSummaryInfo:
+    """Snapshot of audit trail summary."""
+
+    total_events: int = 0
+    events_by_source: str = ""
+    events_by_severity: str = ""
+    integrity_status: str = "unknown"
+    verification_failures: int = 0
+    first_event_time: str = ""
+    last_event_time: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AuditEntry:
+    """A single audit event for the recent audit list."""
+
+    event_id: str = ""
+    sequence: int = 0
+    source: str = ""
+    category: str = ""
+    severity: str = ""
+    action: str = ""
+    result: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class LogSummaryInfo:
+    """Snapshot of logging framework state."""
+
+    level: str = "INFO"
+    handler_count: int = 0
+    component_count: int = 0
+    dropped_messages: int = 0
+    warning_count: int = 0
+    error_count: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class LogEntry:
+    """A single log line for the recent logs list."""
+
+    timestamp_str: str = ""
+    level: str = ""
+    module: str = ""
+    component: str = ""
+    message: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class RecoveryHistoryEntry:
+    """A single recovery history event."""
+
+    request_id: str = ""
+    component: str = ""
+    strategy: str = ""
+    status: str = ""
+    attempts: int = 0
+    failure_reason: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class CircuitBreakerInfo:
+    """Status of a single circuit breaker."""
+
+    name: str = ""
+    state: str = "CLOSED"
+    failure_count: int = 0
+    success_count: int = 0
+    failure_threshold: int = 5
+    recovery_timeout: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class CheckpointInfo:
+    """A single checkpoint entry."""
+
+    checkpoint_id: str = ""
+    component: str = ""
+    version: str = ""
+    created_at_str: str = ""
+    has_metadata: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class BackupStatusInfo:
+    """Snapshot of backup/restore status."""
+
+    total_checkpoints: int = 0
+    components_with_checkpoints: str = ""
+    last_checkpoint_time: str = ""
+    storage_type: str = ""
+    storage_path: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AuditScreenState:
+    """Complete snapshot for the Audit, Logs & Recovery screen."""
+
+    audit_summary: AuditSummaryInfo = field(default_factory=AuditSummaryInfo)
+    recent_audit: tuple[AuditEntry, ...] = ()
+    log_summary: LogSummaryInfo = field(default_factory=LogSummaryInfo)
+    recent_logs: tuple[LogEntry, ...] = ()
+    recovery_history: tuple[RecoveryHistoryEntry, ...] = ()
+    circuit_breakers: tuple[CircuitBreakerInfo, ...] = ()
+    checkpoints: tuple[CheckpointInfo, ...] = ()
+    backup_status: BackupStatusInfo = field(default_factory=BackupStatusInfo)
+    last_refresh: str = ""
+
+
+# ─── Configuration & Deployment Screen ─────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class ConfigurationInfo:
+    """Snapshot of TITAN configuration status."""
+
+    profile: str = ""
+    sources: tuple[str, ...] = ()
+    log_level: str = ""
+    pipeline_interval: str = ""
+    validation_status: str = ""
+    blocking_errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+    recommendations: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class EnvironmentInfo:
+    """Snapshot of active deployment environment."""
+
+    name: str = ""
+    directories_verified: bool = False
+    secrets_available: bool = False
+    validation_status: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class DeploymentInfo:
+    """Snapshot of overall deployment runtime status."""
+
+    status: str = ""
+    uptime: str = ""
+    start_time: str = ""
+    health_status: str = ""
+    startup_duration: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceStatusEntry:
+    """Snapshot of a single service's health/status."""
+
+    name: str = ""
+    status: str = ""
+    latency_ms: str = ""
+    message: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class VersionInfo:
+    """Snapshot of TITAN version and build info."""
+
+    version: str = ""
+    build_number: str = ""
+    git_commit: str = ""
+    git_branch: str = ""
+    python_version: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class BackupInfo:
+    """Snapshot of backup/restore status for configuration/data."""
+
+    last_backup_id: str = ""
+    last_backup_time: str = ""
+    components_backed_up: int = 0
+    total_files: int = 0
+    status: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class DeploymentHistoryEntry:
+    """Snapshot of a historical deployment action."""
+
+    timestamp_str: str = ""
+    action: str = ""
+    status: str = ""
+    version: str = ""
+    duration: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class ConfigurationScreenState:
+    """Complete snapshot for the Configuration & Deployment screen."""
+
+    configuration: ConfigurationInfo = field(default_factory=ConfigurationInfo)
+    environment: EnvironmentInfo = field(default_factory=EnvironmentInfo)
+    deployment: DeploymentInfo = field(default_factory=DeploymentInfo)
+    services: tuple[ServiceStatusEntry, ...] = ()
+    version: VersionInfo = field(default_factory=VersionInfo)
+    backup: BackupInfo = field(default_factory=BackupInfo)
+    history: tuple[DeploymentHistoryEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Decision Journal screen models ─────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionSummaryInfo:
+    """Snapshot of the latest decision summary."""
+
+    decision_id: str = "None"
+    symbol: str = "None"
+    decision: str = "NO_TRADE"
+    trade_direction: str = "None"
+    instrument_type: str = "None"
+    confidence: float = 0.0
+    trade_score: float = 0.0
+    institutional_grade: bool = False
+    timestamp_str: str = "Never"
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionEvidenceInfo:
+    """Snapshot of evidence supporting the decision."""
+
+    source: str = "Unknown"
+    category: str = "Unknown"
+    signal: str = "Unknown"
+    score: float = 0.0
+    confidence: float = 0.0
+    weight: float = 0.0
+    reasons: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionRiskInfo:
+    """Snapshot of risk assessment for the decision."""
+
+    risk_summary: str = "No risk data available."
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionQualificationInfo:
+    """Snapshot of qualification explanation."""
+
+    explanation_summary: str = "No explanation available."
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionTimelineEntry:
+    """Snapshot of a step in the decision timeline."""
+
+    step: str = ""
+    status: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionReasonEntry:
+    """Snapshot of a specific decision reason."""
+
+    reason_type: str = ""
+    description: str = ""
+    severity: str = "info"
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionJournalEntry:
+    """Snapshot of a historical decision journal entry."""
+
+    decision_id: str = ""
+    symbol: str = ""
+    decision: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionScreenState:
+    """Complete snapshot for the Decision Journal Explainability screen."""
+
+    summary: DecisionSummaryInfo = field(default_factory=DecisionSummaryInfo)
+    evidence: DecisionEvidenceInfo = field(default_factory=DecisionEvidenceInfo)
+    risk: DecisionRiskInfo = field(default_factory=DecisionRiskInfo)
+    qualification: DecisionQualificationInfo = field(
+        default_factory=DecisionQualificationInfo
+    )
+    timeline: tuple[DecisionTimelineEntry, ...] = ()
+    reasons: tuple[DecisionReasonEntry, ...] = ()
+    history: tuple[DecisionJournalEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Trade Journal Screen ─────────────────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class TradeJournalSummaryInfo:
+    today_pnl: str = "₹0"
+    open_risk: str = "₹0"
+    exposure: str = "₹0"
+    win_percent: str = "0.0%"
+    current_drawdown: str = "0.0%"
+    largest_winner: str = "₹0"
+    largest_loser: str = "₹0"
+
+
+@dataclass(frozen=True, slots=True)
+class TradeHistoryEntry:
+    trade_id: str = ""
+    symbol: str = ""
+    direction: str = ""
+    quantity: int = 0
+    entry_price: str = "₹0"
+    exit_price: str = "₹0"
+    net_pnl: str = "₹0"
+    status: str = ""
+    open_time: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class TradeJournalScreenState:
+    """Complete snapshot for the Trade Journal screen."""
+
+    summary: TradeJournalSummaryInfo = field(default_factory=TradeJournalSummaryInfo)
+    history: tuple[TradeHistoryEntry, ...] = ()
+    last_refresh: str = ""
+
+
+# ─── Decision Replay screen models ────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class ReplaySummaryInfo:
+    """Snapshot of the selected replay decision summary."""
+
+    decision_id: str = "None"
+    symbol: str = "None"
+    decision: str = "NO_TRADE"
+    trade_direction: str = "None"
+    instrument_type: str = "None"
+    confidence: float = 0.0
+    trade_score: float = 0.0
+    institutional_grade: bool = False
+    timestamp_str: str = "Never"
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayEvidenceInfo:
+    """Snapshot of evidence for the replayed decision."""
+
+    source: str = "Unknown"
+    category: str = "Unknown"
+    signal: str = "Unknown"
+    score: float = 0.0
+    confidence: float = 0.0
+    weight: float = 0.0
+    reasons: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayRiskInfo:
+    """Snapshot of risk assessment for the replayed decision."""
+
+    risk_summary: str = "No risk data available."
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayQualificationInfo:
+    """Snapshot of qualification explanation for the replayed decision."""
+
+    explanation_summary: str = "No explanation available."
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayTimelineEntry:
+    """Snapshot of a step in the replayed decision timeline."""
+
+    step: str = ""
+    status: str = ""
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayReasonEntry:
+    """Snapshot of a specific reason for the replayed decision."""
+
+    reason_type: str = ""
+    description: str = ""
+    severity: str = "info"
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayMetadataInfo:
+    """Metadata about the replay context itself."""
+
+    has_previous: bool = False
+    has_next: bool = False
+    previous_id: str | None = None
+    next_id: str | None = None
+    current_index: int = 0
+    total_decisions: int = 0
+    filter_active: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayScreenState:
+    """Complete snapshot for the Decision Replay screen."""
+
+    summary: ReplaySummaryInfo = field(default_factory=ReplaySummaryInfo)
+    evidence: ReplayEvidenceInfo = field(default_factory=ReplayEvidenceInfo)
+    risk: ReplayRiskInfo = field(default_factory=ReplayRiskInfo)
+    qualification: ReplayQualificationInfo = field(
+        default_factory=ReplayQualificationInfo
+    )
+    reasons: tuple[ReplayReasonEntry, ...] = ()
+    timeline: tuple[ReplayTimelineEntry, ...] = ()
+    metadata: ReplayMetadataInfo = field(default_factory=ReplayMetadataInfo)
+    last_refresh: str = ""
+
+--- FILE: titan/tui/layout.py ---
+"""TITAN TUI application layout.
+
+The main Textual App that manages screens and navigation.
+Dashboard is the default screen.
+"""
+
+from __future__ import annotations
+
+import sys
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any
+
+from textual.app import App
+
+from titan.tui.models import (
+    AccountInfo,
+    BrokerStatusInfo,
+    DashboardState,
+    ExecutionEntry,
+    ExposureInfo,
+    HealthInfo,
+    LiveOrderEntry,
+    LivePositionEntry,
+    LiveScreenState,
+    LiveStatusInfo,
+    MarketInfo,
+    MarketScreenState,
+    MarketStatusInfo,
+    MonitoringScreenState,
+    PaperAccountInfo,
+    PaperOrderEntry,
+    PaperPerformanceInfo,
+    PaperPortfolioInfo,
+    PaperPositionEntry,
+    PaperScreenState,
+    PaperSessionInfo,
+    PaperTradeEntry,
+    RuntimeComponentInfo,
+    RuntimeEngineInfo,
+    RuntimeEventBusInfo,
+    RuntimeEventEntry,
+    RuntimeInfo,
+    RuntimePipelineInfo,
+    RuntimeScreenState,
+    RuntimeStreamInfo,
+    SystemInfo,
+    TradingInfo,
+)
+from titan.tui.screens.dashboard import DashboardScreen
+from titan.tui.screens.paper import PaperScreen
+from titan.tui.screens.runtime import RuntimeScreen
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from titan.tui.models import (
+        AlertEntry,
+        AlertHistoryEntry,
+        AlertSummaryInfo,
+        AuditEntry,
+        AuditScreenState,
+        AuditSummaryInfo,
+        DecisionScreenState,
+        DecisionSummaryInfo,
+        DecisionEvidenceInfo,
+        DecisionRiskInfo,
+        DecisionQualificationInfo,
+        DecisionReasonEntry,
+        DecisionTimelineEntry,
+        DecisionJournalEntry,
+        BackupInfo,
+        BackupStatusInfo,
+        CheckpointInfo,
+        CircuitBreakerInfo,
+        ConfigurationInfo,
+        ConfigurationScreenState,
+        LiveScreenState,
+        MarketScreenState,
+        MarketStatusInfo,
+        MonitoringScreenState,
+        PaperScreenState,
+        ReplayScreenState,
+        RuntimeScreenState,
+        TradeJournalScreenState,
+        DeploymentHistoryEntry,
+        DeploymentInfo,
+        EnvironmentInfo,
+        EvidenceSummaryInfo,
+        GreeksSummaryInfo,
+        LiquidityInfo,
+        LogEntry,
+        LogSummaryInfo,
+        MarketEventEntry,
+        MonitoringEventEntry,
+        OpenInterestSummaryInfo,
+        OptionChainSummaryInfo,
+        RecoveryHistoryEntry,
+        RecoveryStatusInfo,
+        RegimeInfo,
+        ResourceMetricsInfo,
+        ServiceStatusEntry,
+        SystemHealthInfo,
+        TelemetryInfo,
+        VersionInfo,
+        VolatilityInfo,
+    )
+
+
+class TITANApp(App):
+    """Main TITAN TUI application.
+
+    Manages screen stack and keyboard navigation.
+    Dashboard is the default screen.
+    """
+
+    CSS = """
+    Screen {
+        background: $surface;
+    }
+    """
+
+    TITLE = "TITAN"
+    SUB_TITLE = "Trading Intelligence & Tactical Analysis Network"
+
+    BINDINGS = [
+        ("up", "focus_previous", "Focus Up"),
+        ("down", "focus_next", "Focus Down"),
+        ("enter", "select", "Select"),
+        ("q", "quit", "Quit"),
+        ("f1", "show_dashboard", "Dashboard"),
+        ("f2", "show_runtime", "Runtime"),
+        ("f3", "show_paper", "Paper"),
+        ("f10", "show_decision_replay", "Replay"),
+    ]
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._state_builder: Callable[[], DashboardState] | None = None
+        self._runtime_state_builder: Callable[[], RuntimeScreenState] | None = None
+        self._paper_state_builder: Callable[[], PaperScreenState] | None = None
+        self._replay_state_builder: Callable[[str | None], ReplayScreenState] | None = (
+            None
+        )
+
+    def on_mount(self) -> None:
+        """Push the default dashboard screen on mount."""
+        dashboard = DashboardScreen()
+        if self._state_builder is not None:
+            dashboard.set_state_builder(self._state_builder)
+        self.push_screen(dashboard)
+
+    def set_state_builder(self, builder: Callable[[], DashboardState]) -> None:
+        """Set the function that builds DashboardState from managers."""
+        self._state_builder = builder
+
+    def set_runtime_state_builder(
+        self, builder: Callable[[], RuntimeScreenState]
+    ) -> None:
+        """Set the function that builds RuntimeScreenState from managers."""
+        self._runtime_state_builder = builder
+
+    def set_paper_state_builder(self, builder: Callable[[], PaperScreenState]) -> None:
+        """Set the function that builds PaperScreenState from managers."""
+        self._paper_state_builder = builder
+
+    def set_replay_state_builder(
+        self, builder: Callable[[str | None], ReplayScreenState]
+    ) -> None:
+        """Set the function that builds ReplayScreenState."""
+        self._replay_state_builder = builder
+
+    def action_show_dashboard(self) -> None:
+        """Navigate to the Dashboard screen."""
+        if len(self.screen_stack) > 1:
+            self.pop_screen()
+        else:
+            dashboard = DashboardScreen()
+            if self._state_builder is not None:
+                dashboard.set_state_builder(self._state_builder)
+            self.push_screen(dashboard)
+
+    def action_show_runtime(self) -> None:
+        """Navigate to the Runtime screen."""
+        runtime = RuntimeScreen()
+        if self._runtime_state_builder is not None:
+            runtime.set_state_builder(self._runtime_state_builder)
+        self.push_screen(runtime)
+
+    def action_show_paper(self) -> None:
+        """Navigate to the Paper Trading screen."""
+
+        paper = PaperScreen()
+        if self._paper_state_builder is not None:
+            paper.set_state_builder(self._paper_state_builder)
+        self.push_screen(paper)
+
+    def action_show_decision_replay(self) -> None:
+        """Navigate to the Decision Replay screen."""
+        from titan.tui.screens.decision_replay import DecisionReplayScreen
+
+        replay = DecisionReplayScreen()
+        if self._replay_state_builder is not None:
+            replay.set_state_builder(self._replay_state_builder)
+        self.push_screen(replay)
+
+    def action_focus_previous(self) -> None:
+        """Move focus to the previous widget."""
+        self.screen.focus_previous()
+
+    def action_focus_next(self) -> None:
+        """Move focus to the next widget."""
+        self.screen.focus_next()
+
+    def action_select(self) -> None:
+        """Select/focused widget action (placeholder for future pages)."""
+        pass
+
+
+def build_dashboard_state() -> DashboardState:
+    """Build DashboardState by reading all managers (read-only).
+
+    This is the state builder function that gets injected into the TUI.
+    All manager access is try/except guarded for resilience.
+    """
+    runtime = _read_runtime()
+    market = _read_market()
+    trading = _read_trading()
+    health = _read_health()
+    system = _read_system()
+
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return DashboardState(
+        runtime=runtime,
+        market=market,
+        trading=trading,
+        health=health,
+        system=system,
+        last_refresh=now,
+    )
+
+
+def _read_runtime() -> RuntimeInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return RuntimeInfo(
+            status=report.runtime_status.name,
+            uptime=_format_uptime(report.performance.uptime_seconds),
+            is_running=engine.is_running,
+            pipeline_executions=report.scheduler.pipeline_executions,
+            broker_status=report.broker.connection,
+            stream_status=report.market.stream_status,
+        )
+    except Exception:
+        return RuntimeInfo()
+
+
+def _read_market() -> MarketInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        connected = report.broker.connection.lower() == "connected"
+        return MarketInfo(
+            broker_connected=connected,
+            broker_provider="Paper",
+            stream_connected=report.market.stream_status.lower() == "connected",
+            symbols_tracked=report.market.active_subscriptions,
+            last_quote_time=(
+                report.market.last_quote_time.strftime("%H:%M:%S")
+                if report.market.last_quote_time
+                else "Never"
+            ),
+        )
+    except Exception:
+        return MarketInfo()
+
+
+def _read_trading() -> TradingInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        live_status = "Running" if engine.is_running else "Stopped"
+        return TradingInfo(live_status=live_status)
+    except Exception:
+        return TradingInfo()
+
+
+def _read_health() -> HealthInfo:
+    try:
+        from titan.cli.common import get_monitoring_manager
+
+        mon = get_monitoring_manager()
+        mon_report = mon.generate_report()
+        monitoring_status = (
+            str(mon_report.system_health) if mon_report.system_health else "Unknown"
+        )
+    except Exception:
+        monitoring_status = "Unknown"
+
+    try:
+        from titan.cli.common import get_alert_manager
+
+        al = get_alert_manager()
+        al_report = al.generate_report()
+        critical = al_report.critical_alerts
+        total = al_report.total_alerts
+    except Exception:
+        critical = 0
+        total = 0
+
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        rm_report = rm.generate_report()
+        recovery_status = (
+            rm_report.status.value
+            if hasattr(rm_report.status, "value")
+            else str(rm_report.status)
+        )
+        recovery_attempts = rm_report.total_attempts
+    except Exception:
+        recovery_status = "Idle"
+        recovery_attempts = 0
+
+    return HealthInfo(
+        monitoring_status=monitoring_status,
+        critical_alerts=critical,
+        total_alerts=total,
+        recovery_status=recovery_status,
+        recovery_attempts=recovery_attempts,
+    )
+
+
+def _read_system() -> SystemInfo:
+    try:
+        from titan.cli.common import get_deployment_manager
+
+        dm = get_deployment_manager()
+        report = dm.generate_report()
+        return SystemInfo(
+            version=report.version.version,
+            environment=report.environment.value,
+            deployment_status=report.status.value,
+            uptime=_format_uptime(report.uptime_seconds),
+            python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        )
+    except Exception:
+        return SystemInfo(
+            python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        )
+
+
+def _format_uptime(seconds: float) -> str:
+    """Format seconds as HH:MM:SS."""
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
+
+def _format_relative_time(dt: datetime | None) -> str:
+    """Format a datetime as a relative time string."""
+    if dt is None:
+        return "Never"
+    now = datetime.now(timezone.utc)
+    delta = (now - dt).total_seconds()
+    if delta <= 0.1:
+        return "Just now"
+    if delta < 1:
+        return "< 1 sec ago"
+    if delta < 60:
+        return f"{delta:.1f} sec ago"
+    if delta < 3600:
+        mins = int(delta // 60)
+        return f"{mins} min ago"
+    hours = int(delta // 3600)
+    return f"{hours} hr ago"
+
+
+def build_runtime_state() -> RuntimeScreenState:
+    """Build RuntimeScreenState by reading all managers (read-only).
+
+    All manager access is try/except guarded for resilience.
+    """
+    engine_info = _read_runtime_engine()
+    stream_info = _read_runtime_stream()
+    pipeline_info = _read_runtime_pipeline()
+    event_bus_info = _read_runtime_event_bus()
+    components = _read_runtime_components()
+    events = _read_runtime_events()
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return RuntimeScreenState(
+        engine=engine_info,
+        stream=stream_info,
+        pipeline=pipeline_info,
+        event_bus=event_bus_info,
+        components=components,
+        events=events,
+        last_refresh=now,
+    )
+
+
+def _read_runtime_engine() -> RuntimeEngineInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return RuntimeEngineInfo(
+            status=report.runtime_status.name,
+            uptime=_format_uptime(report.performance.uptime_seconds),
+            is_running=engine.is_running,
+            scheduler_active=report.scheduler.active,
+        )
+    except Exception:
+        return RuntimeEngineInfo()
+
+
+def _read_runtime_stream() -> RuntimeStreamInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return RuntimeStreamInfo(
+            connected=report.market.stream_status.lower() == "connected",
+            symbols_tracked=report.market.active_subscriptions,
+            tick_rate="N/A",
+        )
+    except Exception:
+        return RuntimeStreamInfo()
+
+
+def _read_runtime_pipeline() -> RuntimePipelineInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return RuntimePipelineInfo(
+            executions=report.scheduler.pipeline_executions,
+            avg_runtime="N/A",
+            last_run=_format_relative_time(report.scheduler.last_pipeline_time),
+        )
+    except Exception:
+        return RuntimePipelineInfo()
+
+
+def _read_runtime_event_bus() -> RuntimeEventBusInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+        from titan.runtime.models import RuntimeEventType
+
+        engine = get_runtime_engine()
+        bus = engine.event_bus
+        total_subscribers = 0
+        for event_type in RuntimeEventType:
+            total_subscribers += bus.listener_count(event_type)
+        return RuntimeEventBusInfo(
+            published=0,
+            subscribers=total_subscribers,
+        )
+    except Exception:
+        return RuntimeEventBusInfo()
+
+
+def _read_runtime_components() -> tuple[RuntimeComponentInfo, ...]:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return tuple(
+            RuntimeComponentInfo(
+                name=comp.component_name,
+                status=comp.status.value,
+            )
+            for comp in report.health.component_health
+        )
+    except Exception:
+        return ()
+
+
+def _read_runtime_events() -> tuple[RuntimeEventEntry, ...]:
+    entries: list[RuntimeEventEntry] = []
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        for warning in report.health.warnings:
+            entries.append(
+                RuntimeEventEntry(level="warning", source="runtime", message=warning)
+            )
+        for error in report.health.errors:
+            entries.append(
+                RuntimeEventEntry(level="error", source="runtime", message=error)
+            )
+    except Exception:
+        pass
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        history = rm.get_recovery_history()
+        for recovery in history[-10:]:
+            entries.append(
+                RuntimeEventEntry(
+                    level="info",
+                    source=str(recovery.component.value),
+                    message=(
+                        f"Recovery {recovery.status.value}: {recovery.failure_reason}"
+                        if recovery.failure_reason
+                        else f"Recovery {recovery.status.value}"
+                    ),
+                )
+            )
+    except Exception:
+        pass
+    return tuple(entries[-20:])
+
+
+# ─── Paper Trading state builder ─────────────────────────────
+
+
+def build_paper_state() -> PaperScreenState:
+    """Build PaperScreenState by reading paper managers (read-only).
+
+    All manager access is try/except guarded for resilience.
+    """
+    session = _read_paper_session()
+    account = _read_paper_accounts()
+    portfolio = _read_paper_portfolio()
+    performance = _read_paper_performance()
+    positions = _read_paper_positions()
+    orders = _read_paper_orders()
+    trades = _read_paper_trades()
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return PaperScreenState(
+        session=session,
+        account=account,
+        portfolio=portfolio,
+        performance=performance,
+        positions=positions,
+        orders=orders,
+        trades=trades,
+        last_refresh=now,
+    )
+
+
+def _read_paper_session() -> PaperSessionInfo:
+    try:
+        from titan.cli.commands.paper import _get_broker, _paper_start_time
+
+        broker = _get_broker()
+        if broker is None or not broker.is_connected():
+            return PaperSessionInfo()
+        uptime = 0.0
+        started_str = "--:--"
+        if _paper_start_time is not None:
+            uptime = (datetime.now(timezone.utc) - _paper_start_time).total_seconds()
+            started_str = _paper_start_time.strftime("%H:%M")
+        return PaperSessionInfo(
+            status="Running",
+            started=started_str,
+            duration=_format_uptime(uptime),
+        )
+    except Exception:
+        return PaperSessionInfo()
+
+
+def _read_paper_accounts() -> PaperAccountInfo:
+    try:
+        from titan.cli.commands.paper import _get_broker
+
+        broker = _get_broker()
+        if broker is None:
+            return PaperAccountInfo()
+        funds = broker.funds()
+        margin = broker.margin()
+        return PaperAccountInfo(
+            available_cash=_format_inr(funds.available_cash),
+            used_margin=_format_inr(margin.used_margin),
+            available_margin=_format_inr(margin.available_margin),
+            payin=_format_inr(funds.payin),
+            payout=_format_inr(funds.payout),
+        )
+    except Exception:
+        return PaperAccountInfo()
+
+
+def _read_paper_portfolio() -> PaperPortfolioInfo:
+    try:
+        from titan.cli.commands.paper import _get_broker
+
+        broker = _get_broker()
+        if broker is None:
+            return PaperPortfolioInfo()
+        positions = broker.position_engine.open_positions()
+        ps = broker.portfolio.compute_state(positions)
+        realized = sum(
+            (p.realized_pnl for p in broker.position_engine.all_positions()),
+            __import__("decimal").Decimal("0"),
+        )
+        unrealized = ps.total_pnl - realized
+        return PaperPortfolioInfo(
+            cash=f"₹{ps.cash:,.0f}",
+            equity=f"₹{ps.equity:,.0f}",
+            unrealized_pnl=_format_pnl(unrealized),
+            realized_pnl=_format_pnl(realized),
+        )
+    except Exception:
+        return PaperPortfolioInfo()
+
+
+def _read_paper_performance() -> PaperPerformanceInfo:
+    try:
+        from titan.cli.commands.paper import _get_broker
+
+        broker = _get_broker()
+        if broker is None:
+            return PaperPerformanceInfo()
+        positions = broker.position_engine.open_positions()
+        ps = broker.portfolio.compute_state(positions)
+        perf = broker.performance.compute(ps)
+        exp_val = float(perf.expectancy)
+        return PaperPerformanceInfo(
+            total_trades=perf.total_trades,
+            win_rate=f"{perf.win_rate * 100:.0f}%",
+            profit_factor=f"{perf.profit_factor:.2f}",
+            expectancy=f"{'+' if exp_val >= 0 else ''}{exp_val:.2f}R",
+            max_drawdown=f"{float(perf.max_drawdown) * 100:.1f}%",
+        )
+    except Exception:
+        return PaperPerformanceInfo()
+
+
+def _read_paper_positions() -> tuple[PaperPositionEntry, ...]:
+    try:
+        from titan.cli.commands.paper import _get_broker
+
+        broker = _get_broker()
+        if broker is None:
+            return ()
+        open_pos = broker.position_engine.open_positions()
+        return tuple(
+            PaperPositionEntry(
+                symbol=p.symbol,
+                quantity=p.quantity,
+                avg_price=f"₹{p.average_price}" if p.average_price else "0",
+                current_price=f"₹{p.current_price}" if p.current_price else "0",
+                unrealized_pnl=_format_pnl(p.unrealized_pnl),
+            )
+            for p in open_pos
+        )
+    except Exception:
+        return ()
+
+
+def _read_paper_trades() -> tuple[PaperTradeEntry, ...]:
+    try:
+        from titan.cli.commands.paper import _get_broker
+
+        broker = _get_broker()
+        if broker is None:
+            return ()
+        fills = broker.journal.to_broker_trades()
+        entries: list[PaperTradeEntry] = []
+        for trade in fills[-20:]:
+            side_val = (
+                trade.side.value if hasattr(trade.side, "value") else str(trade.side)
+            )
+            entries.append(
+                PaperTradeEntry(
+                    symbol=trade.symbol,
+                    side=side_val,
+                    quantity=trade.quantity,
+                    price=f"₹{trade.price}",
+                    pnl=_format_pnl(trade.pnl) if hasattr(trade, "pnl") else "₹0",
+                    time=(
+                        trade.timestamp.strftime("%H:%M")
+                        if hasattr(trade, "timestamp") and trade.timestamp
+                        else ""
+                    ),
+                )
+            )
+        return tuple(entries)
+    except Exception:
+        return ()
+
+
+def _read_paper_orders() -> tuple[PaperOrderEntry, ...]:
+    try:
+        from titan.cli.commands.paper import _get_broker
+
+        broker = _get_broker()
+        if broker is None:
+            return ()
+        all_orders = broker.orders()
+        active: list[PaperOrderEntry] = []
+        for o in all_orders:
+            status_str = o.status.value if hasattr(o.status, "value") else str(o.status)
+            if status_str not in ("pending", "open", "partially_filled"):
+                continue
+            side_val = o.side.value if hasattr(o.side, "value") else str(o.side)
+            ot_val = (
+                o.order_type.value
+                if hasattr(o.order_type, "value")
+                else str(o.order_type)
+            )
+            price_str = _format_inr(o.average_price or o.price)
+            placed_str = ""
+            if o.placed_at:
+                placed_str = o.placed_at.strftime("%H:%M")
+            active.append(
+                PaperOrderEntry(
+                    order_id=o.broker_order_id,
+                    symbol=o.symbol,
+                    side=side_val,
+                    order_type=ot_val,
+                    quantity=o.quantity,
+                    filled_quantity=o.filled_quantity,
+                    price=price_str,
+                    status=status_str,
+                    placed_at=placed_str,
+                )
+            )
+        return tuple(active)
+    except Exception:
+        return ()
+
+
+def _format_inr(value: object) -> str:
+    """Format a numeric value as INR string."""
+    from decimal import Decimal
+
+    if value is None:
+        return "₹0"
+    try:
+        d = Decimal(str(value))
+    except Exception:
+        return "₹0"
+    if d < 0:
+        return f"-₹{abs(d):,.0f}"
+    return f"₹{d:,.0f}"
+
+
+def _format_pnl(value: object) -> str:
+    """Format a P&L value as a signed INR string."""
+    from decimal import Decimal
+
+    try:
+        d = Decimal(str(value))
+    except Exception:
+        return "+₹0"
+    if d < 0:
+        return f"-₹{abs(d):,.0f}"
+    return f"+₹{abs(d):,.0f}"
+
+
+def _format_pct(value: object) -> str:
+    """Format a float as a percentage string."""
+    try:
+        return f"{float(str(value)) * 100:.0f}%"
+    except Exception:
+        return "0%"
+
+
+def _format_float(value: object, decimals: int = 2) -> str:
+    """Format a float with fixed decimals."""
+    try:
+        return f"{float(str(value)):.{decimals}f}"
+    except Exception:
+        return "0"
+
+
+def _format_volume(value: object) -> str:
+    """Format volume with K/M suffix."""
+    try:
+        v = float(str(value))
+        if v >= 1_000_000:
+            return f"{v / 1_000_000:.1f}M"
+        if v >= 1_000:
+            return f"{v / 1_000:.1f}K"
+        return f"{v:.0f}"
+    except Exception:
+        return "0"
+
+
+# ─── Live Trading state builder ─────────────────────────────
+
+
+def build_live_state() -> LiveScreenState:
+    """Build LiveScreenState by reading all managers (read-only).
+
+    All manager access is try/except guarded for resilience.
+    """
+    live_status = _read_live_status()
+    broker_status = _read_broker_status()
+    account = _read_live_account()
+    exposure = _read_live_exposure()
+    positions = _read_live_positions()
+    orders = _read_live_orders()
+    executions = _read_recent_executions()
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return LiveScreenState(
+        live_status=live_status,
+        broker_status=broker_status,
+        account=account,
+        exposure=exposure,
+        positions=positions,
+        orders=orders,
+        executions=executions,
+        last_refresh=now,
+    )
+
+
+def _read_live_status() -> LiveStatusInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return LiveStatusInfo(
+            status=report.runtime_status.name,
+            uptime=_format_uptime(report.performance.uptime_seconds),
+            is_running=engine.is_running,
+            broker_connected=report.broker.connection.lower() == "connected",
+            stream_connected=report.market.stream_status.lower() == "connected",
+            pipeline_executions=report.scheduler.pipeline_executions,
+        )
+    except Exception:
+        return LiveStatusInfo()
+
+
+def _read_broker_status() -> BrokerStatusInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        broker = engine.broker
+        is_connected = broker.is_connected()
+        provider = type(broker).__name__
+        return BrokerStatusInfo(
+            provider=provider,
+            connection_status=report.broker.connection,
+            is_connected=is_connected,
+            exchange="",
+            account_id="",
+        )
+    except Exception:
+        return BrokerStatusInfo()
+
+
+def _read_live_account() -> AccountInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        broker = engine.broker
+        funds = broker.funds()
+        margin = broker.margin()
+        return AccountInfo(
+            available_cash=_format_inr(funds.available_cash),
+            used_margin=_format_inr(margin.used_margin),
+            available_margin=_format_inr(margin.available_margin),
+            payin=_format_inr(funds.payin),
+            payout=_format_inr(funds.payout),
+        )
+    except Exception:
+        return AccountInfo()
+
+
+def _read_live_exposure() -> ExposureInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        broker = engine.broker
+        positions = broker.positions()
+        long_count = sum(1 for p in positions if p.quantity > 0)
+        short_count = sum(1 for p in positions if p.quantity < 0)
+        gross = sum(abs(p.quantity) * float(p.current_price or 0) for p in positions)
+        net = sum(p.quantity * float(p.current_price or 0) for p in positions)
+        total_pnl = sum(float(p.pnl or 0) for p in positions)
+        return ExposureInfo(
+            total_positions=len(positions),
+            long_positions=long_count,
+            short_positions=short_count,
+            gross_exposure=_format_inr(gross),
+            net_exposure=_format_inr(net),
+            unrealized_pnl=_format_pnl(total_pnl),
+        )
+    except Exception:
+        return ExposureInfo()
+
+
+def _read_live_positions() -> tuple[LivePositionEntry, ...]:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        broker = engine.broker
+        positions = broker.positions()
+        return tuple(
+            LivePositionEntry(
+                symbol=p.symbol,
+                exchange=(
+                    p.exchange.value
+                    if hasattr(p.exchange, "value")
+                    else str(p.exchange)
+                ),
+                product=(
+                    p.product.value if hasattr(p.product, "value") else str(p.product)
+                ),
+                quantity=p.quantity,
+                buy_qty=p.buy_quantity,
+                sell_qty=p.sell_quantity,
+                avg_price=_format_inr(p.buy_price or 0),
+                current_price=_format_inr(p.current_price or 0),
+                pnl=_format_pnl(p.pnl or 0),
+                realised_pnl=_format_pnl(p.realised_pnl or 0),
+            )
+            for p in positions
+        )
+    except Exception:
+        return ()
+
+
+def _read_live_orders() -> tuple[LiveOrderEntry, ...]:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        broker = engine.broker
+        all_orders = broker.orders()
+        active: list[LiveOrderEntry] = []
+        for o in all_orders:
+            status_str = o.status.value if hasattr(o.status, "value") else str(o.status)
+            if status_str not in ("pending", "open", "partially_filled"):
+                continue
+            side_val = o.side.value if hasattr(o.side, "value") else str(o.side)
+            ot_val = (
+                o.order_type.value
+                if hasattr(o.order_type, "value")
+                else str(o.order_type)
+            )
+            price_str = _format_inr(o.average_price or o.price or 0)
+            placed_str = ""
+            if o.placed_at:
+                placed_str = o.placed_at.strftime("%H:%M")
+            active.append(
+                LiveOrderEntry(
+                    order_id=o.broker_order_id,
+                    symbol=o.symbol,
+                    side=side_val,
+                    order_type=ot_val,
+                    quantity=o.quantity,
+                    filled_quantity=o.filled_quantity,
+                    price=price_str,
+                    status=status_str,
+                    placed_at=placed_str,
+                )
+            )
+        return tuple(active)
+    except Exception:
+        return ()
+
+
+def _read_recent_executions() -> tuple[ExecutionEntry, ...]:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        broker = engine.broker
+        trades = broker.trades()
+        entries: list[ExecutionEntry] = []
+        for t in trades[-20:]:
+            side_val = t.side.value if hasattr(t.side, "value") else str(t.side)
+            time_str = ""
+            if t.trade_time:
+                time_str = t.trade_time.strftime("%H:%M")
+            entries.append(
+                ExecutionEntry(
+                    trade_id=t.trade_id,
+                    order_id=t.broker_order_id,
+                    symbol=t.symbol,
+                    side=side_val,
+                    quantity=t.quantity,
+                    price=_format_inr(t.price),
+                    time=time_str,
+                )
+            )
+        return tuple(entries)
+    except Exception:
+        return ()
+
+
+# ─── Monitoring & Alerting state builder ─────────────────────────────
+
+
+def build_monitoring_state() -> "MonitoringScreenState":
+    """Build MonitoringScreenState by reading monitoring, alerting, and recovery managers.
+
+    All manager access is try/except guarded for resilience.
+    """
+    from titan.tui.models import MonitoringScreenState
+
+    system_health = _read_monitoring_system_health()
+    telemetry = _read_monitoring_telemetry()
+    resource_metrics = _read_monitoring_resource_metrics()
+    alert_summary = _read_monitoring_alert_summary()
+    active_alerts = _read_monitoring_active_alerts()
+    alert_history = _read_monitoring_alert_history()
+    recovery_status = _read_monitoring_recovery_status()
+    monitoring_events = _read_monitoring_events()
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return MonitoringScreenState(
+        system_health=system_health,
+        telemetry=telemetry,
+        resource_metrics=resource_metrics,
+        alert_summary=alert_summary,
+        active_alerts=active_alerts,
+        alert_history=alert_history,
+        recovery_status=recovery_status,
+        monitoring_events=monitoring_events,
+        last_refresh=now,
+    )
+
+
+def _read_monitoring_system_health() -> "SystemHealthInfo":
+    from titan.tui.models import SubsystemHealthEntry, SystemHealthInfo
+
+    try:
+        from titan.cli.common import get_monitoring_manager
+
+        mon = get_monitoring_manager()
+        health = mon.health.evaluate()
+        subsystems = tuple(
+            SubsystemHealthEntry(
+                name=sub.subsystem.value,
+                status=sub.status.value,
+                message=sub.message,
+                latency_ms=f"{sub.latency_ms:.1f}",
+                failures=sub.failures,
+            )
+            for sub in health.subsystems
+        )
+        return SystemHealthInfo(
+            overall_status=health.overall.value,
+            healthy_count=health.healthy_count,
+            warning_count=health.warning_count,
+            critical_count=health.critical_count,
+            offline_count=health.offline_count,
+            subsystems=subsystems,
+        )
+    except Exception:
+        return SystemHealthInfo()
+
+
+def _read_monitoring_telemetry() -> "TelemetryInfo":
+    from titan.tui.models import TelemetryInfo
+
+    try:
+        from titan.cli.common import get_monitoring_manager
+
+        mon = get_monitoring_manager()
+        status = mon.dashboard_status()
+        return TelemetryInfo(
+            total_metrics=len(mon.metrics.metric_names()),
+            active_collectors=status.active_collectors,
+            failed_collections=status.failed_collections,
+            total_collections=status.total_collections,
+            uptime=_format_uptime(status.uptime_seconds),
+        )
+    except Exception:
+        return TelemetryInfo()
+
+
+def _read_monitoring_resource_metrics() -> "ResourceMetricsInfo":
+    from titan.tui.models import ResourceMetricEntry, ResourceMetricsInfo
+
+    try:
+        from titan.cli.common import get_monitoring_manager
+
+        mon = get_monitoring_manager()
+        status = mon.dashboard_status()
+        metrics = tuple(
+            ResourceMetricEntry(
+                name=summary.name,
+                value=_format_float(summary.current),
+                unit=summary.unit.value,
+                trend=summary.trend,
+            )
+            for summary in status.metric_summaries
+        )
+        return ResourceMetricsInfo(metrics=metrics)
+    except Exception:
+        return ResourceMetricsInfo()
+
+
+def _read_monitoring_alert_summary() -> "AlertSummaryInfo":
+    from titan.tui.models import AlertSummaryInfo
+
+    try:
+        from titan.cli.common import get_alert_manager
+
+        al = get_alert_manager()
+        report = al.generate_report()
+        return AlertSummaryInfo(
+            total=report.total_alerts,
+            active=report.active_alerts,
+            critical=report.critical_alerts,
+            acknowledged=report.acknowledged_alerts,
+            resolved=report.resolved_alerts,
+            escalated=report.escalated_alerts,
+        )
+    except Exception:
+        return AlertSummaryInfo()
+
+
+def _read_monitoring_active_alerts() -> "tuple[AlertEntry, ...]":
+    from titan.tui.models import AlertEntry
+
+    try:
+        from titan.cli.common import get_alert_manager
+
+        al = get_alert_manager()
+        alerts = al.get_active_alerts()
+        return tuple(
+            AlertEntry(
+                alert_id=alert.alert_id,
+                level=alert.level.value,
+                source=alert.source.value,
+                title=alert.title,
+                message=alert.message,
+                status=alert.status.value,
+                timestamp_str=alert.timestamp.strftime("%H:%M:%S"),
+            )
+            for alert in alerts[-20:]
+        )
+    except Exception:
+        return ()
+
+
+def _read_monitoring_alert_history() -> "tuple[AlertHistoryEntry, ...]":
+    from titan.tui.models import AlertHistoryEntry
+
+    try:
+        from titan.cli.common import get_alert_manager
+
+        al = get_alert_manager()
+        entries = al.history.all_entries()
+        result: list[AlertHistoryEntry] = []
+        for entry in entries[-20:]:
+            duration = ""
+            if entry.alert.acknowledged_at and entry.alert.timestamp:
+                delta = (
+                    entry.alert.acknowledged_at - entry.alert.timestamp
+                ).total_seconds()
+                duration = _format_uptime(delta)
+            elif entry.alert.resolved_at and entry.alert.timestamp:
+                delta = (
+                    entry.alert.resolved_at - entry.alert.timestamp
+                ).total_seconds()
+                duration = _format_uptime(delta)
+            result.append(
+                AlertHistoryEntry(
+                    alert_id=entry.alert.alert_id,
+                    level=entry.alert.level.value,
+                    source=entry.alert.source.value,
+                    title=entry.alert.title,
+                    status=entry.alert.status.value,
+                    timestamp_str=entry.alert.timestamp.strftime("%H:%M:%S"),
+                    duration=duration,
+                )
+            )
+        return tuple(result)
+    except Exception:
+        return ()
+
+
+def _read_monitoring_recovery_status() -> "RecoveryStatusInfo":
+    from titan.tui.models import RecoveryStatusInfo
+
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        report = rm.generate_report()
+        history = rm.get_recovery_history()
+        last_strategy = ""
+        if history:
+            last = history[-1]
+            last_strategy = (
+                last.strategy.value
+                if hasattr(last.strategy, "value")
+                else str(last.strategy)
+            )
+        recovered = (
+            ", ".join(report.recovered_components[:3])
+            if report.recovered_components
+            else ""
+        )
+        return RecoveryStatusInfo(
+            status=(
+                report.status.value
+                if hasattr(report.status, "value")
+                else str(report.status)
+            ),
+            total_attempts=report.total_attempts,
+            successful=report.successful_attempts,
+            failed=report.failed_attempts,
+            last_strategy=last_strategy,
+            recovered_components=recovered,
+        )
+    except Exception:
+        return RecoveryStatusInfo()
+
+
+def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
+    from titan.tui.models import MonitoringEventEntry
+
+    entries: list[MonitoringEventEntry] = []
+    try:
+        from titan.cli.common import get_monitoring_manager
+
+        mon = get_monitoring_manager()
+        report = mon.generate_report()
+        for warning in report.warnings:
+            entries.append(
+                MonitoringEventEntry(
+                    level="warning",
+                    source="monitoring",
+                    message=warning,
+                    timestamp_str=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                )
+            )
+        for rec in report.recommendations:
+            entries.append(
+                MonitoringEventEntry(
+                    level="info",
+                    source="monitoring",
+                    message=rec,
+                    timestamp_str=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                )
+            )
+    except Exception:
+        pass
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        history = rm.get_recovery_history()
+        for recovery in history[-10:]:
+            entries.append(
+                MonitoringEventEntry(
+                    level="info",
+                    source="recovery",
+                    message=(
+                        f"Recovery {recovery.status.value}: {recovery.failure_reason}"
+                        if recovery.failure_reason
+                        else f"Recovery {recovery.status.value}"
+                    ),
+                    timestamp_str=(
+                        recovery.timestamp.strftime("%H:%M:%S")
+                        if hasattr(recovery, "timestamp") and recovery.timestamp
+                        else ""
+                    ),
+                )
+            )
+    except Exception:
+        pass
+    try:
+        from titan.cli.common import get_alert_manager
+
+        al = get_alert_manager()
+        al_report = al.generate_report()
+        for w in al_report.warnings:
+            entries.append(
+                MonitoringEventEntry(
+                    level="warning",
+                    source="alerting",
+                    message=w,
+                    timestamp_str=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                )
+            )
+    except Exception:
+        pass
+    return tuple(entries[-30:])
+
+
+# ─── Audit, Logs & Recovery state builder ─────────────────────────
+
+
+def build_audit_state() -> "AuditScreenState":
+    """Build AuditScreenState by reading audit, logging, and recovery managers.
+
+    All manager access is try/except guarded for resilience.
+    """
+    from titan.tui.models import AuditScreenState
+
+    audit_summary = _read_audit_summary()
+    recent_audit = _read_recent_audit()
+    log_summary = _read_log_summary()
+    recent_logs = _read_recent_logs()
+    recovery_history = _read_recovery_history_entries()
+    circuit_breakers = _read_circuit_breakers()
+    checkpoints = _read_checkpoints()
+    backup_status = _read_backup_status()
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return AuditScreenState(
+        audit_summary=audit_summary,
+        recent_audit=recent_audit,
+        log_summary=log_summary,
+        recent_logs=recent_logs,
+        recovery_history=recovery_history,
+        circuit_breakers=circuit_breakers,
+        checkpoints=checkpoints,
+        backup_status=backup_status,
+        last_refresh=now,
+    )
+
+
+def _read_audit_summary() -> "AuditSummaryInfo":
+    from titan.tui.models import AuditSummaryInfo
+
+    try:
+        from titan.cli.common import get_audit_manager
+
+        am = get_audit_manager()
+        report = am.generate_report()
+        by_source = ", ".join(
+            f"{k}:{v}" for k, v in list(report.events_by_source.items())[:5]
+        )
+        by_severity = ", ".join(
+            f"{k}:{v}" for k, v in list(report.events_by_severity.items())[:5]
+        )
+        first = ""
+        if report.first_event_time:
+            first = report.first_event_time.strftime("%H:%M:%S")
+        last = ""
+        if report.last_event_time:
+            last = report.last_event_time.strftime("%H:%M:%S")
+        return AuditSummaryInfo(
+            total_events=report.total_events,
+            events_by_source=by_source,
+            events_by_severity=by_severity,
+            integrity_status=report.integrity_status,
+            verification_failures=report.verification_failures,
+            first_event_time=first,
+            last_event_time=last,
+        )
+    except Exception:
+        return AuditSummaryInfo()
+
+
+def _read_recent_audit() -> "tuple[AuditEntry, ...]":
+    from titan.tui.models import AuditEntry
+
+    try:
+        from titan.cli.common import get_audit_manager
+
+        am = get_audit_manager()
+        from titan.audit.query import AuditQuery
+
+        query = AuditQuery()
+        events = am.search(query)
+        entries: list[AuditEntry] = []
+        for ev in events[-20:]:
+            entries.append(
+                AuditEntry(
+                    event_id=ev.event_id,
+                    sequence=ev.sequence_number,
+                    source=(
+                        ev.source.value
+                        if hasattr(ev.source, "value")
+                        else str(ev.source)
+                    ),
+                    category=(
+                        ev.category.value
+                        if hasattr(ev.category, "value")
+                        else str(ev.category)
+                    ),
+                    severity=(
+                        ev.severity.value
+                        if hasattr(ev.severity, "value")
+                        else str(ev.severity)
+                    ),
+                    action=ev.action,
+                    result=(
+                        ev.result.value
+                        if hasattr(ev.result, "value")
+                        else str(ev.result)
+                    ),
+                    timestamp_str=ev.timestamp.strftime("%H:%M:%S"),
+                )
+            )
+        return tuple(entries)
+    except Exception:
+        return ()
+
+
+def _read_log_summary() -> "LogSummaryInfo":
+    from titan.tui.models import LogSummaryInfo
+
+    try:
+        from titan.logging.manager import LoggerManager
+
+        lm = LoggerManager.instance()
+        report = lm.generate_report()
+        handler_count = len(report.handlers)
+        return LogSummaryInfo(
+            level=(
+                report.level.value
+                if hasattr(report.level, "value")
+                else str(report.level)
+            ),
+            handler_count=handler_count,
+            component_count=report.component_count,
+            dropped_messages=report.dropped_messages,
+            warning_count=len(report.warnings),
+            error_count=len(report.errors),
+        )
+    except Exception:
+        return LogSummaryInfo()
+
+
+def _read_recent_logs() -> "tuple[LogEntry, ...]":
+    from titan.tui.models import LogEntry
+
+    try:
+        from pathlib import Path
+
+        log_file = Path("logs/titan.log")
+        if not log_file.exists():
+            return ()
+        lines = log_file.read_text(encoding="utf-8", errors="replace").splitlines()
+        entries: list[LogEntry] = []
+        for line in lines[-20:]:
+            if not line.strip():
+                continue
+            parts = line.strip().split(" ", 4)
+            ts = parts[0] if len(parts) > 0 else ""
+            level = parts[1] if len(parts) > 1 else ""
+            module_comp = parts[2] if len(parts) > 2 else ""
+            module, _, component = module_comp.partition("/")
+            message = (
+                parts[4] if len(parts) > 4 else (parts[3] if len(parts) > 3 else "")
+            )
+            entries.append(
+                LogEntry(
+                    timestamp_str=ts,
+                    level=level,
+                    module=module,
+                    component=component or module,
+                    message=message[:120],
+                )
+            )
+        return tuple(entries[-20:])
+    except Exception:
+        return ()
+
+
+def _read_recovery_history_entries() -> "tuple[RecoveryHistoryEntry, ...]":
+    from titan.tui.models import RecoveryHistoryEntry
+
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        history = rm.get_recovery_history()
+        entries: list[RecoveryHistoryEntry] = []
+        for r in history[-20:]:
+            entries.append(
+                RecoveryHistoryEntry(
+                    request_id=r.request_id,
+                    component=(
+                        r.component.value
+                        if hasattr(r.component, "value")
+                        else str(r.component)
+                    ),
+                    strategy=(
+                        r.strategy.value
+                        if hasattr(r.strategy, "value")
+                        else str(r.strategy)
+                    ),
+                    status=(
+                        r.status.value if hasattr(r.status, "value") else str(r.status)
+                    ),
+                    attempts=r.total_attempts,
+                    failure_reason=r.failure_reason,
+                    timestamp_str=(
+                        r.timestamp.strftime("%H:%M:%S") if r.timestamp else ""
+                    ),
+                )
+            )
+        return tuple(entries)
+    except Exception:
+        return ()
+
+
+def _read_circuit_breakers() -> "tuple[CircuitBreakerInfo, ...]":
+    from titan.tui.models import CircuitBreakerInfo
+
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        breakers = rm._circuit_breakers
+        result: list[CircuitBreakerInfo] = []
+        for name, cb in breakers.items():
+            state_val = cb.state.value if hasattr(cb.state, "value") else str(cb.state)
+            timeout_s = f"{cb.config.recovery_timeout_seconds:.0f}s"
+            result.append(
+                CircuitBreakerInfo(
+                    name=name,
+                    state=state_val,
+                    failure_count=cb.failure_count,
+                    success_count=cb.success_count,
+                    failure_threshold=cb.config.failure_threshold,
+                    recovery_timeout=timeout_s,
+                )
+            )
+        return tuple(result)
+    except Exception:
+        return ()
+
+
+def _read_checkpoints() -> "tuple[CheckpointInfo, ...]":
+    from titan.tui.models import CheckpointInfo
+
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        checkpoints = rm.checkpoints.list_all()
+        result: list[CheckpointInfo] = []
+        for cp in checkpoints[-20:]:
+            comp_val = (
+                cp.component.value
+                if hasattr(cp.component, "value")
+                else str(cp.component)
+            )
+            result.append(
+                CheckpointInfo(
+                    checkpoint_id=cp.checkpoint_id,
+                    component=comp_val,
+                    version=cp.version,
+                    created_at_str=(
+                        cp.created_at.strftime("%H:%M:%S") if cp.created_at else ""
+                    ),
+                    has_metadata=bool(cp.metadata),
+                )
+            )
+        return tuple(result)
+    except Exception:
+        return ()
+
+
+def _read_backup_status() -> "BackupStatusInfo":
+    from titan.tui.models import BackupStatusInfo
+
+    try:
+        from titan.cli.common import get_recovery_manager
+
+        rm = get_recovery_manager()
+        checkpoints = rm.checkpoints.list_all()
+        total = len(checkpoints)
+        components: set[str] = set()
+        last_time = ""
+        storage_type = "in_memory"
+        storage_path = ""
+        for cp in checkpoints:
+            comp_val = (
+                cp.component.value
+                if hasattr(cp.component, "value")
+                else str(cp.component)
+            )
+            components.add(comp_val)
+        if checkpoints:
+            last = checkpoints[-1]
+            if last.created_at:
+                last_time = last.created_at.strftime("%H:%M:%S")
+        cp_mgr = rm.checkpoints
+        if hasattr(cp_mgr, "_storage"):
+            storage_path = str(getattr(cp_mgr._storage, "file_path", ""))
+            if storage_path:
+                storage_type = "jsonl"
+        return BackupStatusInfo(
+            total_checkpoints=total,
+            components_with_checkpoints=", ".join(sorted(components)),
+            last_checkpoint_time=last_time,
+            storage_type=storage_type,
+            storage_path=storage_path,
+        )
+    except Exception:
+        return BackupStatusInfo()
+
+
+# ─── Configuration & Deployment state builder ─────────────────────
+
+
+def build_configuration_state() -> "ConfigurationScreenState":
+    """Build ConfigurationScreenState by reading configuration and deployment managers."""
+    from titan.tui.models import ConfigurationScreenState
+
+    configuration = _read_configuration()
+    environment = _read_environment()
+    deployment = _read_deployment()
+    services = _read_services()
+    version = _read_versions()
+    backup = _read_backup()
+    history = _read_deployment_history()
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    return ConfigurationScreenState(
+        configuration=configuration,
+        environment=environment,
+        deployment=deployment,
+        services=services,
+        version=version,
+        backup=backup,
+        history=history,
+        last_refresh=now,
+    )
+
+
+def _read_configuration() -> "ConfigurationInfo":
+    from titan.tui.models import ConfigurationInfo
+
+    try:
+        from titan.cli.common import get_config_manager
+
+        cm = get_config_manager()
+        report = cm.generate_report()
+        config = report.config
+        log_level = ""
+        pipeline_interval = ""
+        if config is not None:
+            log_level = config.logging.level
+            pipeline_interval = f"{config.runtime.pipeline_interval_seconds}s"
+        return ConfigurationInfo(
+            profile=report.profile,
+            sources=report.sources,
+            log_level=log_level,
+            pipeline_interval=pipeline_interval,
+            validation_status=report.validation_status,
+        )
+    except Exception:
+        return ConfigurationInfo()
+
+
+def _read_environment() -> "EnvironmentInfo":
+    from titan.tui.models import EnvironmentInfo
+
+    try:
+        from titan.cli.common import get_deployment_manager
+
+        dm = get_deployment_manager()
+        report = dm._env_manager.validate(dm._environment)
+        validation_status = "valid"
+        if report.errors:
+            validation_status = "invalid"
+        elif report.warnings:
+            validation_status = "warnings"
+
+        return EnvironmentInfo(
+            name=(
+                dm._environment.value
+                if hasattr(dm._environment, "value")
+                else str(dm._environment)
+            ),
+            directories_verified=report.directories_verified,
+            secrets_available=report.secrets_available,
+            validation_status=validation_status,
+        )
+    except Exception:
+        return EnvironmentInfo()
+
+
+def _read_deployment() -> "DeploymentInfo":
+    from titan.tui.models import DeploymentInfo
+
+    try:
+        from titan.cli.common import get_deployment_manager
+
+        dm = get_deployment_manager()
+        report = dm.generate_report()
+        health = report.health
+        start_time = ""
+        if report.start_time is not None:
+            start_time = report.start_time.strftime("%H:%M:%S")
+
+        status_val = (
+            report.status.value
+            if hasattr(report.status, "value")
+            else str(report.status)
+        )
+        health_val = (
+            health.overall_status.value
+            if hasattr(health.overall_status, "value")
+            else str(health.overall_status)
+        )
+
+        startup_duration = ""
+        # Not easily available on report without parsing, use empty or default
+        return DeploymentInfo(
+            status=status_val,
+            uptime=_format_uptime(report.uptime_seconds),
+            start_time=start_time,
+            health_status=health_val,
+            startup_duration=startup_duration,
+        )
+    except Exception:
+        return DeploymentInfo()
+
+
+def _read_services() -> "tuple[ServiceStatusEntry, ...]":
+    from titan.tui.models import ServiceStatusEntry
+
+    try:
+        from titan.cli.common import get_deployment_manager
+
+        dm = get_deployment_manager()
+        health = dm.health().generate_report()
+        return tuple(
+            ServiceStatusEntry(
+                name=sub.name,
+                status=(
+                    sub.status.value
+                    if hasattr(sub.status, "value")
+                    else str(sub.status)
+                ),
+                latency_ms=f"{sub.latency_ms:.1f}",
+                message=sub.message,
+            )
+            for sub in health.subsystems
+        )
+    except Exception:
+        return ()
+
+
+def _read_versions() -> "VersionInfo":
+    from titan.tui.models import VersionInfo
+
+    try:
+        from titan.cli.common import get_deployment_manager
+
+        dm = get_deployment_manager()
+        ver = dm.version()
+        return VersionInfo(
+            version=ver.version,
+            build_number=ver.build_number,
+            git_commit=ver.git_commit,
+            git_branch=ver.git_branch,
+            python_version=ver.python_version,
+        )
+    except Exception:
+        return VersionInfo()
+
+
+def _read_backup() -> "BackupInfo":
+    from titan.tui.models import BackupInfo
+
+    # The deployment manager does not maintain backup history natively.
+    return BackupInfo()
+
+
+def _read_deployment_history() -> "tuple[DeploymentHistoryEntry, ...]":
+    # The deployment manager does not maintain history of deployments natively.
+    return ()
+
+
+# ─── MARKET INTELLIGENCE STATE BUILDERS ──────────────────────────────────────
+
+
+def build_market_state() -> "MarketScreenState":
+    """Build MarketScreenState by querying runtime engine and cached intelligence."""
+    from titan.tui.models import MarketScreenState
+    from datetime import datetime
+
+    return MarketScreenState(
+        market_status=_read_market_status(),
+        regime=_read_regime(),
+        volatility=_read_volatility(),
+        liquidity=_read_liquidity(),
+        option_chain=_read_option_chain(),
+        open_interest=_read_open_interest(),
+        greeks=_read_greeks(),
+        evidence=_read_evidence(),
+        events=_read_market_events(),
+        last_refresh=datetime.now().strftime("%H:%M:%S"),
+    )
+
+
+def _read_market_status() -> "MarketStatusInfo":
+    from titan.tui.models import MarketStatusInfo
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        # Fallback values if the actual report generation fails or properties are missing
+        report = engine.generate_report()
+        return MarketStatusInfo(
+            runtime_status=(
+                report.runtime_status.name
+                if hasattr(report.runtime_status, "name")
+                else str(report.runtime_status)
+            ),
+            broker_status=(
+                report.broker.connection.name
+                if hasattr(report.broker.connection, "name")
+                else str(report.broker.connection)
+            ),
+            active_subscriptions=report.market.active_subscriptions,
+            last_quote_time=(
+                str(report.market.last_quote_time)
+                if report.market.last_quote_time
+                else ""
+            ),
+        )
+    except Exception:
+        return MarketStatusInfo()
+
+
+def _read_regime() -> "RegimeInfo":
+    from titan.tui.models import RegimeInfo
+
+    # The intelligence engines do not currently expose a persistent cache property
+    # on the RuntimeEngine. As per architecture rules, we return safe defaults.
+    return RegimeInfo()
+
+
+def _read_volatility() -> "VolatilityInfo":
+    from titan.tui.models import VolatilityInfo
+
+    return VolatilityInfo()
+
+
+def _read_liquidity() -> "LiquidityInfo":
+    from titan.tui.models import LiquidityInfo
+
+    return LiquidityInfo()
+
+
+def _read_option_chain() -> "OptionChainSummaryInfo":
+    from titan.tui.models import OptionChainSummaryInfo
+
+    return OptionChainSummaryInfo()
+
+
+def _read_open_interest() -> "OpenInterestSummaryInfo":
+    from titan.tui.models import OpenInterestSummaryInfo
+
+    return OpenInterestSummaryInfo()
+
+
+def _read_greeks() -> "GreeksSummaryInfo":
+    from titan.tui.models import GreeksSummaryInfo
+
+    return GreeksSummaryInfo()
+
+
+def _read_evidence() -> "EvidenceSummaryInfo":
+    from titan.tui.models import EvidenceSummaryInfo
+
+    return EvidenceSummaryInfo()
+
+
+def _read_market_events() -> "tuple[MarketEventEntry, ...]":
+    # Persistent market event history is not natively stored.
+    return ()
+
+
+# ─── DECISION JOURNAL STATE BUILDERS ─────────────────────────────────────────
+
+
+def build_decision_state() -> "DecisionScreenState":
+    from titan.tui.models import DecisionScreenState
+    from datetime import datetime
+
+    return DecisionScreenState(
+        summary=_read_decision_summary(),
+        evidence=_read_decision_evidence(),
+        risk=_read_decision_risk(),
+        qualification=_read_decision_qualification(),
+        reasons=_read_decision_reasons(),
+        timeline=_read_decision_timeline(),
+        history=_read_decision_history(),
+        last_refresh=datetime.now().strftime("%H:%M:%S"),
+    )
+
+
+def _read_decision_summary() -> "DecisionSummaryInfo":
+    from titan.tui.models import DecisionSummaryInfo
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.decision_journal.repository.get_latest(1)
+        if not entries:
+            return DecisionSummaryInfo()
+        entry = entries[0]
+        return DecisionSummaryInfo(
+            decision_id=entry.id,
+            symbol=entry.symbol,
+            decision=entry.decision,
+            trade_direction=entry.trade_direction,
+            instrument_type=entry.instrument_type,
+            confidence=entry.confidence,
+            trade_score=entry.trade_score,
+            institutional_grade=entry.institutional_grade,
+            timestamp_str=entry.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        )
+    except Exception:
+        return DecisionSummaryInfo()
+
+
+def _read_decision_evidence() -> "DecisionEvidenceInfo":
+    from titan.tui.models import DecisionEvidenceInfo
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.decision_journal.repository.get_latest(1)
+        if not entries or not entries[0].evidence_snapshot:
+            return DecisionEvidenceInfo()
+        ev = entries[0].evidence_snapshot
+        return DecisionEvidenceInfo(
+            source=ev.source,
+            category=ev.category,
+            signal=ev.signal,
+            score=ev.score,
+            confidence=ev.confidence,
+            weight=ev.weight,
+            reasons=ev.reasons,
+        )
+    except Exception:
+        return DecisionEvidenceInfo()
+
+
+def _read_decision_risk() -> "DecisionRiskInfo":
+    from titan.tui.models import DecisionRiskInfo
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.decision_journal.repository.get_latest(1)
+        if not entries:
+            return DecisionRiskInfo()
+        return DecisionRiskInfo(
+            risk_summary=entries[0].risk_summary or "No risk data available."
+        )
+    except Exception:
+        return DecisionRiskInfo()
+
+
+def _read_decision_qualification() -> "DecisionQualificationInfo":
+    from titan.tui.models import DecisionQualificationInfo
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.decision_journal.repository.get_latest(1)
+        if not entries:
+            return DecisionQualificationInfo()
+        return DecisionQualificationInfo(
+            explanation_summary=entries[0].explanation_summary
+            or "No explanation available."
+        )
+    except Exception:
+        return DecisionQualificationInfo()
+
+
+def _read_decision_reasons() -> "tuple[DecisionReasonEntry, ...]":
+    from titan.tui.models import DecisionReasonEntry
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.decision_journal.repository.get_latest(1)
+        if not entries:
+            return ()
+        return tuple(
+            DecisionReasonEntry(
+                reason_type=r.reason_type,
+                description=r.description,
+                severity=r.severity,
+            )
+            for r in entries[0].reasons
+        )
+    except Exception:
+        return ()
+
+
+def _read_decision_timeline() -> "tuple[DecisionTimelineEntry, ...]":
+    # Timeline is a placeholder unless we explicitly track pipeline stages per decision.
+    return ()
+
+
+def _read_decision_history() -> "tuple[DecisionJournalEntry, ...]":
+    from titan.tui.models import DecisionJournalEntry
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        entries = engine.decision_journal.repository.get_latest(50)
+        return tuple(
+            DecisionJournalEntry(
+                decision_id=e.id,
+                symbol=e.symbol,
+                decision=e.decision,
+                timestamp_str=e.timestamp.strftime("%H:%M:%S"),
+            )
+            for e in entries
+        )
+    except Exception:
+        return ()
+
+
+# ─── DECISION REPLAY STATE BUILDERS ──────────────────────────────────────────
+
+
+def build_trade_journal_state() -> "TradeJournalScreenState":
+    """Read TradeJournal data to build TradeJournalScreenState."""
+    from titan.tui.models import (
+        TradeHistoryEntry,
+        TradeJournalScreenState,
+        TradeJournalSummaryInfo,
+    )
+    from titan.cli.common import get_runtime_engine
+
+    try:
+        engine = get_runtime_engine()
+        journal = engine.trade_journal
+
+        # Calculate summary using analytics engine
+        from titan.trading.performance import PerformanceAnalyzer
+
+        analyzer = PerformanceAnalyzer()
+        entries = journal.repository.list(page=1, page_size=1000)
+        perf = analyzer.analyze(entries)
+
+        summary = TradeJournalSummaryInfo(
+            today_pnl=f"₹{perf.overall.net_pnl:.2f}",
+            open_risk="₹0",  # TBD
+            exposure="₹0",  # TBD
+            win_percent=f"{perf.overall.win_rate * 100:.1f}%",
+            current_drawdown="0.0%",  # TBD: Calculate real-time drawdown
+            largest_winner=f"₹{perf.overall.largest_winner:.2f}",
+            largest_loser=f"₹{perf.overall.largest_loser:.2f}",
+        )
+
+        history = tuple(
+            TradeHistoryEntry(
+                trade_id=e.trade_id,
+                symbol=e.symbol,
+                direction=e.direction,
+                quantity=e.quantity,
+                entry_price=f"₹{e.entry_price:.2f}",
+                exit_price=f"₹{e.exit_price:.2f}",
+                net_pnl=f"₹{e.net_pnl:.2f}",
+                status=e.execution_status.value.upper(),
+                open_time=e.open_time.strftime("%H:%M:%S") if e.open_time else "",
+            )
+            for e in entries
+        )
+
+        return TradeJournalScreenState(
+            summary=summary,
+            history=history,
+            last_refresh=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+        )
+    except Exception:
+        return TradeJournalScreenState()
+
+
+def build_replay_state(entry_id: str | None = None) -> "ReplayScreenState":
+    from titan.tui.models import (
+        ReplayScreenState,
+        ReplaySummaryInfo,
+        ReplayEvidenceInfo,
+        ReplayRiskInfo,
+        ReplayQualificationInfo,
+        ReplayReasonEntry,
+        ReplayTimelineEntry,
+        ReplayMetadataInfo,
+    )
+    from titan.cli.common import get_runtime_engine
+    from datetime import datetime
+
+    engine = get_runtime_engine()
+
+    if entry_id:
+        result = engine.decision_replay.replay(entry_id)
+    else:
+        result = engine.decision_replay.latest()
+
+    all_entries = engine.decision_journal.repository.list(
+        1, 999999
+    )  # for count/index logic
+    total = len(all_entries)
+
+    if not result:
+        return ReplayScreenState(
+            metadata=ReplayMetadataInfo(total_decisions=total),
+            last_refresh=datetime.now().strftime("%H:%M:%S"),
+        )
+
+    entry = result.snapshot.entry
+
+    # find index
+    current_idx = 0
+    # list returns newest first
+    for i, e in enumerate(all_entries):
+        if e.id == entry.id:
+            current_idx = total - i  # 1-based chronological index
+            break
+
+    prev_entry = engine.decision_journal.repository.previous(entry.id)
+    next_entry = engine.decision_journal.repository.next(entry.id)
+    has_previous = prev_entry is not None
+    has_next = next_entry is not None
+
+    summary = ReplaySummaryInfo(
+        decision_id=entry.id,
+        symbol=entry.symbol,
+        decision=entry.decision,
+        trade_direction=entry.trade_direction,
+        instrument_type=entry.instrument_type,
+        confidence=entry.confidence,
+        trade_score=entry.trade_score,
+        institutional_grade=entry.institutional_grade,
+        timestamp_str=entry.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+    )
+
+    evidence_info = ReplayEvidenceInfo()
+    if entry.evidence_snapshot:
+        evidence_info = ReplayEvidenceInfo(
+            source=entry.evidence_snapshot.source,
+            category=entry.evidence_snapshot.category,
+            signal=entry.evidence_snapshot.signal,
+            score=entry.evidence_snapshot.score,
+            confidence=entry.evidence_snapshot.confidence,
+            weight=entry.evidence_snapshot.weight,
+            reasons=entry.evidence_snapshot.reasons,
+        )
+
+    risk_info = ReplayRiskInfo(
+        risk_summary=entry.risk_summary or "No risk data available."
+    )
+    qual_info = ReplayQualificationInfo(
+        explanation_summary=entry.explanation_summary or "No explanation available."
+    )
+
+    reasons = tuple(
+        ReplayReasonEntry(
+            reason_type=r.reason_type, description=r.description, severity=r.severity
+        )
+        for r in entry.reasons
+    )
+
+    timeline = tuple(
+        ReplayTimelineEntry(
+            step=ev,
+            status="Completed",
+            timestamp_str=entry.timestamp.strftime("%H:%M:%S"),
+        )
+        for ev in result.timeline.events
+    )
+
+    metadata = ReplayMetadataInfo(
+        has_previous=has_previous,
+        has_next=has_next,
+        previous_id=prev_entry.id if prev_entry else None,
+        next_id=next_entry.id if next_entry else None,
+        current_index=current_idx,
+        total_decisions=total,
+        filter_active=False,
+    )
+
+    return ReplayScreenState(
+        summary=summary,
+        evidence=evidence_info,
+        risk=risk_info,
+        qualification=qual_info,
+        reasons=reasons,
+        timeline=timeline,
+        metadata=metadata,
+        last_refresh=datetime.now().strftime("%H:%M:%S"),
+    )
+
+--- FILE: titan/tui/screens/portfolio.py ---
+"""Portfolio Analytics Dashboard screen."""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any
+
+from textual.containers import VerticalScroll, Horizontal
+from textual.screen import Screen
+from textual.widgets import Static
+
+from titan.portfolio.models import ExistingPortfolio
+from titan.tui.widgets.portfolio import (
+    AllocationWidget,
+    DiversificationWidget,
+    DrawdownWidget,
+    ExposureWidget,
+    PerformanceWidget,
+    PortfolioSummaryWidget,
+    SectorExposureWidget,
+    StrategyPerformanceWidget,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from titan.portfolio.analytics import PortfolioAnalytics
+    from titan.trading.journal import TradeJournalEntry
+
+REFRESH_INTERVAL = 1.0  # seconds
+
+
+class PortfolioDashboardScreen(Screen):
+    """Portfolio analytics dashboard screen with read-only metrics."""
+
+    DEFAULT_CSS = """
+    PortfolioDashboardScreen {
+        layout: vertical;
+        padding: 1 2;
+    }
+    #portfolio-title {
+        text-style: bold;
+        color: $primary;
+        text-align: center;
+        height: 1;
+        margin-bottom: 1;
+    }
+    #refresh-indicator {
+        text-align: right;
+        height: 1;
+        color: $text-muted;
+        dock: top;
+    }
+    #dashboard-scroll {
+        height: 1fr;
+    }
+    .widget-title {
+        text-style: bold;
+        color: $secondary;
+        margin-bottom: 1;
+    }
+    .widget-container {
+        padding: 1;
+        border: solid $border;
+        height: auto;
+    }
+    """
+
+    BINDINGS = [
+        ("q", "quit", "Quit"),
+        ("r", "refresh", "Refresh"),
+    ]
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._analytics_engine: PortfolioAnalytics | None = None
+        self._state_builder: (
+            Callable[[], tuple[ExistingPortfolio, list[TradeJournalEntry]]] | None
+        ) = None
+
+        # Widgets
+        self._summary_widget = PortfolioSummaryWidget(classes="widget-container")
+        self._exposure_widget = ExposureWidget(classes="widget-container")
+        self._allocation_widget = AllocationWidget(classes="widget-container")
+        self._diversification_widget = DiversificationWidget(classes="widget-container")
+        self._drawdown_widget = DrawdownWidget(classes="widget-container")
+        self._performance_widget = PerformanceWidget(classes="widget-container")
+        self._sector_widget = SectorExposureWidget(classes="widget-container")
+        self._strategy_widget = StrategyPerformanceWidget(classes="widget-container")
+
+    def compose(self) -> Any:
+        yield Static("TITAN Portfolio Analytics Dashboard", id="portfolio-title")
+        yield Static("", id="refresh-indicator")
+
+        with VerticalScroll(id="dashboard-scroll"):
+            with Horizontal():
+                yield self._summary_widget
+                yield self._performance_widget
+            with Horizontal():
+                yield self._exposure_widget
+                yield self._drawdown_widget
+            with Horizontal():
+                yield self._allocation_widget
+                yield self._diversification_widget
+            with Horizontal():
+                yield self._sector_widget
+                yield self._strategy_widget
+
+    def on_mount(self) -> None:
+        """Start the refresh timer."""
+        self.set_interval(REFRESH_INTERVAL, self._tick_refresh)
+
+    def set_engine(self, engine: PortfolioAnalytics) -> None:
+        """Inject the analytics engine."""
+        self._analytics_engine = engine
+
+    def set_state_builder(
+        self, builder: Callable[[], tuple[ExistingPortfolio, list[TradeJournalEntry]]]
+    ) -> None:
+        """Set the function that fetches the portfolio and journal entries."""
+        self._state_builder = builder
+
+    def _tick_refresh(self) -> None:
+        self._refresh_state()
+
+    def _refresh_state(self) -> None:
+        if self._state_builder is None or self._analytics_engine is None:
+            return
+
+        try:
+            portfolio, entries = self._state_builder()
+
+            # Generate analytics
+            snapshot = self._analytics_engine.generate_snapshot(portfolio)
+            exposure = self._analytics_engine.analyze_exposure(portfolio)
+            allocation = self._analytics_engine.analyze_allocation(portfolio)
+            diversification = self._analytics_engine.analyze_diversification(portfolio)
+            drawdown = self._analytics_engine.analyze_drawdown(
+                entries, portfolio.total_capital
+            )
+            performance = self._analytics_engine.analyze_performance(entries)
+
+            # Push to widgets
+            self._summary_widget.snapshot = snapshot
+            self._exposure_widget.exposure = exposure
+            self._allocation_widget.allocation = allocation
+            self._diversification_widget.diversification = diversification
+            self._drawdown_widget.drawdown = drawdown
+            self._performance_widget.performance = performance
+            self._sector_widget.allocation = allocation
+            self._strategy_widget.allocation = allocation
+
+        except Exception:
+            pass
+
+        self._update_refresh_indicator()
+
+    def _update_refresh_indicator(self) -> None:
+        try:
+            indicator = self.query_one("#refresh-indicator", Static)
+            now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+            indicator.update(f"Last refresh: {now}")
+        except Exception:
+            pass
+
+    def action_refresh(self) -> None:
+        self._refresh_state()

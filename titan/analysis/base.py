@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from titan.analysis.models import IndicatorResult
-from titan.market.models import Candle
+from titan.market.series import MarketDataSeries
 
 
 class Indicator(ABC):
@@ -15,7 +15,7 @@ class Indicator(ABC):
         """Return the indicator name."""
 
     @abstractmethod
-    def calculate(self, candles: list[Candle]) -> IndicatorResult:
+    def calculate(self, data: "MarketDataSeries") -> IndicatorResult:
         """
         Calculate the indicator value.
         """

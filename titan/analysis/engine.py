@@ -9,8 +9,8 @@ class AnalysisEngine:
     Executes a complete technical analysis.
     """
 
-    def __init__(self):
-        self.pipeline = IndicatorPipeline()
+    def __init__(self) -> None:
+        self.pipeline: IndicatorPipeline = IndicatorPipeline()
 
     def add_indicator(self, name: str, **kwargs):
         indicator = IndicatorFactory.create(name, **kwargs)

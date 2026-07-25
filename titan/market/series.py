@@ -6,12 +6,14 @@ from titan.market.models import Candle
 
 @dataclass(slots=True)
 class MarketDataSeries:
-    """
-    Standardized market data container.
+    """Standardized market data container.
 
     This class wraps a sequence of Candle objects and provides
     a consistent interface for indicators, strategies, scanners,
     and future analysis engines.
+
+    Attributes:
+        candles: Ordered normalized candle data.
     """
 
     candles: list[Candle]
@@ -39,5 +41,5 @@ class MarketDataSeries:
         return [c.open for c in self.candles]
 
     @property
-    def volumes(self) -> list[float]:
+    def volumes(self) -> list[int]:
         return [c.volume for c in self.candles]

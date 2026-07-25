@@ -1,0 +1,44 @@
+name: TITAN Quality Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install black ruff mypy pytest
+
+      - name: Black formatting
+        run: black --check .
+
+      - name: Ruff linting
+        run: ruff check .
+
+      - name: MyPy type checking
+        run: mypy titan
+
+      - name: PyTest
+        run: pytest -v --tb=short
+
+      - name: Quality gate
+        if: failure()
+        run: |
+          echo "::error::Quality gate failed. Fix issues before merging."
+          exit 1

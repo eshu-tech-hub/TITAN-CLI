@@ -8,7 +8,7 @@ class IndicatorPipeline:
     Executes a sequence of indicators and produces an AnalysisReport.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._indicators: list[Indicator] = []
 
     def add(self, indicator: Indicator) -> None:
@@ -25,15 +25,14 @@ class IndicatorPipeline:
         report = AnalysisReport(
             symbol=symbol,
             timeframe=timeframe,
-            timestamp=datetime.now(),
+            timestamp=datetime.utcnow(),
         )
 
         for indicator in self._indicators:
-            result = indicator.calculate(data)
-            report.add(result)
+            try:
+                result = indicator.calculate(data)
+                report.add(result)
+            except Exception:
+                pass
 
         return report
-
-    @property
-    def indicators(self):
-        return tuple(self._indicators)

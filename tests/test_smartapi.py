@@ -1,4 +1,6 @@
-from SmartApi import SmartConnect
+import pytest
+
+SmartConnect = pytest.importorskip("SmartApi").SmartConnect
 
 
 def test_import():
