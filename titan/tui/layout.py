@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from textual.app import App
 
 if TYPE_CHECKING:
-    from titan.tui.models import StrategyEvalScreenState
+    from titan.tui.models import AIScreenState, StrategyEvalScreenState
 
 from titan.tui.models import (
     AccountInfo,
@@ -2279,3 +2279,84 @@ def build_strategy_eval_state() -> "StrategyEvalScreenState":
         )
     except Exception:
         return StrategyEvalScreenState(last_refresh=now)
+
+
+# ─── AI Assistant State Builder ─────────────────────────────────────
+
+
+def build_ai_state(provider_name: str = "mock") -> "AIScreenState":
+    """Build AIScreenState by delegating to the AIAssistantEngine (read-only)."""
+    from datetime import datetime, timezone
+    from titan.ai.engine import AIAssistantEngine
+    from titan.ai.providers.gemini import GeminiAIProvider, MockAIProvider
+    from titan.backtesting.evaluation import StrategyEvaluator
+    from titan.cli.common import get_runtime_engine
+    from titan.portfolio.analytics import PortfolioAnalytics
+    from titan.portfolio.models import ExistingPortfolio, OpenPosition
+    from titan.tui.models import AIExplanationInfo, AIScreenState
+
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+
+    provider = (
+        MockAIProvider() if provider_name.lower() == "mock" else GeminiAIProvider()
+    )
+    ai_engine = AIAssistantEngine(provider=provider)
+
+    try:
+        engine = get_runtime_engine()
+        broker = getattr(engine, "broker", None)
+
+        if broker and hasattr(broker, "positions"):
+            funds = broker.funds()
+            positions = broker.positions()
+            open_pos = tuple(
+                OpenPosition(
+                    symbol=p.symbol,
+                    instrument_type=getattr(p, "product", "EQUITY"),
+                    direction="long" if p.quantity > 0 else "short",
+                    quantity=p.quantity,
+                    entry_price=float(p.average_price or 0.0),
+                    current_price=float(p.current_price or 0.0),
+                    market_value=float(p.quantity * (p.current_price or 0.0)),
+                    pnl=float(p.pnl or 0.0),
+                )
+                for p in positions
+            )
+            portfolio = ExistingPortfolio(
+                positions=open_pos,
+                total_capital=float(funds.available_cash + funds.used_margin),
+                cash_reserve=float(funds.available_cash),
+            )
+        else:
+            portfolio = ExistingPortfolio(total_capital=100000.0)
+
+        snapshot = PortfolioAnalytics().generate_snapshot(portfolio)
+        port_resp = ai_engine.explain_portfolio(snapshot)
+
+        port_info = AIExplanationInfo(
+            title="Portfolio Synthesis",
+            provider=port_resp.provider_name,
+            model=port_resp.model_name,
+            content=port_resp.content,
+            timestamp_str=now,
+        )
+
+        entries = engine.trade_journal.repository.list(page=1, page_size=10000)
+        strat_report = StrategyEvaluator().evaluate_trades(entries)
+        strat_resp = ai_engine.explain_strategy_evaluation(strat_report)
+
+        strat_info = AIExplanationInfo(
+            title="Strategy Evaluation Synthesis",
+            provider=strat_resp.provider_name,
+            model=strat_resp.model_name,
+            content=strat_resp.content,
+            timestamp_str=now,
+        )
+
+        return AIScreenState(
+            portfolio_explanation=port_info,
+            strategy_explanation=strat_info,
+            last_refresh=now,
+        )
+    except Exception:
+        return AIScreenState(last_refresh=now)

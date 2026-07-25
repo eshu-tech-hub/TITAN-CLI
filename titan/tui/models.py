@@ -1088,3 +1088,26 @@ class StrategyEvalScreenState:
     best_strategy: str = ""
     scorecards: tuple[StrategyScorecardInfo, ...] = ()
     last_refresh: str = ""
+
+
+# ─── AI Assistant Screen Models ──────────────────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class AIExplanationInfo:
+    """Snapshot of an AI-generated explanation."""
+
+    title: str = ""
+    provider: str = ""
+    model: str = ""
+    content: str = "No AI analysis generated yet."
+    timestamp_str: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class AIScreenState:
+    """Complete snapshot for the AI Research Assistant screen."""
+
+    portfolio_explanation: AIExplanationInfo = field(default_factory=AIExplanationInfo)
+    strategy_explanation: AIExplanationInfo = field(default_factory=AIExplanationInfo)
+    last_refresh: str = ""
