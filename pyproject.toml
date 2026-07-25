@@ -7,7 +7,7 @@ name = "titan-cli"
 version = "1.0.0"
 description = "Institutional Trading Intelligence System"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 
 authors = [
     { name = "Eshu" }

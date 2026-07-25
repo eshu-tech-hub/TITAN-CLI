@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -12,7 +13,10 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-from titan.decision.models import TradeDecision
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from titan.decision.models import TradeDecision
 from titan.execution.allocator import AllocationInstruction, ExecutionAllocator
 from titan.execution.execution import ExecutionEngine
 from titan.execution.models import ExecutionRequest, OrderState

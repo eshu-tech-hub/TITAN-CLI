@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any, Mapping, TYPE_CHECKING
 
-from titan.decision.models import TradeDecision
+if TYPE_CHECKING:
+    from titan.decision.models import TradeDecision
+
 from titan.portfolio.models import PortfolioSnapshot
 from titan.risk.models import RiskAnalysis
 

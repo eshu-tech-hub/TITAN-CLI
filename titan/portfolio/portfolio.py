@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -9,7 +10,10 @@ from titan.core.evidence import (
     Score,
 )
 
-from titan.decision.models import TradeDecision
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from titan.decision.models import TradeDecision
 from titan.portfolio.allocation import CapitalAllocationAnalyzer
 from titan.portfolio.correlation import CorrelationAnalyzer
 from titan.portfolio.exceptions import PortfolioEngineError, PortfolioInputError

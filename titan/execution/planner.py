@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any, Mapping, TYPE_CHECKING
 from uuid import uuid4
 
+if TYPE_CHECKING:
+    from titan.decision.models import TradeDecision
+
 from titan.brokers.models import Exchange, OrderSide, OrderType, ProductType, Validity
-from titan.decision.models import TradeDecision
 
 
 @dataclass(frozen=True, slots=True)
