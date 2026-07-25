@@ -28,6 +28,12 @@ from titan.backtesting.models import (
 from titan.backtesting.replay import ReplayEngine
 from titan.backtesting.report import generate_evidence, generate_explanation
 from titan.backtesting.statistics import StatisticsEngine
+from titan.backtesting.evaluation import (
+    RegimePerformance,
+    StrategyEvaluationReport,
+    StrategyEvaluator,
+    StrategyMetrics,
+)
 
 __all__ = [
     "HistoricalDataset",
@@ -57,4 +63,8 @@ __all__ = [
     "EngineError",
     "StatisticsError",
     "MetricsError",
+    "RegimePerformance",
+    "StrategyMetrics",
+    "StrategyEvaluationReport",
+    "StrategyEvaluator",
 ]
