@@ -26,6 +26,7 @@ from titan.cli.commands.runtime import version as _version
 from titan.cli.commands.validate import app as validate_app
 from titan.cli.commands.broker import broker_app
 from titan.cli.commands.portfolio import app as portfolio_app
+from titan.cli.commands.ai import app as ai_app
 
 app = typer.Typer(
     name="titan",
@@ -69,3 +70,4 @@ app.add_typer(broker_app, name="broker", help="Broker certification and manageme
 app.add_typer(
     portfolio_app, name="portfolio", help="Portfolio Analytics & Risk Dashboard"
 )
+app.add_typer(ai_app, name="ai", help="AI Research Assistant & Synthesizer")
