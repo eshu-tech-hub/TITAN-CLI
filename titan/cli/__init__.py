@@ -25,6 +25,7 @@ from titan.cli.commands.runtime import runtime_app
 from titan.cli.commands.runtime import version as _version
 from titan.cli.commands.validate import app as validate_app
 from titan.cli.commands.broker import broker_app
+from titan.cli.commands.portfolio import app as portfolio_app
 
 app = typer.Typer(
     name="titan",
@@ -65,3 +66,6 @@ app.add_typer(backtest_app, name="backtest", help="Backtesting management")
 app.add_typer(recovery_app, name="recovery", help="Recovery subsystem")
 app.add_typer(validate_app, name="validate", help="Operational validation framework")
 app.add_typer(broker_app, name="broker", help="Broker certification and management")
+app.add_typer(
+    portfolio_app, name="portfolio", help="Portfolio Analytics & Risk Dashboard"
+)
