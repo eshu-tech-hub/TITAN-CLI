@@ -2,11 +2,13 @@
 Runner for orchestrating the broker certification process.
 """
 
-from typing import List, Any
+from collections.abc import Sequence
+from typing import Any
 import time
 from datetime import datetime, timezone
 
 from titan.brokers.certification.models import (
+    BrokerCapability,
     BrokerCertificationReport,
     BrokerCertificationResult,
     CertificationStatus,
@@ -33,14 +35,21 @@ class BrokerCertificationRunner:
             environment=environment,
         )
 
-    def run_certification(self, broker_instance: Any) -> BrokerCertificationReport:
+    def run_certification(
+        self,
+        broker_instance: Any,
+        capabilities: Sequence[BrokerCapability] | None = None,
+    ) -> BrokerCertificationReport:
         """
         Executes the certification suite and generates the final report.
         Each stage runs independently.
         """
 
-        # 0. Capability Discovery
-        capabilities = BrokerFeatureDiscovery.discover_capabilities(broker_instance)
+        if capabilities is None:
+            capabilities = BrokerFeatureDiscovery.discover_capabilities(
+                broker_instance
+            )
+
         matrix_builder = BrokerCapabilityMatrixBuilder(broker_id=self._broker_id)
         for cap in capabilities:
             matrix_builder.add_capability(cap)
@@ -76,8 +85,11 @@ class BrokerCertificationRunner:
         return self._report_builder.build()
 
     def _execute_stage(
-        self, category: str, broker_instance: Any, validation_results: List[Any]
-    ):
+        self,
+        category: str,
+        broker_instance: Any,
+        validation_results: Sequence[Any],
+    ) -> None:
         """Executes a specific logical stage based on scenario category."""
         stage_scenarios = [s for s in ALL_SCENARIOS if s.category == category]
 
@@ -92,12 +104,9 @@ class BrokerCertificationRunner:
                     break
 
             start_time = time.perf_counter()
-            # Simulation of scenario execution time
-            time.sleep(0.001)
-            end_time = time.perf_counter()
-            execution_time_ms = (end_time - start_time) * 1000
 
             if not is_applicable:
+                execution_time_ms = (time.perf_counter() - start_time) * 1000
                 result = BrokerCertificationResult(
                     scenario=scenario,
                     status=CertificationStatus.NOT_APPLICABLE,
@@ -123,6 +132,8 @@ class BrokerCertificationRunner:
                 except Exception as e:
                     status = CertificationStatus.FAIL
                     msg = f"Execution failed: {str(e)}"
+
+                execution_time_ms = (time.perf_counter() - start_time) * 1000
 
                 result = BrokerCertificationResult(
                     scenario=scenario,

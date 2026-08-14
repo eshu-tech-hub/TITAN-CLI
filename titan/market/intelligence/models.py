@@ -386,7 +386,7 @@ class ParticipationLevel(str, Enum):
     EXTREME = "extreme"
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class VolumeTrend:
     """Volume trend and expansion/contraction analysis.
 
@@ -447,7 +447,7 @@ class AccumulationDistribution:
     reasons: tuple[str, ...] = field(default_factory=tuple)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class VolumeExplanation:
     """Structured explanation for Volume Intelligence.
 

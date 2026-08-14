@@ -850,7 +850,7 @@ def _read_live_status() -> LiveStatusInfo:
             status=report.runtime_status.name,
             uptime=_format_uptime(report.performance.uptime_seconds),
             is_running=engine.is_running,
-            broker_connected=report.broker.connection.lower() == "connected",
+            broker_connected=report.broker.connection.value.lower() == "connected",
             stream_connected=report.market.stream_status.lower() == "connected",
             pipeline_executions=report.scheduler.pipeline_executions,
         )
@@ -869,7 +869,7 @@ def _read_broker_status() -> BrokerStatusInfo:
         provider = type(broker).__name__
         return BrokerStatusInfo(
             provider=provider,
-            connection_status=report.broker.connection,
+            connection_status=report.broker.connection.value,
             is_connected=is_connected,
             exchange="",
             account_id="",

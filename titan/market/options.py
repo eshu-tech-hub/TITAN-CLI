@@ -44,7 +44,7 @@ class OptionChainManager:
                                 expiry=item.get("expiry", ""),
                             )
                         )
-                except ValueError, TypeError:
+                except (ValueError, TypeError):
                     continue
         return contracts
 

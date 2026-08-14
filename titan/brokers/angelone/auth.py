@@ -1,7 +1,23 @@
-from typing import Any
+from typing import Any, Callable
 
 from titan.brokers.angelone.exceptions import translate_error
 from titan.brokers.models import ConnectionStatus
+
+TOTPGenerator = Callable[[str], str]
+
+def default_totp_generator(secret: str) -> str:
+    if not secret:
+        return ""
+    try:
+        import pyotp
+
+        return str(pyotp.TOTP(secret).now())
+    except ImportError:
+        return ""
+    except Exception as exc:
+        from titan.brokers.exceptions import AuthenticationError
+
+        raise AuthenticationError(f"Failed to generate TOTP: {exc}") from exc
 
 
 class AngelOneAuthenticator:
@@ -21,12 +37,14 @@ class AngelOneAuthenticator:
         pin: str | None = None,
         totp_secret: str | None = None,
         smart_connect: Any | None = None,
+        totp_generator: TOTPGenerator | None = None,
     ) -> None:
         self._api_key = api_key
         self._client_id = client_id
         self._pin = pin
         self._totp_secret = totp_secret
         self._smart_connect = smart_connect
+        self._totp_generator = totp_generator or default_totp_generator
         self._feed_token: str = ""
         self._refresh_token: str = ""
         self._status: ConnectionStatus = ConnectionStatus.DISCONNECTED
@@ -174,14 +192,7 @@ class AngelOneAuthenticator:
 
     def _generate_totp(self) -> str:
         secret = self._get_totp_secret()
-        if not secret:
-            return ""
-        try:
-            import pyotp
-
-            return str(pyotp.TOTP(secret).now())
-        except ImportError:
-            return ""
+        return self._totp_generator(secret)
 
     def _get_api_key(self) -> str:
         if self._api_key:

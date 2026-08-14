@@ -4,8 +4,10 @@ import json
 import socket
 import threading
 from dataclasses import asdict
+from enum import Enum
 from typing import Any, cast
 
+from titan.core.logger import logger
 from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 from titan.runtime.models import RuntimeReport
 from titan.runtime.service import RuntimeService
@@ -25,30 +27,44 @@ class LocalTransportServer:
         self._stop_event = threading.Event()
 
     def start(self) -> None:
+        if self._thread is not None and self._thread.is_alive():
+            raise TitanRuntimeError("Local transport server is already running.")
+
         self._stop_event.clear()
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        print("[8] Transport server binding", flush=True)
-        self._server_socket.bind(("127.0.0.1", self.port))
-        import os
+        try:
+            self._server_socket.bind(("127.0.0.1", self.port))
+            self.port = cast(int, self._server_socket.getsockname()[1])
+            self._server_socket.listen(5)
+            self._server_socket.settimeout(1.0)
+        except Exception:
+            self._server_socket.close()
+            self._server_socket = None
+            raise
 
-        print(f"PID: {os.getpid()}", flush=True)
-        print(f"Listening: 127.0.0.1:{self.port}", flush=True)
-        self._server_socket.listen(5)
-        self._server_socket.settimeout(1.0)
-        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread = threading.Thread(
+            target=self._run,
+            name=f"runtime-transport-{self.port}",
+        )
         self._thread.start()
 
     def stop(self) -> None:
         self._stop_event.set()
-        if self._thread:
-            self._thread.join(timeout=2.0)
         if self._server_socket:
             try:
                 self._server_socket.close()
-            except Exception:
-                pass
-            self._server_socket = None
+            except OSError as exc:
+                logger.warning(f"Failed to close local transport socket: {exc}")
+            finally:
+                self._server_socket = None
+
+        if self._thread:
+            self._thread.join(timeout=2.0)
+            if self._thread.is_alive():
+                logger.error("Local transport server did not stop within two seconds")
+            else:
+                self._thread = None
 
     def _run(self) -> None:
         while not self._stop_event.is_set():
@@ -58,21 +74,25 @@ class LocalTransportServer:
                 conn, _ = self._server_socket.accept()
             except socket.timeout:
                 continue
-            except Exception:
+            except OSError:
+                if not self._stop_event.is_set():
+                    logger.exception("Local transport accept failed")
                 break
 
-            try:
-                data = conn.recv(1024).decode("utf-8").strip()
-                if not data:
-                    conn.close()
-                    continue
+            with conn:
+                try:
+                    conn.settimeout(2.0)
+                    data = conn.recv(1024).decode("utf-8").strip()
+                    if not data:
+                        continue
 
-                response = self._handle_request(data)
-                conn.sendall(json.dumps(response).encode("utf-8"))
-            except Exception:
-                pass
-            finally:
-                conn.close()
+                    response = self._handle_request(data)
+                    conn.sendall(json.dumps(response).encode("utf-8"))
+                except socket.timeout:
+                    logger.warning("Local transport client timed out before completing a request")
+                except OSError as exc:
+                    if not self._stop_event.is_set():
+                        logger.warning(f"Local transport client I/O failed: {exc}")
 
     def _handle_request(self, command: str) -> dict[str, Any]:
         if command == "status":
@@ -83,8 +103,7 @@ class LocalTransportServer:
                 return {"status": "error", "message": str(e)}
         elif command == "stop":
             try:
-                # Issue the stop command asynchronously so we can return OK
-                threading.Thread(target=self.service.stop, daemon=True).start()
+                self.service.stop()
                 return {"status": "ok"}
             except Exception as e:
                 return {"status": "error", "message": str(e)}
@@ -105,6 +124,13 @@ class LocalTransportServer:
                 broker = self.service.engine.broker
                 from decimal import Decimal
                 from datetime import datetime, timezone
+                from titan.paper.broker import PaperBroker
+
+                if not isinstance(broker, PaperBroker):
+                    return {
+                        "status": "error",
+                        "message": "The active runtime is not using the paper broker.",
+                    }
 
                 open_positions = (
                     broker.position_engine.open_positions()
@@ -137,7 +163,7 @@ class LocalTransportServer:
                     return float(v) if v is not None else 0.0
 
                 data = {
-                    "running": True,
+                    "running": self.service.engine.is_running,
                     "connected": broker.is_connected(),
                     "initial_cash": _d(getattr(broker, "_initial_cash", 100000.0)),
                     "cash_balance": (
@@ -187,6 +213,29 @@ class LocalTransportServer:
                     "start_time": getattr(
                         self.service.engine, "_start_time", datetime.now(timezone.utc)
                     ).isoformat(),
+                    "positions": [
+                        {
+                            "symbol": position.symbol,
+                            "quantity": position.quantity,
+                            "average_price": _d(position.average_price),
+                            "current_price": _d(broker.ltp(position.symbol)),
+                            "unrealized_pnl": _d(position.unrealized_pnl),
+                            "realized_pnl": _d(position.realized_pnl),
+                        }
+                        for position in open_positions
+                    ],
+                    "orders": [
+                        {
+                            "order_id": order.broker_order_id,
+                            "symbol": order.symbol,
+                            "side": order.side.value,
+                            "type": order.order_type.value,
+                            "quantity": order.quantity,
+                            "filled_quantity": order.filled_quantity,
+                            "status": order.status.value,
+                        }
+                        for order in all_orders
+                    ],
                 }
                 return {"status": "ok", "data": data}
             except Exception as e:
@@ -205,6 +254,10 @@ def _report_to_dict(report: RuntimeReport) -> dict[str, Any]:
             return [_clean(i) for i in obj]
         if hasattr(obj, "isoformat"):
             return str(obj.isoformat())
+        if isinstance(obj, Enum):
+            if isinstance(obj.value, str):
+                return obj.value
+            return obj.name.lower()
         if hasattr(obj, "value"):
             return str(obj.value)
         return obj
@@ -362,10 +415,14 @@ class LocalTransport(RuntimeTransport):
             uptime_seconds=data.get("performance", {}).get("uptime_seconds", 0.0)
         )
 
+        runtime_status = str(data.get("runtime_status", "STOPPED"))
         try:
-            rs = RuntimeStatus[data.get("runtime_status", "STOPPED").upper()]
+            rs = RuntimeStatus[runtime_status.upper()]
         except KeyError:
-            rs = RuntimeStatus.STOPPED
+            try:
+                rs = RuntimeStatus(int(runtime_status))
+            except (TypeError, ValueError):
+                rs = RuntimeStatus.STOPPED
 
         return RuntimeReport(
             runtime_status=rs,

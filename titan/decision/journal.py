@@ -62,7 +62,7 @@ class DecisionRepository:
 
     def get_latest(self, count: int = 100) -> list[DecisionJournalEntry]:
         """Get the latest N entries, ordered by timestamp descending."""
-        return sorted(self._entries, key=lambda e: e.timestamp, reverse=True)[:count]
+        return [e for _, e in sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True)[:count]]
 
     def get_by_symbol(self, symbol: str) -> list[DecisionJournalEntry]:
         """Get all entries for a specific symbol."""
@@ -83,25 +83,27 @@ class DecisionRepository:
         """Get the most recent entry."""
         if not self._entries:
             return None
-        return sorted(self._entries, key=lambda e: e.timestamp, reverse=True)[0]
+        return sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True)[0][1]
 
     def previous(self, current_id: str) -> DecisionJournalEntry | None:
         """Get the entry immediately preceding the given ID chronologically."""
-        sorted_entries = sorted(self._entries, key=lambda e: e.timestamp)
-        for i, entry in enumerate(sorted_entries):
+        indexed = list(enumerate(self._entries))
+        sorted_entries = sorted(indexed, key=lambda t: (t[1].timestamp, t[0]))
+        for i, (_, entry) in enumerate(sorted_entries):
             if entry.id == current_id:
                 if i > 0:
-                    return sorted_entries[i - 1]
+                    return sorted_entries[i - 1][1]
                 return None
         return None
 
     def next(self, current_id: str) -> DecisionJournalEntry | None:
         """Get the entry immediately following the given ID chronologically."""
-        sorted_entries = sorted(self._entries, key=lambda e: e.timestamp)
-        for i, entry in enumerate(sorted_entries):
+        indexed = list(enumerate(self._entries))
+        sorted_entries = sorted(indexed, key=lambda t: (t[1].timestamp, t[0]))
+        for i, (_, entry) in enumerate(sorted_entries):
             if entry.id == current_id:
                 if i < len(sorted_entries) - 1:
-                    return sorted_entries[i + 1]
+                    return sorted_entries[i + 1][1]
                 return None
         return None
 
@@ -109,7 +111,7 @@ class DecisionRepository:
         self, page: int = 1, page_size: int = 100
     ) -> Sequence[DecisionJournalEntry]:
         """List entries with pagination, newest first."""
-        sorted_entries = sorted(self._entries, key=lambda e: e.timestamp, reverse=True)
+        sorted_entries = [e for _, e in sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True)]
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
         return sorted_entries[start_idx:end_idx]
@@ -118,7 +120,7 @@ class DecisionRepository:
         """Simple text search across explanation and reasons, newest first."""
         query = query.lower()
         results = []
-        for entry in sorted(self._entries, key=lambda e: e.timestamp, reverse=True):
+        for _, entry in sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True):
             if (
                 query in entry.explanation_summary.lower()
                 or query in entry.risk_summary.lower()
@@ -162,7 +164,7 @@ class DecisionRepository:
             if confidence_min is not None and entry.confidence < confidence_min:
                 continue
             results.append(entry)
-        return sorted(results, key=lambda e: e.timestamp, reverse=True)
+        return [e for _, e in sorted(enumerate(results), key=lambda t: (t[1].timestamp, t[0]), reverse=True)]
 
     def count(self) -> int:
         """Total number of entries in the journal."""

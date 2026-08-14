@@ -202,7 +202,7 @@ def _check_number_range(
         val = float(value)
         if val < minimum or val > maximum:
             errors.append(f"'{key}' must be between {minimum} and {maximum}")
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         errors.append(f"'{key}' must be a valid number")
 
 

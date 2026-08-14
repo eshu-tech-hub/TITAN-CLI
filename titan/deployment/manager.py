@@ -115,7 +115,7 @@ class DeploymentManager:
 
             return self._build_startup_report(result)
 
-        except StartupError, DeploymentError:
+        except (StartupError, DeploymentError):
             raise
         except Exception as exc:
             self._status = DeploymentStatus.ERROR

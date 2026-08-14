@@ -188,7 +188,7 @@ class RiskEngine:
                 timestamp=datetime.now(timezone.utc),
             )
 
-        except RiskInputError, RiskValidationError:
+        except (RiskInputError, RiskValidationError):
             raise
         except Exception as exc:
             raise RiskEngineError(f"Risk analysis failed: {exc}") from exc

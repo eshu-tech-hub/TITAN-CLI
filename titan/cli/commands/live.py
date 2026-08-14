@@ -840,7 +840,7 @@ def positions(
         )
         try:
             total_pnl += float(p.pnl) if p.pnl else 0.0
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             pass
 
     console.print(table)
@@ -1060,8 +1060,8 @@ def health(
                     )
             engine_health = {
                 "runtime_status": engine_status,
+                "broker_connection": report.broker.connection.value,
                 "uptime_seconds": report.uptime_seconds,
-                "broker_status": report.broker_status.value,
                 "stream_status": report.stream_status,
                 "scheduler_active": report.scheduler_active,
                 "warnings": list(report.warnings),
@@ -1129,7 +1129,7 @@ def health(
     rt_s = engine_status
     table.add_row("Runtime", f"{_runtime_status_icon(rt_s)} {rt_s}")
     table.add_row("Uptime", _format_uptime(engine_health.get("uptime_seconds", 0)))
-    br_s = engine_health.get("broker_status", "unknown")
+    br_s = engine_health.get("broker_connection", "unknown")
     table.add_row("Broker", f"{_runtime_status_icon(br_s)} {br_s}")
     st_s = engine_health.get("stream_status", "unknown")
     table.add_row("Stream", f"{_runtime_status_icon(st_s)} {st_s}")
@@ -1312,7 +1312,7 @@ def report(
             "status": rt_report.runtime_status.name.lower() if rt_report else "stopped",
             "uptime_seconds": rt_report.uptime_seconds if rt_report else 0,
             "broker_status": (
-                rt_report.broker_status.value if rt_report else "disconnected"
+                rt_report.broker.connection.value if rt_report else "disconnected"
             ),
             "pipeline_executions": rt_report.pipeline_executions if rt_report else 0,
             "warnings": list(rt_report.warnings) if rt_report else [],
@@ -1353,7 +1353,7 @@ def report(
     rt_s = str(rt_data.get("status", "stopped"))
     table.add_row("Runtime", f"{_runtime_status_icon(rt_s)} {rt_s}")
     table.add_row("Uptime", _format_uptime(float(rt_data.get("uptime_seconds", 0))))
-    br_s = str(rt_data.get("broker_status", "disconnected"))
+    br_s = str(rt_data.get("broker_connection", "disconnected"))
     table.add_row("Broker", f"{_runtime_status_icon(br_s)} {br_s}")
     table.add_row("Pipeline Executions", str(rt_data.get("pipeline_executions", 0)))
     dep_data = report_data.get("deployment", {})

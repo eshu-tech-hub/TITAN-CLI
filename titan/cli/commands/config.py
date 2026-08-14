@@ -118,11 +118,17 @@ def validate(
     report = validator.validate_all()
 
     if json_output:
+        profile_name = "default"
+        try:
+            profile_name = manager.get_config().app.profile.value
+        except Exception:
+            pass
+            
         data = {
-            "is_valid": report.is_valid,
-            "blocking_errors": [dataclasses.asdict(e) for e in report.blocking_errors],
+            "validation_status": "valid" if report.is_valid else "invalid",
+            "profile": profile_name,
+            "errors": [dataclasses.asdict(e) for e in report.blocking_errors],
             "warnings": [dataclasses.asdict(w) for w in report.warnings],
-            "recommendations": [dataclasses.asdict(r) for r in report.recommendations],
         }
         console.print(json.dumps(data))
         if not report.is_valid or (strict and report.warnings):

@@ -1,0 +1,385 @@
+........................................................................ [  1%]
+........................................................................ [  3%]
+........................................................................ [  4%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 12%]
+.............FFFF....FFFF............................................... [ 13%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+...................................................................F.... [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 21%]
+........................................................................ [ 22%]
+........................................................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 30%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+........................................................................ [ 56%]
+........................................................................ [ 57%]
+........................................................................ [ 59%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 88%]
+........................................................................ [ 90%]
+........................................................................ [ 91%]
+........................................................................ [ 93%]
+........................................................................ [ 94%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 99%]
+........................................                                 [100%]
+================================== FAILURES ===================================
+_________________ TestPaperCommands.test_paper_start_verbose __________________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9C200>
+
+    def test_paper_start_verbose(self) -> None:
+        result = runner.invoke(app, ["paper", "start", "--verbose"])
+        assert result.exit_code == 0
+>       assert "Startup Checklist" in result.output
+E       AssertionError: assert 'Startup Checklist' in '2026-08-14 20:05:43 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n'
+E        +  where '2026-08-14 20:05:43 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n' = <Result okay>.output
+
+tests\test_cli.py:148: AssertionError
+_________________ TestPaperCommands.test_paper_start_dry_run __________________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9C620>
+
+    def test_paper_start_dry_run(self) -> None:
+        result = runner.invoke(app, ["paper", "start", "--dry-run"])
+        assert result.exit_code == 0
+>       assert "Startup Checklist" in result.output
+E       AssertionError: assert 'Startup Checklist' in '2026-08-14 20:05:44 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n'
+E        +  where '2026-08-14 20:05:44 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n' = <Result okay>.output
+
+tests\test_cli.py:154: AssertionError
+_____________ TestPaperCommands.test_paper_start_dry_run_verbose ______________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9C980>
+
+    def test_paper_start_dry_run_verbose(self) -> None:
+        result = runner.invoke(app, ["paper", "start", "--dry-run", "--verbose"])
+        assert result.exit_code == 0
+>       assert "Startup Checklist" in result.output
+E       AssertionError: assert 'Startup Checklist' in '2026-08-14 20:05:44 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n'
+E        +  where '2026-08-14 20:05:44 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n' = <Result okay>.output
+
+tests\test_cli.py:160: AssertionError
+_______________ TestPaperCommands.test_paper_start_custom_cash ________________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9CCE0>
+
+    def test_paper_start_custom_cash(self) -> None:
+        result = runner.invoke(app, ["paper", "start", "--cash", "50000"])
+        assert result.exit_code == 0
+>       assert "started" in result.output.lower()
+E       AssertionError: assert 'started' in '2026-08-14 20:05:44 | info     | paper start command executed\n~ paper trading session is already running.\n'
+E        +  where '2026-08-14 20:05:44 | info     | paper start command executed\n~ paper trading session is already running.\n' = <built-in method lower of str object at 0x00000230682A7910>()
+E        +    where <built-in method lower of str object at 0x00000230682A7910> = '2026-08-14 20:05:44 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n'.lower
+E        +      where '2026-08-14 20:05:44 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n' = <Result okay>.output
+
+tests\test_cli.py:166: AssertionError
+_____________________ TestPaperCommands.test_paper_reset ______________________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9DDC0>
+
+    def test_paper_reset(self) -> None:
+        result = runner.invoke(app, ["paper", "reset"])
+>       assert result.exit_code == 0
+E       assert 1 == 0
+E        +  where 1 = <Result SystemExit(1)>.exit_code
+
+tests\test_cli.py:194: AssertionError
+____________ TestPaperCommands.test_paper_report_when_not_running _____________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9E120>
+
+    def test_paper_report_when_not_running(self) -> None:
+        result = runner.invoke(app, ["paper", "report"])
+        assert result.exit_code == 0
+>       assert (
+            "no active" in result.output.lower()
+            or "not running" in result.output.lower()
+        )
+E       AssertionError: assert ('no active' in '2026-08-14 20:05:59 | info     | paper report command executed\n                    session summary                  ...cy        inr 0.00  \n  avg winner        inr 0.00  \n  avg loser         inr 0.00  \n  max drawdown      0.00%     \n' or 'not running' in '2026-08-14 20:05:59 | info     | paper report command executed\n                    session summary                  ...cy        inr 0.00  \n  avg winner        inr 0.00  \n  avg loser         inr 0.00  \n  max drawdown      0.00%     \n')
+E        +  where '2026-08-14 20:05:59 | info     | paper report command executed\n                    session summary                  ...cy        inr 0.00  \n  avg winner        inr 0.00  \n  avg loser         inr 0.00  \n  max drawdown      0.00%     \n' = <built-in method lower of str object at 0x0000023065829710>()
+E        +    where <built-in method lower of str object at 0x0000023065829710> = '2026-08-14 20:05:59 | INFO     | Paper report command executed\n                    Session Summary                  ...cy        INR 0.00  \n  Avg Winner        INR 0.00  \n  Avg Loser         INR 0.00  \n  Max Drawdown      0.00%     \n'.lower
+E        +      where '2026-08-14 20:05:59 | INFO     | Paper report command executed\n                    Session Summary                  ...cy        INR 0.00  \n  Avg Winner        INR 0.00  \n  Avg Loser         INR 0.00  \n  Max Drawdown      0.00%     \n' = <Result okay>.output
+E        +  and   '2026-08-14 20:05:59 | info     | paper report command executed\n                    session summary                  ...cy        inr 0.00  \n  avg winner        inr 0.00  \n  avg loser         inr 0.00  \n  max drawdown      0.00%     \n' = <built-in method lower of str object at 0x000002306582B270>()
+E        +    where <built-in method lower of str object at 0x000002306582B270> = '2026-08-14 20:05:59 | INFO     | Paper report command executed\n                    Session Summary                  ...cy        INR 0.00  \n  Avg Winner        INR 0.00  \n  Avg Loser         INR 0.00  \n  Max Drawdown      0.00%     \n'.lower
+E        +      where '2026-08-14 20:05:59 | INFO     | Paper report command executed\n                    Session Summary                  ...cy        INR 0.00  \n  Avg Winner        INR 0.00  \n  Avg Loser         INR 0.00  \n  Max Drawdown      0.00%     \n' = <Result okay>.output
+
+tests\test_cli.py:200: AssertionError
+__________ TestPaperCommands.test_paper_report_json_when_not_running __________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9E480>
+
+    def test_paper_report_json_when_not_running(self) -> None:
+        result = runner.invoke(app, ["paper", "report", "--json"])
+        assert result.exit_code == 0
+        data = _extract_json(result.output)
+>       assert "error" in data
+E       AssertionError: assert 'error' in {'session': {'start_time': '2026-08-14T14:35:58.724730+00:00', 'uptime_seconds': 0.54742, 'initial_cash': 100000.0}, '..._trades': 0, 'losing_trades': 0, 'win_rate': 0.0, ...}, 'pnl': {'realized': 0.0, 'unrealized': 0.0, 'total': 0.0}, ...}
+
+tests\test_cli.py:209: AssertionError
+_________________ TestPaperCommands.test_paper_full_lifecycle _________________
+
+self = <tests.test_cli.TestPaperCommands object at 0x0000023065E9E7E0>
+
+    def test_paper_full_lifecycle(self) -> None:
+        result = runner.invoke(app, ["paper", "start"])
+        assert result.exit_code == 0
+>       assert "started" in result.output.lower()
+E       AssertionError: assert 'started' in '2026-08-14 20:05:59 | info     | paper start command executed\n~ paper trading session is already running.\n'
+E        +  where '2026-08-14 20:05:59 | info     | paper start command executed\n~ paper trading session is already running.\n' = <built-in method lower of str object at 0x0000023068431070>()
+E        +    where <built-in method lower of str object at 0x0000023068431070> = '2026-08-14 20:05:59 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n'.lower
+E        +      where '2026-08-14 20:05:59 | INFO     | Paper start command executed\n~ Paper trading session is already running.\n' = <Result okay>.output
+
+tests\test_cli.py:214: AssertionError
+_____________ TestConfigEdgeCases.test_validate_returns_warnings ______________
+
+self = <tests.test_cli_operations.TestConfigEdgeCases object at 0x0000023065F86270>
+
+    def test_validate_returns_warnings(self) -> None:
+        result = runner.invoke(app, ["config", "validate", "--json"])
+>       assert result.exit_code == 0
+E       assert 1 == 0
+E        +  where 1 = <Result SystemExit(1)>.exit_code
+
+tests\test_cli_operations.py:790: AssertionError
+============================== warnings summary ===============================
+titan\core\config.py:9
+  D:\Projects\TITAN-CLI\titan\core\config.py:9: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class Settings(BaseSettings):
+
+tests/test_analysis_engine_integration.py::test_complete_analysis
+tests/test_engine.py::test_analysis_engine
+tests/test_pipeline.py::test_pipeline
+  D:\Projects\TITAN-CLI\titan\analysis\pipeline.py:33: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_backtesting.py: 108 warnings
+tests/test_breadth_intelligence.py: 32 warnings
+tests/test_charm_exposure.py: 14 warnings
+tests/test_cli.py: 210 warnings
+tests/test_dealer_positioning.py: 25 warnings
+tests/test_decision_engine.py: 48 warnings
+tests/test_decision_journal.py: 1 warning
+tests/test_event_intelligence.py: 24 warnings
+tests/test_evidence_engine.py: 6 warnings
+tests/test_execution_orchestrator.py: 5 warnings
+tests/test_gamma_exposure.py: 17 warnings
+tests/test_greeks_intelligence.py: 39 warnings
+tests/test_intelligence_fusion.py: 8 warnings
+tests/test_liquidity_intelligence.py: 20 warnings
+tests/test_market_regime.py: 27 warnings
+tests/test_market_structure.py: 11 warnings
+tests/test_news_intelligence.py: 29 warnings
+tests/test_open_interest_engine.py: 1 warning
+tests/test_option_chain_intelligence.py: 6 warnings
+tests/test_paper_trading.py: 4 warnings
+tests/test_performance.py: 843 warnings
+tests/test_portfolio_intelligence.py: 8 warnings
+tests/test_risk_intelligence.py: 16 warnings
+tests/test_skew_intelligence.py: 34 warnings
+tests/test_smile_intelligence.py: 36 warnings
+tests/test_surface_intelligence.py: 134 warnings
+tests/test_term_structure_intelligence.py: 29 warnings
+tests/test_trade_pipeline.py: 109 warnings
+tests/test_trade_qualification.py: 14 warnings
+tests/test_vanna_exposure.py: 13 warnings
+tests/test_volatility_intelligence.py: 10 warnings
+tests/test_volume_intelligence.py: 35 warnings
+tests/test_vwap_intelligence.py: 19 warnings
+  <string>:12: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_backtesting.py: 35 warnings
+tests/test_cli.py: 70 warnings
+tests/test_decision_engine.py: 2 warnings
+tests/test_intelligence_fusion.py: 27 warnings
+tests/test_performance.py: 200 warnings
+tests/test_trade_pipeline.py: 11 warnings
+tests/test_trade_qualification.py: 16 warnings
+  <string>:11: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_backtesting.py: 35 warnings
+tests/test_cli.py: 70 warnings
+tests/test_decision_engine.py: 22 warnings
+tests/test_decision_journal.py: 6 warnings
+tests/test_decision_replay.py: 22 warnings
+tests/test_execution_orchestrator.py: 20 warnings
+tests/test_performance.py: 101 warnings
+tests/test_portfolio_intelligence.py: 10 warnings
+tests/test_trade_pipeline.py: 28 warnings
+  <string>:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_decision_engine.py: 31 warnings
+tests/test_performance.py: 1 warning
+tests/test_risk_intelligence.py: 35 warnings
+tests/test_trade_pipeline.py: 1 warning
+  <string>:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_execution_orchestrator.py: 10 warnings
+tests/test_portfolio_intelligence.py: 11 warnings
+tests/test_risk_intelligence.py: 2 warnings
+tests/test_trade_pipeline.py: 1 warning
+  <string>:15: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_portfolio_intelligence.py::TestPortfolioAnalysis::test_default_construction
+tests/test_portfolio_intelligence.py::TestPortfolioAnalysis::test_full_analysis_fields
+tests/test_portfolio_intelligence.py::TestSerialization::test_portfolio_analysis_to_dict
+  <string>:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_smartapi.py::test_import
+  C:\Users\The_way\AppData\Local\Programs\Python\Python312\Lib\site-packages\SmartApi\smartConnect.py:110: DeprecationWarning: ssl.OP_NO_SSL*/ssl.OP_NO_TLS* options are deprecated
+    self.ssl_context.options |= ssl.OP_NO_TLSv1  # Disable TLS 1.0
+
+tests/test_smartapi.py::test_import
+  C:\Users\The_way\AppData\Local\Programs\Python\Python312\Lib\site-packages\SmartApi\smartConnect.py:111: DeprecationWarning: ssl.OP_NO_SSL*/ssl.OP_NO_TLS* options are deprecated
+    self.ssl_context.options |= ssl.OP_NO_TLSv1_1  # Disable TLS 1.1
+
+tests/test_trade_pipeline.py: 540 warnings
+  D:\Projects\TITAN-CLI\tests\test_trade_pipeline.py:53: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    Candle(timestamp=datetime.utcnow(), open=p, high=p, low=p, close=p, volume=100)
+
+tests/test_trade_pipeline.py::TestPipelineContext::test_context_defaults
+tests/test_trade_pipeline.py::TestPipelineContext::test_context_mutable
+  <string>:6: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[MarketStatusWidget-MarketStatusInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[MarketStatusWidget-MarketStatusInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[RegimeWidget-RegimeInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[RegimeWidget-RegimeInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[VolatilityWidget-VolatilityInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[VolatilityWidget-VolatilityInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[LiquidityWidget-LiquidityInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[LiquidityWidget-LiquidityInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[OptionChainWidget-OptionChainSummaryInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[OptionChainWidget-OptionChainSummaryInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[OpenInterestWidget-OpenInterestSummaryInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[OpenInterestWidget-OpenInterestSummaryInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[GreeksWidget-GreeksSummaryInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[GreeksWidget-GreeksSummaryInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_init[EvidenceWidget-EvidenceSummaryInfo]
+  tests\test_tui_market.py:301: PytestWarning: The test <Function test_widget_init[EvidenceWidget-EvidenceSummaryInfo]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[MarketStatusWidget-default_info0]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[MarketStatusWidget-default_info0]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[RegimeWidget-default_info1]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[RegimeWidget-default_info1]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[VolatilityWidget-default_info2]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[VolatilityWidget-default_info2]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[LiquidityWidget-default_info3]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[LiquidityWidget-default_info3]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[OptionChainWidget-default_info4]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[OptionChainWidget-default_info4]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[OpenInterestWidget-default_info5]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[OpenInterestWidget-default_info5]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[GreeksWidget-default_info6]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[GreeksWidget-default_info6]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[EvidenceWidget-default_info7]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[EvidenceWidget-default_info7]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_tui_market.py::TestMarketWidgets::test_widget_update_pre_mount[MarketEventsWidget-default_info8]
+  tests\test_tui_market.py:339: PytestWarning: The test <Function test_widget_update_pre_mount[MarketEventsWidget-default_info8]> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.
+    @pytest.mark.parametrize(
+
+tests/test_validation_runner.py::test_runner_burn_in_report_generation
+tests/test_validation_runner.py::test_runner_full_report_generation
+  D:\Projects\TITAN-CLI\titan\validation\runner.py:26: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_validation_runner.py::test_runner_full_report_generation
+  D:\Projects\TITAN-CLI\titan\validation\runner.py:88: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_validation_runner.py::test_runner_full_report_generation
+  D:\Projects\TITAN-CLI\titan\validation\runner.py:45: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_validation_runner.py::test_runner_full_report_generation
+  D:\Projects\TITAN-CLI\titan\validation\runner.py:36: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_validation_runner.py::test_runner_full_report_generation
+  D:\Projects\TITAN-CLI\titan\validation\runner.py:69: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_start_verbose - Asser...
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_start_dry_run - Asser...
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_start_dry_run_verbose
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_start_custom_cash - A...
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_reset - assert 1 == 0
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_report_when_not_running
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_report_json_when_not_running
+FAILED tests/test_cli.py::TestPaperCommands::test_paper_full_lifecycle - Asse...
+FAILED tests/test_cli_operations.py::TestConfigEdgeCases::test_validate_returns_warnings
+9 failed, 4711 passed, 3276 warnings in 122.81s (0:02:02)

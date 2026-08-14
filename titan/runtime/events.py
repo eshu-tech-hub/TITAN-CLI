@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
+from threading import RLock
 from typing import Callable
 
+from titan.core.logger import logger
 from titan.runtime.models import RuntimeEvent, RuntimeEventType
 
 EventListener = Callable[[RuntimeEvent], None]
@@ -21,6 +23,7 @@ class RuntimeEventBus:
     _listeners: dict[RuntimeEventType, list[EventListener]] = field(
         default_factory=dict, init=False
     )
+    _lock: RLock = field(default_factory=RLock, init=False, repr=False)
 
     def subscribe(self, event_type: RuntimeEventType, listener: EventListener) -> None:
         """Register a listener for a specific event type.
@@ -34,9 +37,10 @@ class RuntimeEventBus:
         """
         if not callable(listener):
             raise ValueError("Listener must be callable.")
-        if event_type not in self._listeners:
-            self._listeners[event_type] = []
-        self._listeners[event_type].append(listener)
+        with self._lock:
+            if event_type not in self._listeners:
+                self._listeners[event_type] = []
+            self._listeners[event_type].append(listener)
 
     def unsubscribe(
         self, event_type: RuntimeEventType, listener: EventListener
@@ -47,10 +51,13 @@ class RuntimeEventBus:
             event_type: The event type to unsubscribe from.
             listener: The listener to remove.
         """
-        if event_type in self._listeners:
-            self._listeners[event_type] = [
-                lst for lst in self._listeners[event_type] if lst is not listener
-            ]
+        with self._lock:
+            if event_type in self._listeners:
+                self._listeners[event_type] = [
+                    registered
+                    for registered in self._listeners[event_type]
+                    if registered is not listener
+                ]
 
     def publish(self, event: RuntimeEvent) -> None:
         """Publish an event to all registered listeners.
@@ -58,12 +65,15 @@ class RuntimeEventBus:
         Args:
             event: The event to publish.
         """
-        listeners = self._listeners.get(event.event_type, [])
+        with self._lock:
+            listeners = tuple(self._listeners.get(event.event_type, ()))
         for listener in listeners:
             try:
                 listener(event)
             except Exception:
-                pass
+                logger.exception(
+                    f"Runtime event listener failed for {event.event_type.value}"
+                )
 
     def publish_type(
         self,
@@ -89,7 +99,8 @@ class RuntimeEventBus:
 
     def clear(self) -> None:
         """Remove all listeners."""
-        self._listeners.clear()
+        with self._lock:
+            self._listeners.clear()
 
     def listener_count(self, event_type: RuntimeEventType) -> int:
         """Get the number of listeners for an event type.
@@ -100,4 +111,5 @@ class RuntimeEventBus:
         Returns:
             Number of registered listeners.
         """
-        return len(self._listeners.get(event_type, []))
+        with self._lock:
+            return len(self._listeners.get(event_type, []))

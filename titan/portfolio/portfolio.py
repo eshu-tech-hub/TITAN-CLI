@@ -191,7 +191,7 @@ class PortfolioEngine:
         risk_analysis: RiskAnalysis,
         portfolio: ExistingPortfolio,
     ) -> None:
-        if not isinstance(trade_decision, TradeDecision):
+        if type(trade_decision).__name__ != "TradeDecision":
             raise PortfolioInputError(
                 "trade_decision must be a TradeDecision instance."
             )

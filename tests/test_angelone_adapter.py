@@ -476,6 +476,7 @@ class TestAngelOneAuthenticator:
             pin="test-pin",
             totp_secret="test-secret",
             smart_connect=mock_smart_connect,
+            totp_generator=lambda _: "123456",
         )
         status = auth.login()
 
@@ -492,6 +493,7 @@ class TestAngelOneAuthenticator:
             pin="test-pin",
             totp_secret="test-secret",
             smart_connect=mock_smart_connect,
+            totp_generator=lambda _: "123456",
         )
         with pytest.raises(AuthenticationError):
             auth.login()
@@ -503,6 +505,7 @@ class TestAngelOneAuthenticator:
             pin="test-pin",
             totp_secret="test-secret",
             smart_connect=mock_smart_connect,
+            totp_generator=lambda _: "123456",
         )
         status = auth.logout()
         assert status.value == "disconnected"
@@ -746,6 +749,7 @@ class TestAngelOneBrokerAdapter:
             pin="test-pin",
             totp_secret="test-secret",
             smart_connect=mock_smart_connect,
+            totp_generator=lambda _: "123456",
         )
         status = broker.connect()
         assert status.value == "connected"
@@ -787,6 +791,7 @@ class TestAngelOneBrokerAdapter:
             client_id="test-client-id",
             pin="test-pin",
             totp_secret="test-secret",
+            totp_generator=lambda _: "123456",
         )
         broker.connect()
         quote = broker.quote("RELIANCE")
@@ -807,6 +812,7 @@ class TestAngelOneBrokerAdapter:
             client_id="test-client-id",
             pin="test-pin",
             totp_secret="test-secret",
+            totp_generator=lambda _: "123456",
         )
         broker.connect()
         req = OrderRequest(

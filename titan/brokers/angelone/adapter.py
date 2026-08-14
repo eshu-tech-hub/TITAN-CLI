@@ -49,6 +49,7 @@ class AngelOneBroker(Broker):
         pin: str | None = None,
         totp_secret: str | None = None,
         smart_connect: Any | None = None,
+        totp_generator: Any | None = None,
     ) -> None:
         self._authenticator = AngelOneAuthenticator(
             api_key=api_key,
@@ -56,6 +57,7 @@ class AngelOneBroker(Broker):
             pin=pin,
             totp_secret=totp_secret,
             smart_connect=smart_connect,
+            totp_generator=totp_generator,
         )
         self._market = AngelOneMarketDataProvider(smart_connect=smart_connect)
         self._history = AngelOneHistoricalDataProvider(smart_connect=smart_connect)

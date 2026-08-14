@@ -125,7 +125,7 @@ class AngelOneHistoricalDataProvider:
                     if isinstance(item, list) and len(item) >= 6:
                         try:
                             ts = datetime.fromisoformat(str(item[0]))
-                        except ValueError, TypeError:
+                        except (ValueError, TypeError):
                             ts = datetime.now(timezone.utc)
                         candle = Candle(
                             datetime=ts,

@@ -11,6 +11,11 @@ class IndicatorPipeline:
     def __init__(self) -> None:
         self._indicators: list[Indicator] = []
 
+    @property
+    def indicators(self) -> list[Indicator]:
+        """Read-only access to the indicator list."""
+        return self._indicators
+
     def add(self, indicator: Indicator) -> None:
         self._indicators.append(indicator)
 

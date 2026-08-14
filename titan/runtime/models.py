@@ -219,3 +219,43 @@ class RuntimeReport:
     paper: PaperBrokerStatus = field(default_factory=PaperBrokerStatus)
     portfolio: PortfolioStatus = field(default_factory=PortfolioStatus)
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    @property
+    def uptime_seconds(self) -> float:
+        """Return runtime uptime using the legacy report-level API."""
+        return self.performance.uptime_seconds
+
+    @property
+    def broker_status(self) -> ConnectionStatus:
+        """Legacy flat accessor for broker connection status."""
+        return self.broker.connection
+
+    @property
+    def stream_status(self) -> str:
+        """Legacy flat accessor for market stream status."""
+        return self.market.stream_status
+
+    @property
+    def scheduler_active(self) -> bool:
+        """Legacy flat accessor for scheduler active flag."""
+        return self.scheduler.active
+
+    @property
+    def pipeline_executions(self) -> int:
+        """Legacy flat accessor for scheduler pipeline executions."""
+        return self.scheduler.pipeline_executions
+
+    @property
+    def component_health(self) -> tuple[ComponentHealth, ...]:
+        """Legacy flat accessor for component health tuple."""
+        return self.health.component_health
+
+    @property
+    def warnings(self) -> tuple[str, ...]:
+        """Legacy flat accessor for health warnings."""
+        return self.health.warnings
+
+    @property
+    def errors(self) -> tuple[str, ...]:
+        """Legacy flat accessor for health errors."""
+        return self.health.errors

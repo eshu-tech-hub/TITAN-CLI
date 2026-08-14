@@ -50,27 +50,22 @@ def _status_icon(status_str: str) -> str:
 
 
 def _report_to_json(report: RuntimeReport) -> str:
-    data = asdict(report)
-
-    def _serialize(obj: object) -> str:
-        if hasattr(obj, "isoformat"):
-            return str(obj.isoformat())
-        if hasattr(obj, "value"):
-            return str(obj.value)
-        return str(obj)
-
-    def _clean(obj: object) -> object:
-        if isinstance(obj, dict):
-            return {k: _clean(v) for k, v in obj.items()}
-        if isinstance(obj, (list, tuple)):
-            return [_clean(i) for i in obj]
-        if hasattr(obj, "isoformat"):
-            return str(obj.isoformat())
-        if hasattr(obj, "value"):
-            return str(obj.value)
-        return obj
-
-    return str(json.dumps(_clean(data), indent=2, default=str))
+    data = {
+        "runtime_status": report.runtime_status.name.lower(),
+        "uptime_seconds": getattr(report, "uptime_seconds", getattr(report.performance, "uptime_seconds", 0.0)),
+        "broker_status": getattr(report, "broker_status", getattr(report.broker, "connection", "unknown")),
+        "stream_status": getattr(report, "stream_status", getattr(report.market, "stream_status", "unknown")),
+        "scheduler_active": getattr(report, "scheduler_active", getattr(report.scheduler, "active", False)),
+        "pipeline_executions": getattr(report, "pipeline_executions", getattr(report.scheduler, "pipeline_executions", 0)),
+        "warnings": list(getattr(report, "warnings", getattr(report.health, "warnings", []))),
+        "errors": list(getattr(report, "errors", getattr(report.health, "errors", []))),
+    }
+    
+    # Handle enum values if they leaked through
+    if hasattr(data["broker_status"], "value"):
+        data["broker_status"] = data["broker_status"].value
+        
+    return str(json.dumps(data, indent=2))
 
 
 def _format_uptime(seconds: float) -> str:
@@ -91,6 +86,16 @@ def _format_uptime(seconds: float) -> str:
     return " ".join(parts)
 
 
+def _get_transport():
+    from titan.cli.common import _runtime_engine
+    if _runtime_engine is not None:
+        from titan.runtime.transport import InProcessTransport
+        from titan.runtime.service import RuntimeService
+        return InProcessTransport(RuntimeService(_runtime_engine))
+    from titan.runtime.local_transport import LocalTransport
+    return LocalTransport()
+
+
 @app.command("status")
 def status(
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
@@ -100,10 +105,9 @@ def status(
 ) -> None:
     """Show runtime engine status."""
     logger.info("Runtime status command executed")
-    from titan.runtime.local_transport import LocalTransport
     from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 
-    transport = LocalTransport()
+    transport = _get_transport()
     try:
         report = transport.status()
     except TitanRuntimeError:
@@ -236,10 +240,8 @@ def start(
     """Start the runtime engine."""
     logger.info("Runtime start command executed")
 
-    from titan.runtime.local_transport import LocalTransport
-
     # Check if already running
-    transport_client = LocalTransport()
+    transport_client = _get_transport()
     try:
         transport_client.status()
         console.print("[yellow]~[/yellow] Runtime is already running.")
@@ -277,10 +279,13 @@ def start(
 
     engine = get_runtime_engine()
     service = RuntimeService(engine)
-    from titan.runtime.local_transport import LocalTransportServer
-
-    server = LocalTransportServer(service)
-    server.start()
+    
+    from titan.cli.common import _runtime_engine
+    server = None
+    if _runtime_engine is None:
+        from titan.runtime.local_transport import LocalTransportServer
+        server = LocalTransportServer(service)
+        server.start()
 
     try:
         if verbose:
@@ -290,14 +295,17 @@ def start(
             engine.start()  # blocks
     except TitanRuntimeError as e:
         console.print(f"[bold red]![/bold red] Failed to start runtime: {e}")
-        server.stop()
+        if server:
+            server.stop()
         raise typer.Exit(code=3)
     except Exception as e:
         console.print(f"[bold red]![/bold red] Unexpected error: {e}")
-        server.stop()
+        if server:
+            server.stop()
         raise typer.Exit(code=3)
 
-    server.stop()
+    if server:
+        server.stop()
 
 
 def _start_with_progress(engine: RuntimeEngine) -> None:
@@ -365,10 +373,9 @@ def stop(
     """Stop the runtime engine gracefully."""
     logger.info("Runtime stop command executed")
 
-    from titan.runtime.local_transport import LocalTransport
     from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 
-    transport = LocalTransport()
+    transport = _get_transport()
     try:
         transport.stop()
         console.print("[bold yellow]~[/bold yellow] Runtime stopped.")
@@ -453,6 +460,7 @@ def restart(
         raise typer.Exit(code=3)
 
 
+@app.command("version")
 def version(
     verbose: Annotated[
         bool, typer.Option("--verbose", "-v", help="Show detailed version info")

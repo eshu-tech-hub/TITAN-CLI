@@ -62,7 +62,7 @@ class ShellApp(App):
         ("f9", "goto_decision", "Decision"),
         ("f10", "goto_decision_replay", "Replay"),
         ("f11", "goto_trade_journal", "Trade Jnl"),
-        ("f12", "goto_logs", "Logs & Audit"),
+        ("f12", "goto_help", "Help"),
         ("?", "goto_help", "Help"),
         ("h", "goto_help", "Help"),
         ("ctrl+r", "refresh", "Refresh"),

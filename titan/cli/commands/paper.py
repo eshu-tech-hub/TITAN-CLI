@@ -42,9 +42,7 @@ def _is_running() -> bool:
     from titan.runtime.local_transport import LocalTransport
 
     try:
-        transport = LocalTransport()
-        report = transport.status()
-        return report.paper.active or True  # Just check if we can connect
+        return bool(LocalTransport().paper_status().get("running", False))
     except Exception:
         return False
 
@@ -249,10 +247,48 @@ def _build_report_data() -> dict[str, Any]:
     from titan.runtime.local_transport import LocalTransport
 
     try:
-        transport = LocalTransport()
-        return transport.paper_status()
+        data = LocalTransport().paper_status()
     except Exception:
         return {"error": "No active paper session"}
+
+    if not data.get("running"):
+        return {"error": "No active paper session"}
+
+    return {
+        "session": {
+            "start_time": data.get("start_time"),
+            "uptime_seconds": data.get("session_uptime_seconds", 0.0),
+            "initial_cash": data.get("initial_cash", 0.0),
+        },
+        "portfolio": {
+            "cash": data.get("cash_balance", 0.0),
+            "equity": data.get("portfolio_value", 0.0),
+            "buying_power": data.get("buying_power", 0.0),
+            "exposure": data.get("exposure", 0.0),
+            "position_count": data.get("open_positions", 0),
+            "daily_pnl": data.get("daily_pnl", 0.0),
+            "total_pnl": data.get("total_pnl", 0.0),
+            "drawdown": data.get("drawdown", 0.0),
+        },
+        "performance": {
+            "total_trades": data.get("total_trades", 0),
+            "winning_trades": data.get("winning_trades", 0),
+            "losing_trades": data.get("losing_trades", 0),
+            "win_rate": data.get("win_rate", 0.0),
+            "profit_factor": data.get("profit_factor", 0.0),
+            "expectancy": data.get("expectancy", 0.0),
+            "avg_winner": data.get("avg_winner", 0.0),
+            "avg_loser": data.get("avg_loser", 0.0),
+            "max_drawdown": data.get("max_drawdown", 0.0),
+        },
+        "pnl": {
+            "realized": data.get("realized_pnl", 0.0),
+            "unrealized": data.get("unrealized_pnl", 0.0),
+            "total": data.get("total_pnl", 0.0),
+        },
+        "positions": data.get("positions", []),
+        "orders": data.get("orders", []),
+    }
 
 
 # ── Session Summary Tables ────────────────────────────────
@@ -507,96 +543,75 @@ def start(
 
 
 def _start_silent(initial_cash: float) -> None:
-    from decimal import Decimal as D
-    from titan.paper.broker import PaperBroker
-    from titan.runtime.runtime import RuntimeEngine
-    from titan.runtime.service import RuntimeService
-    from titan.runtime.local_transport import LocalTransportServer
-
     try:
-        broker = PaperBroker(initial_cash=D(str(initial_cash)))
-        engine = RuntimeEngine(broker=broker)
-        service = RuntimeService(engine)
-        server = LocalTransportServer(service)
-
-        server.start()
+        _launch_paper_runtime(initial_cash)
         console.print("[bold green]+[/bold green] Paper trading session started.")
-        try:
-            engine.start()
-        finally:
-            server.stop()
-
-    except Exception as e:
-        console.print(f"[bold red]![/bold red] Failed to start: {e}")
+    except Exception as exc:
+        console.print(f"[bold red]![/bold red] Failed to start: {exc}")
         raise typer.Exit(code=3)
 
 
 def _start_with_progress(initial_cash: float) -> None:
-    steps = [
-        "Loading configuration",
-        "Creating PaperBroker",
-        "Validating environment",
-        "Starting monitoring",
-        "Connecting broker",
-        "Recording startup",
-        "Paper trading started",
-    ]
+    _start_silent(initial_cash)
 
-    with Live(console=console, refresh_per_second=4) as live:
-        for i, step_name in enumerate(steps):
-            table = Table(show_header=False, box=None, padding=(0, 2))
-            table.add_column("Step", style="bold")
-            table.add_column("Status")
-            for j, name in enumerate(steps):
-                if j < i:
-                    table.add_row(name, "[green]+[/green] done")
-                elif j == i:
-                    table.add_row(name, "[yellow]...[/yellow]")
-                else:
-                    table.add_row(name, "[dim]-[/dim]")
-            live.update(table)
-            time.sleep(0.15)
 
-        from decimal import Decimal as D
-        from titan.paper.broker import PaperBroker
-        from titan.runtime.runtime import RuntimeEngine
-        from titan.runtime.service import RuntimeService
-        from titan.runtime.local_transport import LocalTransportServer
+def _launch_paper_runtime(initial_cash: float) -> None:
+    import sys
 
+    from titan.runtime.launcher import DetachedRuntimeLauncher
+
+    launcher = DetachedRuntimeLauncher()
+    launcher.launch(
+        [
+            sys.executable,
+            "-m",
+            "titan",
+            "paper",
+            "serve",
+            "--cash",
+            str(initial_cash),
+        ],
+        log_path=Path("logs") / "paper_runtime.log",
+    )
+
+
+def _wait_until_runtime_stops(timeout_seconds: float = 5.0) -> None:
+    from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
+    from titan.runtime.local_transport import LocalTransport
+
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
         try:
-            broker = PaperBroker(initial_cash=D(str(initial_cash)))
-            engine = RuntimeEngine(broker=broker)
-            service = RuntimeService(engine)
-            server = LocalTransportServer(service)
+            LocalTransport().status()
+        except TitanRuntimeError:
+            return
+        time.sleep(0.05)
 
-            server.start()
+    raise TitanRuntimeError("Timed out waiting for the paper runtime to stop.")
 
-            table = Table(show_header=False, box=None, padding=(0, 2))
-            table.add_column("Step", style="bold")
-            table.add_column("Status")
-            for name in steps:
-                table.add_row(name, "[green]+[/green] done")
-            live.update(table)
 
-            try:
-                engine.start()
-            finally:
-                server.stop()
+@app.command("serve", hidden=True)
+def serve(
+    cash: Annotated[float, typer.Option("--cash", help="Initial cash balance")],
+) -> None:
+    """Run the detached paper runtime process."""
+    from decimal import Decimal as D
 
-        except Exception as e:
-            table = Table(show_header=False, box=None, padding=(0, 2))
-            table.add_column("Step", style="bold")
-            table.add_column("Status")
-            for j, name in enumerate(steps):
-                if j < len(steps) - 1:
-                    table.add_row(name, "[green]+[/green] done")
-                else:
-                    table.add_row(name, "[red]![/red] failed")
-            table.add_row(f"Error: {e}", "[bold red]![/bold red]")
-            live.update(table)
-            if "server" in locals():
-                server.stop()
-            raise typer.Exit(code=3)
+    from titan.paper.broker import PaperBroker
+    from titan.runtime.local_transport import LocalTransportServer
+    from titan.runtime.runtime import RuntimeEngine
+    from titan.runtime.service import RuntimeService
+
+    engine = RuntimeEngine(broker=PaperBroker(initial_cash=D(str(cash))))
+    server = LocalTransportServer(RuntimeService(engine))
+    try:
+        engine.start()
+        server.start()
+        engine.run_until_stopped()
+    finally:
+        if engine.status.name != "STOPPED":
+            engine.stop()
+        server.stop()
 
 
 @app.command("stop")
@@ -626,48 +641,14 @@ def _stop_silent() -> None:
     try:
         transport = LocalTransport()
         transport.stop()
+        _wait_until_runtime_stops()
         console.print("[bold yellow]~[/bold yellow] Paper trading session stopped.")
-    except Exception as e:
-        console.print(f"[bold red]![/bold red] Failed to stop: {e}")
+    except Exception as exc:
+        console.print(f"[bold red]![/bold red] Failed to stop: {exc}")
 
 
 def _stop_with_progress() -> None:
-    steps = [
-        "Disconnecting broker",
-        "Stopping monitoring",
-        "Clearing session state",
-        "Paper trading stopped",
-    ]
-
-    with Live(console=console, refresh_per_second=4) as live:
-        for i, step_name in enumerate(steps):
-            table = Table(show_header=False, box=None, padding=(0, 2))
-            table.add_column("Step", style="bold")
-            table.add_column("Status")
-            for j, name in enumerate(steps):
-                if j < i:
-                    table.add_row(name, "[green]+[/green] done")
-                elif j == i:
-                    table.add_row(name, "[yellow]...[/yellow]")
-                else:
-                    table.add_row(name, "[dim]-[/dim]")
-            live.update(table)
-            time.sleep(0.15)
-
-        from titan.runtime.local_transport import LocalTransport
-
-        try:
-            transport = LocalTransport()
-            transport.stop()
-        except Exception:
-            pass
-
-        table = Table(show_header=False, box=None, padding=(0, 2))
-        table.add_column("Step", style="bold")
-        table.add_column("Status")
-        for name in steps:
-            table.add_row(name, "[green]+[/green] done")
-        live.update(table)
+    _stop_silent()
 
 
 @app.command("restart")
@@ -745,11 +726,7 @@ def reset(
         raise typer.Exit(code=1)
 
     if _is_running():
-        try:
-            if _paper_broker is not None:
-                _paper_broker.disconnect()
-        except Exception:
-            pass
+        _stop_silent()
         _paper_broker = None
         _paper_start_time = None
 
@@ -778,7 +755,7 @@ def report(
     """Generate paper trading session report."""
     logger.info("Paper report command executed")
 
-    if _paper_broker is None:
+    if not _is_running():
         if json_output:
             console.print(json.dumps({"error": "No active paper session"}, indent=2))
         else:

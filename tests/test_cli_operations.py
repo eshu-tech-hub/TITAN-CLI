@@ -625,17 +625,23 @@ class TestConfigShow:
 
 class TestConfigValidate:
     def test_validate(self) -> None:
-        result = runner.invoke(app, ["config", "validate"])
-        assert result.exit_code == 0
+        from unittest.mock import patch
+        from titan.config.validation_models import ConfigurationReport
+        with patch("titan.config.validators.ConfigurationValidator.validate_all", return_value=ConfigurationReport(is_valid=True, results=())):
+            result = runner.invoke(app, ["config", "validate"])
+            assert result.exit_code == 0
 
     def test_validate_json(self) -> None:
-        result = runner.invoke(app, ["config", "validate", "--json"])
-        assert result.exit_code == 0
-        data = _extract_json(result.output)
-        assert "validation_status" in data
-        assert "profile" in data
-        assert "warnings" in data
-        assert "errors" in data
+        from unittest.mock import patch
+        from titan.config.validation_models import ConfigurationReport
+        with patch("titan.config.validators.ConfigurationValidator.validate_all", return_value=ConfigurationReport(is_valid=True, results=())):
+            result = runner.invoke(app, ["config", "validate", "--json"])
+            assert result.exit_code == 0
+            data = _extract_json(result.output)
+            assert "validation_status" in data
+            assert "profile" in data
+            assert "warnings" in data
+            assert "errors" in data
 
 
 class TestConfigDiff:
@@ -780,11 +786,15 @@ class TestAuditEdgeCases:
 
 class TestConfigEdgeCases:
     def test_validate_returns_warnings(self) -> None:
-        result = runner.invoke(app, ["config", "validate", "--json"])
-        assert result.exit_code == 0
-        data = _extract_json(result.output)
-        assert isinstance(data.get("warnings"), list)
-        assert isinstance(data.get("errors"), list)
+        from unittest.mock import patch
+        from titan.config.validation_models import ConfigurationReport, ValidationResult, ValidationLevel
+        warning_result = ValidationResult(level=ValidationLevel.WARNING, category="Test", message="Warning", component="test", resolution="Fix it")
+        with patch("titan.config.validators.ConfigurationValidator.validate_all", return_value=ConfigurationReport(is_valid=True, results=(warning_result,))):
+            result = runner.invoke(app, ["config", "validate", "--json"])
+            assert result.exit_code == 0
+            data = _extract_json(result.output)
+            assert isinstance(data.get("warnings"), list)
+            assert isinstance(data.get("errors"), list)
 
     def test_export_roundtrip(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

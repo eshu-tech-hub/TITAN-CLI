@@ -935,12 +935,12 @@ class TradePipeline:
                 "executed" if ctx.execution.orders_submitted > 0 else "no_orders"
             )
 
-        if len(errors) >= len(stages):
+        if ctx.aborted:
+            status = PipelineStatus.FAILED if errors else PipelineStatus.ABORTED
+        elif len(errors) > 0 and len(errors) >= len(stages):
             status = PipelineStatus.FAILED
         elif errors:
             status = PipelineStatus.PARTIAL
-        elif ctx.aborted:
-            status = PipelineStatus.ABORTED
         else:
             status = PipelineStatus.SUCCESS
 

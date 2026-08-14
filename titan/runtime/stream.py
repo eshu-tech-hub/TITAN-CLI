@@ -5,6 +5,7 @@ from threading import Event, Thread
 from typing import Callable, Protocol
 
 from titan.brokers.models import ConnectionStatus, Exchange, Quote
+from titan.core.logger import logger
 from titan.runtime.events import RuntimeEventBus
 from titan.runtime.exceptions import StreamConnectionError, StreamError
 from titan.runtime.models import RuntimeEventType
@@ -90,8 +91,15 @@ class MarketStream:
     def stop(self) -> None:
         """Stop the market stream gracefully."""
         self._stop_event.set()
+        try:
+            self.source.disconnect()
+        except Exception as exc:
+            logger.warning(f"Market stream disconnect during shutdown failed: {exc}")
+
         if self._thread is not None:
             self._thread.join(timeout=5.0)
+            if self._thread.is_alive():
+                raise StreamError("Market stream worker did not stop within five seconds.")
             self._thread = None
 
     @property
@@ -154,8 +162,8 @@ class MarketStream:
         """Disconnect from the data source."""
         try:
             self.source.disconnect()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"Market stream disconnect failed: {exc}")
 
         if self.event_bus is not None:
             self.event_bus.publish_type(
@@ -170,7 +178,13 @@ class MarketStream:
                 quote = self._queue.get(timeout=1.0)
                 self._process_quote(quote)
             except Empty:
-                quote = self.source.read()
+                try:
+                    quote = self.source.read()
+                except Exception as exc:
+                    logger.warning(f"Market stream read failed: {exc}")
+                    if not self.reconnect():
+                        return
+                    continue
                 if quote is not None:
                     self._process_quote(quote)
 
@@ -183,7 +197,7 @@ class MarketStream:
             try:
                 self._on_quote(quote)
             except Exception:
-                pass
+                logger.exception("Market stream quote callback failed")
 
         if self.event_bus is not None:
             self.event_bus.publish_type(
@@ -214,13 +228,12 @@ class MarketStream:
 
         try:
             self.source.disconnect()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"Market stream disconnect before reconnect failed: {exc}")
 
         try:
-            import time
-
-            time.sleep(self._reconnect_delay_seconds)
+            if self._stop_event.wait(self._reconnect_delay_seconds):
+                return False
             status = self.source.connect()
 
             if status == ConnectionStatus.CONNECTED:
@@ -233,8 +246,8 @@ class MarketStream:
                     )
                 return True
 
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"Market stream reconnect failed: {exc}")
 
         if self.event_bus is not None:
             self.event_bus.publish_type(

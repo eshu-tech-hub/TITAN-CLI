@@ -10,8 +10,9 @@ from titan.recovery.models import Checkpoint, ComponentType
 
 @dataclass(slots=True)
 class CheckpointManager:
-    _checkpoints: dict[str, Checkpoint] = field(default_factory=dict, init=False)
+    _checkpoints: dict[str, tuple[int, Checkpoint]] = field(default_factory=dict, init=False)
     _lock: Lock = field(default_factory=Lock, init=False)
+    _counter: int = field(default=0, init=False)
 
     def save(
         self,
@@ -30,15 +31,16 @@ class CheckpointManager:
             metadata=dict(metadata) if metadata else {},
         )
         with self._lock:
-            self._checkpoints[checkpoint_id] = checkpoint
+            self._counter += 1
+            self._checkpoints[checkpoint_id] = (self._counter, checkpoint)
         return checkpoint
 
     def load(self, checkpoint_id: str) -> Checkpoint:
         with self._lock:
-            cp = self._checkpoints.get(checkpoint_id)
-            if cp is None:
+            cp_tuple = self._checkpoints.get(checkpoint_id)
+            if cp_tuple is None:
                 raise RecoveryCheckpointError(f"Checkpoint not found: {checkpoint_id}")
-            return cp
+            return cp_tuple[1]
 
     def delete(self, checkpoint_id: str) -> None:
         with self._lock:
@@ -49,12 +51,12 @@ class CheckpointManager:
     def list_by_component(self, component: ComponentType) -> tuple[Checkpoint, ...]:
         with self._lock:
             return tuple(
-                cp for cp in self._checkpoints.values() if cp.component == component
+                cp for _, cp in self._checkpoints.values() if cp.component == component
             )
 
     def list_all(self) -> tuple[Checkpoint, ...]:
         with self._lock:
-            return tuple(self._checkpoints.values())
+            return tuple(cp for _, cp in self._checkpoints.values())
 
     def count(self) -> int:
         with self._lock:
@@ -65,7 +67,12 @@ class CheckpointManager:
             self._checkpoints.clear()
 
     def latest(self, component: ComponentType) -> Checkpoint | None:
-        candidates = self.list_by_component(component)
-        if not candidates:
+        with self._lock:
+            matches = [
+                (counter, cp)
+                for counter, cp in self._checkpoints.values()
+                if cp.component == component
+            ]
+        if not matches:
             return None
-        return max(candidates, key=lambda cp: cp.created_at)
+        return max(matches, key=lambda t: (t[1].created_at, t[0]))[1]

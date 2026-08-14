@@ -1,0 +1,343 @@
+diff --git a/tests/integration/test_paper_runtime.py b/tests/integration/test_paper_runtime.py
+index 1f5c87e..002903d 100644
+--- a/tests/integration/test_paper_runtime.py
++++ b/tests/integration/test_paper_runtime.py
+@@ -1,23 +1,31 @@
+-import time
+ import threading
+-from unittest.mock import MagicMock
+-from titan.runtime.runtime import RuntimeEngine
+-from titan.brokers.models import ConnectionStatus
+ 
++from titan.runtime.runtime import RuntimeEngine
++from titan.paper.broker import PaperBroker
++from titan.runtime.local_transport import LocalTransport, LocalTransportServer
+ from titan.runtime.service import RuntimeService
+ 
+ 
+-def test_paper_runtime_enabling():
+-    broker_mock = MagicMock()
+-    broker_mock.connect.return_value = ConnectionStatus.CONNECTED
+-    engine = RuntimeEngine(broker=broker_mock)
++def test_paper_runtime_lifecycle() -> None:
++    engine = RuntimeEngine(broker=PaperBroker())
+     service = RuntimeService(engine)
+-    t = threading.Thread(target=service.start, daemon=True)
+-    t.start()
++    server = LocalTransportServer(service, port=0)
++
++    engine.start()
++    server.start()
++    worker = threading.Thread(target=engine.run_until_stopped)
++    worker.start()
+ 
+-    time.sleep(0.5)
+-    # enable_paper is currently a stub, so just test it executes without error
+-    service.enable_paper()
+-    service.disable_paper()
+-    service.stop()
+-    t.join(timeout=2.0)
++    try:
++        transport = LocalTransport(port=server.port)
++        assert transport.status().runtime_status.name == "RUNNING"
++        assert transport.paper_status()["running"] is True
++        transport.stop()
++        worker.join(timeout=2.0)
++        assert not worker.is_alive()
++        assert not engine.is_running
++    finally:
++        if engine.is_running:
++            engine.stop()
++        worker.join(timeout=2.0)
++        server.stop()
+diff --git a/tests/integration/test_runtime_scheduler.py b/tests/integration/test_runtime_scheduler.py
+index 7a2f28e..4abf26d 100644
+--- a/tests/integration/test_runtime_scheduler.py
++++ b/tests/integration/test_runtime_scheduler.py
+@@ -2,7 +2,7 @@ from titan.runtime.scheduler import PipelineScheduler
+ 
+ 
+ def test_scheduler_lifecycle():
+-    scheduler = PipelineScheduler()
++    scheduler = PipelineScheduler(runner=lambda: None)
+     scheduler.start()
+     assert scheduler._active is True
+     scheduler.stop()
+diff --git a/tests/integration/test_runtime_shutdown.py b/tests/integration/test_runtime_shutdown.py
+index adbaf09..a23818b 100644
+--- a/tests/integration/test_runtime_shutdown.py
++++ b/tests/integration/test_runtime_shutdown.py
+@@ -1,5 +1,4 @@
+ import threading
+-import time
+ from unittest.mock import MagicMock
+ from titan.runtime.runtime import RuntimeEngine
+ from titan.runtime.models import RuntimeStatus
+@@ -12,10 +11,10 @@ def test_runtime_engine_shutdown():
+     broker_mock.connect.return_value = ConnectionStatus.CONNECTED
+     engine = RuntimeEngine(broker=broker_mock)
+ 
+-    t = threading.Thread(target=engine.start, daemon=True)
++    engine.start()
++    t = threading.Thread(target=engine.run_until_stopped)
+     t.start()
+ 
+-    time.sleep(0.5)
+     assert engine.status == RuntimeStatus.RUNNING
+     engine.stop()
+     t.join(timeout=2.0)
+diff --git a/tests/test_angelone_adapter.py b/tests/test_angelone_adapter.py
+index 08ecf22..5161bc1 100644
+--- a/tests/test_angelone_adapter.py
++++ b/tests/test_angelone_adapter.py
+@@ -6,7 +6,7 @@ All tests mock the SmartAPI SDK. No live servers are contacted.
+ from datetime import datetime, timezone
+ from decimal import Decimal
+ from typing import Any
+-from unittest.mock import MagicMock
++from unittest.mock import MagicMock, patch
+ 
+ import pytest
+ 
+@@ -477,7 +477,10 @@ class TestAngelOneAuthenticator:
+             totp_secret="test-secret",
+             smart_connect=mock_smart_connect,
+         )
+-        status = auth.login()
++        
++        with patch("pyotp.TOTP") as mock_totp:
++            mock_totp.return_value.now.return_value = "123456"
++            status = auth.login()
+ 
+         assert status.value == "connected"
+         assert auth.feed_token == "feed-token-123"
+@@ -493,8 +496,10 @@ class TestAngelOneAuthenticator:
+             totp_secret="test-secret",
+             smart_connect=mock_smart_connect,
+         )
+-        with pytest.raises(AuthenticationError):
+-            auth.login()
++        with patch("pyotp.TOTP") as mock_totp:
++            mock_totp.return_value.now.return_value = "123456"
++            with pytest.raises(AuthenticationError):
++                auth.login()
+ 
+     def test_logout(self, mock_smart_connect: MagicMock) -> None:
+         auth = AngelOneAuthenticator(
+@@ -504,7 +509,10 @@ class TestAngelOneAuthenticator:
+             totp_secret="test-secret",
+             smart_connect=mock_smart_connect,
+         )
+-        status = auth.logout()
++        with patch("pyotp.TOTP") as mock_totp:
++            mock_totp.return_value.now.return_value = "123456"
++            status = auth.login()
++        auth.logout()
+         assert status.value == "disconnected"
+         assert auth.validate_session() is False
+ 
+@@ -788,7 +796,9 @@ class TestAngelOneBrokerAdapter:
+             pin="test-pin",
+             totp_secret="test-secret",
+         )
+-        broker.connect()
++        with patch("pyotp.TOTP") as mock_totp:
++            mock_totp.return_value.now.return_value = "123456"
++            broker.connect()
+         quote = broker.quote("RELIANCE")
+         assert isinstance(quote, Quote)
+         assert quote.last_price == Decimal("2500.50")
+@@ -808,7 +818,9 @@ class TestAngelOneBrokerAdapter:
+             pin="test-pin",
+             totp_secret="test-secret",
+         )
+-        broker.connect()
++        with patch("pyotp.TOTP") as mock_totp:
++            mock_totp.return_value.now.return_value = "123456"
++            broker.connect()
+         req = OrderRequest(
+             symbol="RELIANCE",
+             exchange=Exchange.NSE,
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index f4ed886..eb7e98b 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -7,7 +7,7 @@ import tempfile
+ from pathlib import Path
+ 
+ import pytest
+-from unittest.mock import patch
++from unittest.mock import patch, MagicMock
+ from typer.testing import CliRunner
+ 
+ from titan.cli import app
+@@ -17,11 +17,31 @@ from titan.cli.commands.paper import _reset_paper_session
+ runner = CliRunner()
+ 
+ 
+-@pytest.fixture(autouse=True)
+-def mock_runtime_start():
+-    with patch("titan.runtime.runtime.RuntimeEngine.start") as mock_start:
+-        with patch("titan.runtime.local_transport.LocalTransportServer.start"):
+-            yield mock_start
++@pytest.fixture
++def running_runtime():
++    mock_engine = MagicMock()
++    # Using a list to manage state transitions and avoid hanging
++    status_states = ["STOPPED", "STARTING", "RUNNING"]
++    mock_engine.status.name = MagicMock(side_effect=status_states)
++    
++    # Configure the report returned by generate_report()
++    mock_report = MagicMock()
++    mock_report.runtime_status.name = "RUNNING"
++    mock_report.performance.uptime_seconds = 100.0
++    mock_report.broker.connection.value = "connected"
++    mock_report.scheduler.pipeline_executions = 0
++    mock_report.market.active_subscriptions = 0
++    # Add necessary attributes for component_health to avoid errors
++    mock_report.component_health = []
++    
++    mock_engine.generate_report.return_value = mock_report
++    
++    # Also patch start/stop to be safe
++    mock_engine.start = MagicMock()
++    mock_engine.stop = MagicMock()
++
++    with patch("titan.cli.common._runtime_engine", mock_engine):
++        yield mock_engine
+ 
+ 
+ def _extract_json(output: str) -> dict:
+@@ -76,6 +96,76 @@ class TestRootCommands:
+ 
+ 
+ class TestPaperCommands:
++    @pytest.fixture(autouse=True)
++    def paper_transport(self, monkeypatch: pytest.MonkeyPatch) -> None:
++        from titan.cli.commands import paper as paper_commands
++        from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
++
++        state: dict[str, object] = {
++            "running": False,
++            "initial_cash": 100000.0,
++        }
++        self.paper_state = state
++
++        def launch(initial_cash: float) -> None:
++            state["running"] = True
++            state["initial_cash"] = initial_cash
++
++        def paper_status(_: object) -> dict[str, object]:
++            if not state["running"]:
++                raise TitanRuntimeError("Paper runtime is not running.")
++            return {
++                "running": True,
++                "connected": True,
++                "initial_cash": state["initial_cash"],
++                "cash_balance": state["initial_cash"],
++                "portfolio_value": state["initial_cash"],
++                "buying_power": state["initial_cash"],
++                "exposure": 0.0,
++                "open_positions": 0,
++                "closed_trades": 0,
++                "total_orders": 0,
++                "filled_orders": 0,
++                "realized_pnl": 0.0,
++                "unrealized_pnl": 0.0,
++                "total_pnl": 0.0,
++                "daily_pnl": 0.0,
++                "drawdown": 0.0,
++                "win_rate": 0.0,
++                "loss_rate": 0.0,
++                "profit_factor": 0.0,
++                "max_drawdown": 0.0,
++                "total_trades": 0,
++                "winning_trades": 0,
++                "losing_trades": 0,
++                "expectancy": 0.0,
++                "session_uptime_seconds": 1.0,
++                "start_time": "2026-01-01T00:00:00+00:00",
++                "positions": [],
++                "orders": [],
++            }
++
++        def stop(_: object) -> None:
++            if not state["running"]:
++                raise TitanRuntimeError("Paper runtime is not running.")
++            state["running"] = False
++
++        def status(_: object) -> object:
++            if state["running"]:
++                return object()
++            raise TitanRuntimeError("Paper runtime is not running.")
++
++        monkeypatch.setattr(paper_commands, "_launch_paper_runtime", launch)
++        monkeypatch.setattr(
++            "titan.runtime.local_transport.LocalTransport.paper_status",
++            paper_status,
++        )
++        monkeypatch.setattr("titan.runtime.local_transport.LocalTransport.stop", stop)
++        monkeypatch.setattr(
++            "titan.runtime.local_transport.LocalTransport.status",
++            status,
++        )
++
+     def setup_method(self) -> None:
+         _reset_paper_session()
+ 
+@@ -99,6 +189,7 @@ class TestPaperCommands:
+         result = runner.invoke(app, ["paper", "start"])
+         assert result.exit_code == 0
+         assert "started" in result.output.lower()
++        assert self.paper_state["running"] is True
+ 
+     def test_paper_start_verbose(self) -> None:
+         result = runner.invoke(app, ["paper", "start", "--verbose"])
+@@ -111,6 +202,7 @@ class TestPaperCommands:
+         assert result.exit_code == 0
+         assert "Startup Checklist" in result.output
+         assert "Dry run passed" in result.output
++        assert self.paper_state["running"] is False
+ 
+     def test_paper_start_dry_run_verbose(self) -> None:
+         result = runner.invoke(app, ["paper", "start", "--dry-run", "--verbose"])
+@@ -122,6 +214,7 @@ class TestPaperCommands:
+         result = runner.invoke(app, ["paper", "start", "--cash", "50000"])
+         assert result.exit_code == 0
+         assert "started" in result.output.lower()
++        assert self.paper_state["initial_cash"] == 50000.0
+ 
+     def test_paper_stop_when_not_running(self) -> None:
+         result = runner.invoke(app, ["paper", "stop"])
+@@ -873,27 +966,27 @@ class TestRuntimeCommands:
+         assert "restart" in result.output
+         assert "status" in result.output
+ 
+-    def test_runtime_status(self) -> None:
++    def test_runtime_status(self, running_runtime) -> None:
+         result = runner.invoke(app, ["runtime", "status"])
+         assert result.exit_code == 0
+         assert "Runtime Engine" in result.output
+         assert "Status" in result.output
+         assert "Uptime" in result.output
+ 
+-    def test_runtime_status_json(self) -> None:
++    def test_runtime_status_json(self, running_runtime) -> None:
+         result = runner.invoke(app, ["runtime", "status", "--json"])
+         assert result.exit_code == 0
+         assert "runtime_status" in result.output
+         assert "uptime_seconds" in result.output
+         assert "broker_status" in result.output
+ 
+-    def test_runtime_status_verbose(self) -> None:
++    def test_runtime_status_verbose(self, running_runtime) -> None:
+         result = runner.invoke(app, ["runtime", "status", "--verbose"])
+         assert result.exit_code == 0
+         assert "Runtime Engine" in result.output
+         assert "Component Health" in result.output
+ 
+-    def test_runtime_start(self) -> None:
++    def test_runtime_start(self, running_runtime) -> None:
+         result = runner.invoke(app, ["runtime", "start"])
+         assert result.exit_code == 0
+         output = result.output.lower()

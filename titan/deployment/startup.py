@@ -141,6 +141,7 @@ class ProductionBootstrapper:
         logger.info("Readiness checks passed. Booting Runtime Engine.")
         try:
             self.engine.start()
+            self.engine.run_until_stopped()
         except Exception as e:
             logger.critical(f"Catastrophic runtime failure: {e}")
             sys.exit(1)

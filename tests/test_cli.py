@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from typer.testing import CliRunner
 
 from titan.cli import app
@@ -15,6 +15,48 @@ from titan.cli.commands.backtest import _reset_backtest_session
 from titan.cli.commands.paper import _reset_paper_session
 
 runner = CliRunner()
+
+
+@pytest.fixture
+def running_runtime():
+    from titan.runtime.models import (
+        RuntimeReport, RuntimeStatus, RuntimeHealth, SchedulerStatus, 
+        BrokerStatus, MarketStatus, JournalStatus, ResourceStatus, 
+        PerformanceStatus, RecoveryStatus, PaperBrokerStatus, PortfolioStatus,
+        ComponentHealth, HealthStatus
+    )
+    from titan.brokers.models import ConnectionStatus
+
+    mock_engine = MagicMock()
+    status_states = ["STOPPED", "STARTING", "RUNNING"]
+    mock_engine.status.name = MagicMock(side_effect=status_states)
+    
+    dummy_health = ComponentHealth(
+        component_name="dummy",
+        status=HealthStatus.HEALTHY,
+        error="ok"
+    )
+    
+    mock_report = RuntimeReport(
+        runtime_status=RuntimeStatus.RUNNING,
+        health=RuntimeHealth(component_health=(dummy_health,), warnings=(), errors=()),
+        scheduler=SchedulerStatus(active=True, pipeline_executions=0, last_pipeline_time=None),
+        broker=BrokerStatus(connection=ConnectionStatus.CONNECTED),
+        market=MarketStatus(stream_status="connected", active_subscriptions=0, last_quote_time=None),
+        journal=JournalStatus(),
+        resource=ResourceStatus(),
+        performance=PerformanceStatus(uptime_seconds=100.0),
+        recovery=RecoveryStatus(),
+        paper=PaperBrokerStatus(active=False),
+        portfolio=PortfolioStatus()
+    )
+    
+    mock_engine.generate_report.return_value = mock_report
+    mock_engine.start = MagicMock()
+    mock_engine.stop = MagicMock()
+
+    with patch("titan.cli.common._runtime_engine", mock_engine):
+        yield mock_engine
 
 
 @pytest.fixture(autouse=True)
@@ -78,6 +120,11 @@ class TestRootCommands:
 class TestPaperCommands:
     def setup_method(self) -> None:
         _reset_paper_session()
+        # Ensure no paper process is running from previous aborted tests
+        runner.invoke(app, ["paper", "stop"])
+
+    def teardown_method(self) -> None:
+        runner.invoke(app, ["paper", "stop"])
 
     def test_paper_help(self) -> None:
         result = runner.invoke(app, ["paper", "--help"])
@@ -873,39 +920,45 @@ class TestRuntimeCommands:
         assert "restart" in result.output
         assert "status" in result.output
 
-    def test_runtime_status(self) -> None:
+    def test_runtime_status(self, running_runtime) -> None:
         result = runner.invoke(app, ["runtime", "status"])
         assert result.exit_code == 0
         assert "Runtime Engine" in result.output
         assert "Status" in result.output
         assert "Uptime" in result.output
 
-    def test_runtime_status_json(self) -> None:
+    def test_runtime_status_json(self, running_runtime) -> None:
         result = runner.invoke(app, ["runtime", "status", "--json"])
         assert result.exit_code == 0
         assert "runtime_status" in result.output
         assert "uptime_seconds" in result.output
         assert "broker_status" in result.output
 
-    def test_runtime_status_verbose(self) -> None:
+    def test_runtime_status_verbose(self, running_runtime) -> None:
         result = runner.invoke(app, ["runtime", "status", "--verbose"])
         assert result.exit_code == 0
         assert "Runtime Engine" in result.output
         assert "Component Health" in result.output
 
-    def test_runtime_start(self) -> None:
+    def test_runtime_start(self, running_runtime) -> None:
         result = runner.invoke(app, ["runtime", "start"])
         assert result.exit_code == 0
         output = result.output.lower()
         assert "started" in output or "already running" in output
 
     def test_runtime_stop_when_stopped(self) -> None:
-        result = runner.invoke(app, ["runtime", "stop"])
-        assert result.exit_code == 0
-        assert (
-            "already stopped" in result.output.lower()
-            or "stopped" in result.output.lower()
-        )
+        from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
+        
+        mock_transport = MagicMock()
+        mock_transport.stop.side_effect = TitanRuntimeError("Runtime engine is not running (connection refused).")
+        
+        with patch("titan.cli.commands.runtime._get_transport", return_value=mock_transport):
+            result = runner.invoke(app, ["runtime", "stop"])
+            assert result.exit_code == 0
+            assert (
+                "already stopped" in result.output.lower()
+                or "stopped" in result.output.lower()
+            )
 
     def test_runtime_restart(self) -> None:
         result = runner.invoke(app, ["runtime", "restart"])

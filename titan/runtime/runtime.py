@@ -110,22 +110,14 @@ class RuntimeEngine:
         self._stop_event.clear()
 
         try:
-            # Startup validation chain
-            print("[1] Configuration loaded", flush=True)
             self._validate_configuration()
             self._validate_environment()
-            print("[2] Storage initialized", flush=True)
             self._validate_storage()
-            print("[3] Journals initialized", flush=True)
             self._validate_trade_journal()
             self._validate_decision_journal()
-            print("[4] Recovery initialized", flush=True)
             self._start_recovery()
-            print("[5] Supervisor initialized", flush=True)
             self._start_supervisor()
-            print("[6] Scheduler initialized", flush=True)
             self._start_scheduler()
-            print("[7] Broker initialized", flush=True)
             self._start_broker()
             self._start_stream()
             self._start_monitoring()
@@ -139,34 +131,33 @@ class RuntimeEngine:
                 data={"start_time": self._start_time.isoformat()},
             )
 
-            import time
-
-            print("[9] Runtime loop entered", flush=True)
-            while not self._stop_event.is_set() and self._status in (
-                RuntimeStatus.RUNNING,
-                RuntimeStatus.PAUSED,
-            ):
-                if self._status == RuntimeStatus.RUNNING:
-                    if self.scheduler is not None:
-                        try:
-                            self.scheduler.tick()
-                        except Exception as e:
-                            self.health.report_unhealthy("scheduler", error=str(e))
-
-                    # Note: supervisor is ticked within pipeline runner by default,
-                    # but could also be ticked here if needed.
-                time.sleep(1.0)
-
-        except Exception as e:
+        except Exception as exc:
             self._status = RuntimeStatus.ERROR
-            self._error = str(e)
-            self.health.report_unhealthy("runtime", error=str(e))
+            self._error = str(exc)
+            self.health.report_unhealthy("runtime", error=str(exc))
             self.event_bus.publish_type(
                 RuntimeEventType.RUNTIME_ERROR,
                 "runtime",
-                data={"error": str(e)},
+                data={"error": str(exc)},
             )
-            raise RuntimeError(f"Failed to start runtime: {e}") from e
+            self._shutdown_components()
+            raise RuntimeError(f"Failed to start runtime: {exc}") from exc
+
+    def run_until_stopped(self) -> None:
+        """Run the scheduler loop until :meth:`stop` is requested.
+
+        Startup is deliberately separate from this blocking method so callers
+        can inspect a fully initialized runtime, expose its control transport,
+        or perform a deterministic shutdown without creating a background task.
+        """
+        if self._status not in (RuntimeStatus.RUNNING, RuntimeStatus.PAUSED):
+            raise RuntimeError("Runtime must be running before entering its loop.")
+
+        while not self._stop_event.is_set() and self._status in (
+            RuntimeStatus.RUNNING,
+            RuntimeStatus.PAUSED,
+        ):
+            self._stop_event.wait(timeout=1.0)
 
     def stop(self) -> None:
         """Stop the runtime engine gracefully.
@@ -180,28 +171,7 @@ class RuntimeEngine:
         self._status = RuntimeStatus.STOPPING
         self._stop_event.set()
 
-        # Stop in reverse order of startup
-        self._stop_monitoring()
-        self._stop_stream()
-        self._stop_broker()
-        self._stop_scheduler()
-        self._stop_supervisor()
-
-        # Flush journals and reports
-        if hasattr(self, "trade_journal") and hasattr(self.trade_journal, "flush"):
-            try:
-                self.trade_journal.flush()
-            except Exception:
-                pass
-        if hasattr(self, "decision_journal") and hasattr(
-            self.decision_journal, "flush"
-        ):
-            try:
-                self.decision_journal.flush()
-            except Exception:
-                pass
-
-        self._stop_recovery()
+        self._shutdown_components()
 
         self._status = RuntimeStatus.STOPPED
         self.health.report_healthy("runtime")
@@ -211,6 +181,29 @@ class RuntimeEngine:
             "runtime",
             data={},
         )
+
+    def _shutdown_components(self) -> None:
+        """Stop initialized components in reverse startup order."""
+        self._stop_monitoring()
+        self._stop_stream()
+        self._stop_broker()
+        self._stop_scheduler()
+        self._stop_supervisor()
+
+        if hasattr(self, "trade_journal") and hasattr(self.trade_journal, "flush"):
+            try:
+                self.trade_journal.flush()
+            except Exception:
+                logger.exception("Failed to flush the trade journal during shutdown")
+        if hasattr(self, "decision_journal") and hasattr(
+            self.decision_journal, "flush"
+        ):
+            try:
+                self.decision_journal.flush()
+            except Exception:
+                logger.exception("Failed to flush the decision journal during shutdown")
+
+        self._stop_recovery()
 
     def pause(self) -> None:
         """Pause the runtime, suspending scheduler execution.
@@ -227,8 +220,8 @@ class RuntimeEngine:
         if self.scheduler is not None:
             try:
                 self.scheduler.pause()
-            except SchedulerError:
-                pass
+            except SchedulerError as exc:
+                logger.warning(f"Unable to pause scheduler: {exc}")
 
         self.event_bus.publish_type(
             RuntimeEventType.RUNTIME_PAUSED,
@@ -251,8 +244,8 @@ class RuntimeEngine:
         if self.scheduler is not None:
             try:
                 self.scheduler.resume()
-            except SchedulerError:
-                pass
+            except SchedulerError as exc:
+                logger.warning(f"Unable to resume scheduler: {exc}")
 
         self.event_bus.publish_type(
             RuntimeEventType.RUNTIME_RESUMED,
@@ -425,9 +418,11 @@ class RuntimeEngine:
         """Disconnect the broker."""
         try:
             self.broker.disconnect()
-        except Exception:
-            pass
-        self.health.report_healthy("broker")
+        except Exception as exc:
+            self.health.report_unhealthy("broker", error=str(exc))
+            logger.exception("Failed to disconnect broker during shutdown")
+        else:
+            self.health.report_healthy("broker")
         self.event_bus.publish_type(RuntimeEventType.BROKER_DISCONNECTED, "runtime")
 
     def _start_stream(self) -> None:
@@ -444,9 +439,11 @@ class RuntimeEngine:
         if self.stream is not None:
             try:
                 self.stream.stop()
-            except Exception:
-                pass
-            self.health.report_healthy("stream")
+            except Exception as exc:
+                self.health.report_unhealthy("stream", error=str(exc))
+                logger.exception("Failed to stop market stream during shutdown")
+            else:
+                self.health.report_healthy("stream")
 
     def _start_scheduler(self) -> None:
         """Start the pipeline scheduler."""
@@ -464,9 +461,11 @@ class RuntimeEngine:
         if self.scheduler is not None:
             try:
                 self.scheduler.stop()
-            except Exception:
-                pass
-            self.health.report_healthy("scheduler")
+            except Exception as exc:
+                self.health.report_unhealthy("scheduler", error=str(exc))
+                logger.exception("Failed to stop scheduler during shutdown")
+            else:
+                self.health.report_healthy("scheduler")
 
     def _pipeline_runner(self) -> Any:
         """Default pipeline runner for the scheduler.

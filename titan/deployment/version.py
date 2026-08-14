@@ -86,7 +86,7 @@ class VersionManager:
             )
             if result.returncode == 0:
                 return result.stdout.strip()
-        except subprocess.TimeoutExpired, FileNotFoundError, OSError:
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             pass
         return ""
 
@@ -103,7 +103,7 @@ class VersionManager:
             )
             if result.returncode == 0:
                 return result.stdout.strip()
-        except subprocess.TimeoutExpired, FileNotFoundError, OSError:
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             pass
         return ""
 

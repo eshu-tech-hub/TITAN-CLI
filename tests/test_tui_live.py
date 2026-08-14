@@ -971,10 +971,10 @@ class TestReadLiveStatus:
         engine = MagicMock()
         report = MagicMock()
         report.runtime_status.name = "RUNNING"
-        report.uptime_seconds = 3600.0
-        report.broker_status = "Connected"
-        report.stream_status = "Connected"
-        report.pipeline_executions = 42
+        report.performance.uptime_seconds = 3600.0
+        report.broker.connection.value = "connected"
+        report.market.stream_status = "connected"
+        report.scheduler.pipeline_executions = 42
         engine.generate_report.return_value = report
         engine.is_running = True
         mock_get.return_value = engine
@@ -997,14 +997,14 @@ class TestReadBrokerStatus:
     def test_connected(self, mock_get: MagicMock) -> None:
         engine = MagicMock()
         report = MagicMock()
-        report.broker_status = "Connected"
+        report.broker.connection.value = "connected"
         engine.generate_report.return_value = report
         engine.broker.is_connected.return_value = True
         engine.broker.__class__ = type("PaperBroker", (), {})
         mock_get.return_value = engine
         info = _read_broker_status()
         assert info.is_connected is True
-        assert info.connection_status == "Connected"
+        assert info.connection_status == "connected"
 
     @patch("titan.cli.common.get_runtime_engine")
     def test_exception(self, mock_get: MagicMock) -> None:

@@ -657,16 +657,20 @@ def _make_mock_engine(
     }
     report = MagicMock()
     report.runtime_status = status_map.get(status, RuntimeStatus.RUNNING)
-    report.uptime_seconds = uptime
-    report.stream_status = stream_status
-    report.active_subscriptions = subscriptions
-    report.pipeline_executions = pipeline_executions
-    report.scheduler_active = scheduler_active
-    report.last_pipeline_time = last_pipeline_time
-    report.last_quote_time = last_quote_time
-    report.component_health = component_health
-    report.warnings = warnings
-    report.errors = errors
+    report.performance = MagicMock()
+    report.performance.uptime_seconds = uptime
+    report.market = MagicMock()
+    report.market.stream_status = stream_status
+    report.market.active_subscriptions = subscriptions
+    report.market.last_quote_time = last_quote_time
+    report.scheduler = MagicMock()
+    report.scheduler.active = scheduler_active
+    report.scheduler.pipeline_executions = pipeline_executions
+    report.scheduler.last_pipeline_time = last_pipeline_time
+    report.health = MagicMock()
+    report.health.component_health = component_health
+    report.health.warnings = warnings
+    report.health.errors = errors
     engine.generate_report.return_value = report
     engine.event_bus = MagicMock()
     from titan.runtime.models import RuntimeEventType
