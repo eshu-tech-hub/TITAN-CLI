@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -10,7 +10,9 @@ from titan.recovery.models import Checkpoint, ComponentType
 
 @dataclass(slots=True)
 class CheckpointManager:
-    _checkpoints: dict[str, tuple[int, Checkpoint]] = field(default_factory=dict, init=False)
+    _checkpoints: dict[str, tuple[int, Checkpoint]] = field(
+        default_factory=dict, init=False
+    )
     _lock: Lock = field(default_factory=Lock, init=False)
     _counter: int = field(default=0, init=False)
 
@@ -27,7 +29,7 @@ class CheckpointManager:
             component=component,
             state_data=dict(state_data),
             version=version,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             metadata=dict(metadata) if metadata else {},
         )
         with self._lock:

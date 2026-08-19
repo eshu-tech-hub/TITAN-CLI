@@ -34,12 +34,6 @@ from titan.options.analytics.models import (
     VolatilityRegime,
     ZeroGammaLevel,
 )
-from titan.trading.models import (
-    ScoreBand,
-    TradeQualification,
-    TradeScore,
-    TradeStatus,
-)
 from titan.risk import (
     CapitalAllocationEngine,
     DecisionContext,
@@ -62,6 +56,12 @@ from titan.risk import (
     TargetPlan,
 )
 from titan.risk.exceptions import RiskInputError, RiskValidationError
+from titan.trading.models import (
+    ScoreBand,
+    TradeQualification,
+    TradeScore,
+    TradeStatus,
+)
 
 # ===========================================================================
 # Helpers — factory functions
@@ -341,7 +341,7 @@ class TestSerialization:
         ps = PositionSizing(10000.0, 500.0, 50, 5, 50, 0.1)
         sl = StopLossPlan(recommended_stop=19400.0)
         tp = TargetPlan(19700.0, 19800.0, 20000.0, 19700.0, 2.5)
-        ca = type("CA", (), dict(capital_used=50000.0, available_capital=950000.0))()
+        ca = type("CA", (), {"capital_used": 50000.0, "available_capital": 950000.0})()
         ea = ExposureAssessment()
         dc = DecisionContext()
         rs = RiskScore(30.0, RiskScoreBand.LOW)

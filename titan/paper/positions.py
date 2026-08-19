@@ -7,7 +7,6 @@ from titan.brokers.models import (
     Position,
     ProductType,
 )
-
 from titan.paper.exceptions import PaperPositionError
 from titan.paper.models import PaperFill, PaperPosition
 
@@ -52,8 +51,8 @@ class PositionEngine:
 
         buy_qty = fill.quantity if fill.side.value == "buy" else 0
         sell_qty = fill.quantity if fill.side.value == "sell" else 0
-        buy_val = value if fill.side.value == "buy" else Decimal("0")
-        sell_val = value if fill.side.value == "sell" else Decimal("0")
+        buy_val = value if fill.side.value == "buy" else Decimal(0)
+        sell_val = value if fill.side.value == "sell" else Decimal(0)
 
         return PaperPosition(
             symbol=fill.symbol,
@@ -65,8 +64,8 @@ class PositionEngine:
             buy_value=buy_val,
             sell_value=sell_val,
             current_price=fill.price,
-            mfe=Decimal("0"),
-            mae=Decimal("0"),
+            mfe=Decimal(0),
+            mae=Decimal(0),
             opened_at=fill.timestamp,
             updated_at=fill.timestamp,
         )
@@ -103,17 +102,17 @@ class PositionEngine:
                 realized_pnl += pnl_per_unit * Decimal(str(closed_qty))
 
         if new_quantity == 0:
-            average_price = Decimal("0")
+            average_price = Decimal(0)
         elif is_buy:
             if new_buy_qty > 0:
                 average_price = new_buy_val / Decimal(str(new_buy_qty))
             else:
-                average_price = Decimal("0")
+                average_price = Decimal(0)
         else:
             if new_sell_qty > 0:
                 average_price = new_sell_val / Decimal(str(new_sell_qty))
             else:
-                average_price = Decimal("0")
+                average_price = Decimal(0)
 
         unrealized_pnl = self._compute_unrealized_pnl(
             quantity=new_quantity,
@@ -121,7 +120,7 @@ class PositionEngine:
             current_price=fill.price,
         )
 
-        excursion = abs(fill.price - average_price) if average_price else Decimal("0")
+        excursion = abs(fill.price - average_price) if average_price else Decimal(0)
         mfe = max(current.mfe, excursion)
         mae = min(current.mae, -excursion)
 
@@ -238,8 +237,8 @@ class PositionEngine:
         current_price: Decimal,
     ) -> Decimal:
         """Compute unrealized P&L for a position."""
-        if average_price == Decimal("0"):
-            return Decimal("0")
+        if average_price == Decimal(0):
+            return Decimal(0)
         return (current_price - average_price) * Decimal(str(quantity))
 
     def reset(self) -> None:

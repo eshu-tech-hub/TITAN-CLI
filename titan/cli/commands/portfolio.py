@@ -1,10 +1,11 @@
 """CLI commands for Portfolio Analytics & Risk Dashboard."""
 
+import json
+from pathlib import Path
+
 import typer
 from rich.console import Console
 from rich.table import Table
-from pathlib import Path
-import json
 
 app = typer.Typer(help="Portfolio Analytics & Risk Dashboard")
 console = Console()
@@ -14,8 +15,8 @@ def _get_analytics_data():
     """Helper to safely extract current portfolio and journal from runtime."""
     try:
         from titan.cli.common import get_runtime_engine
-        from titan.portfolio.models import ExistingPortfolio, OpenPosition
         from titan.portfolio.analytics import PortfolioAnalytics
+        from titan.portfolio.models import ExistingPortfolio, OpenPosition
 
         engine = get_runtime_engine()
         if not engine or not getattr(engine, "broker", None):

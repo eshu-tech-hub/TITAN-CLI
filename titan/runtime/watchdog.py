@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict
 
 from titan.runtime.heartbeat import HeartbeatRegistry
 
@@ -14,7 +13,7 @@ class Watchdog:
 
     registry: HeartbeatRegistry
 
-    def check(self) -> Dict[str, str]:
+    def check(self) -> dict[str, str]:
         """
         Evaluate health and return status report of anomalous components.
         Returns a dictionary mapping anomalous component names to their status

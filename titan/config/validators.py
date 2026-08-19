@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import List
 
 from titan.config.manager import ConfigManager
 from titan.config.validation_models import (
@@ -13,8 +12,8 @@ from titan.config.validation_models import (
 
 class EnvironmentValidator:
     @staticmethod
-    def validate() -> List[ValidationResult]:
-        results: List[ValidationResult] = []
+    def validate() -> list[ValidationResult]:
+        results: list[ValidationResult] = []
         # Python version check
         if sys.version_info < (3, 14):
             results.append(
@@ -31,8 +30,8 @@ class EnvironmentValidator:
 
 class DirectoryValidator:
     @staticmethod
-    def validate(config_manager: ConfigManager) -> List[ValidationResult]:
-        results: List[ValidationResult] = []
+    def validate(config_manager: ConfigManager) -> list[ValidationResult]:
+        results: list[ValidationResult] = []
         # Check required directories exist and are writable
         # Use paths from config manager
         titan_home = Path(os.getenv("TITAN_HOME", Path.home() / ".titan"))
@@ -70,7 +69,7 @@ class ConfigurationValidator:
         self.config_manager = config_manager
 
     def validate_all(self) -> ConfigurationReport:
-        results: List[ValidationResult] = []
+        results: list[ValidationResult] = []
 
         results.extend(EnvironmentValidator.validate())
         results.extend(DirectoryValidator.validate(self.config_manager))

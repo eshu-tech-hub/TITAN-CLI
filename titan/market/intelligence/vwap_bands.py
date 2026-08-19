@@ -53,8 +53,8 @@ class VWAPBandsAnalyzer:
             return VWAPBands(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need at least {MIN_CANDLES} "
-                    f"candles, got {len(vwap_values)}.",
+                    (f"Insufficient data: need at least {MIN_CANDLES} "
+                    f"candles, got {len(vwap_values)}."),
                 ),
             )
 
@@ -139,10 +139,10 @@ class VWAPBandsAnalyzer:
         reasons: list[str] = []
 
         reasons.append(
-            f"Upper band at {upper:.2f} " f"({deviation_multiple:.1f} deviations)."
+            f"Upper band at {upper:.2f} ({deviation_multiple:.1f} deviations)."
         )
         reasons.append(
-            f"Lower band at {lower:.2f} " f"({deviation_multiple:.1f} deviations)."
+            f"Lower band at {lower:.2f} ({deviation_multiple:.1f} deviations)."
         )
         reasons.append(f"Standard deviation: {std_dev:.4f}.")
         reasons.append(f"Bandwidth: {bandwidth:.4f} ({bandwidth * 100:.2f}%).")

@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -34,7 +34,7 @@ class HealthEngine:
             health = SubsystemHealth(
                 subsystem=subsystem,
                 status=initial_status,
-                last_check=datetime.now(timezone.utc),
+                last_check=datetime.now(UTC),
             )
             self._subsystems[subsystem] = health
             return health
@@ -65,14 +65,14 @@ class HealthEngine:
             existing = self._subsystems[subsystem]
             last_healthy = existing.last_healthy
             if status == HealthStatus.HEALTHY:
-                last_healthy = datetime.now(timezone.utc)
+                last_healthy = datetime.now(UTC)
 
             health = SubsystemHealth(
                 subsystem=subsystem,
                 status=status,
                 message=message,
                 last_healthy=last_healthy,
-                last_check=datetime.now(timezone.utc),
+                last_check=datetime.now(UTC),
                 latency_ms=latency_ms,
                 failures=failures,
                 metadata=metadata or {},
@@ -113,7 +113,7 @@ class HealthEngine:
                 warning_count=warning,
                 critical_count=critical,
                 offline_count=offline,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
     def reset(self) -> None:

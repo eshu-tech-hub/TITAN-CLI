@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
-from titan.runtime.runtime import RuntimeEngine
+
 from titan.runtime.models import RuntimeStatus
+from titan.runtime.runtime import RuntimeEngine
 
 
 def test_runtime_status_report():

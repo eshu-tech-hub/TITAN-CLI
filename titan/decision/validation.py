@@ -84,8 +84,7 @@ class DecisionValidationEngine:
         min_conf = 0.3
         if tq.confidence < min_conf:
             reasons.append(
-                f"Insufficient confidence: {tq.confidence:.2f} "
-                f"(minimum {min_conf})."
+                f"Insufficient confidence: {tq.confidence:.2f} (minimum {min_conf})."
             )
         return reasons
 

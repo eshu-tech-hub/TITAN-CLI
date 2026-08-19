@@ -45,9 +45,7 @@ class AccumulationDistributionAnalyzer:
         if len(volumes) < MIN_CANDLES or len(closes) < MIN_CANDLES:
             return AccumulationDistribution(
                 confidence=0.0,
-                reasons=(
-                    f"Insufficient data: need at least {MIN_CANDLES}" f" candles.",
-                ),
+                reasons=(f"Insufficient data: need at least {MIN_CANDLES} candles.",),
             )
 
         lookback = min(LOOKBACK, len(volumes))
@@ -132,11 +130,11 @@ class AccumulationDistributionAnalyzer:
 
         if accumulation:
             reasons.append(
-                f"Accumulation detected — up-volume ratio is " f"{ad_ratio:.2f}."
+                f"Accumulation detected — up-volume ratio is {ad_ratio:.2f}."
             )
         elif distribution:
             reasons.append(
-                f"Distribution detected — up-volume ratio is " f"{ad_ratio:.2f}."
+                f"Distribution detected — up-volume ratio is {ad_ratio:.2f}."
             )
         else:
             reasons.append(
@@ -146,8 +144,7 @@ class AccumulationDistributionAnalyzer:
 
         if divergence:
             reasons.append(
-                f"Price-volume divergence in {divergence_count} of "
-                f"{LOOKBACK} periods."
+                f"Price-volume divergence in {divergence_count} of {LOOKBACK} periods."
             )
 
         return reasons

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from threading import Lock
-from typing import Callable
 
 from titan.deployment.models import (
     DeploymentHealthReport,

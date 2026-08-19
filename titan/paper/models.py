@@ -1,7 +1,8 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 
 from titan.brokers.models import (
     Exchange,
@@ -41,10 +42,10 @@ class PaperFill:
     quantity: int
     price: Decimal
     product: ProductType = ProductType.DELIVERY
-    commission: Decimal = Decimal("0")
-    slippage: Decimal = Decimal("0")
+    commission: Decimal = Decimal(0)
+    slippage: Decimal = Decimal(0)
     latency_ms: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,7 +94,7 @@ class PaperOrder:
     placed_at: datetime | None = None
     filled_at: datetime | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,15 +125,15 @@ class PaperPosition:
     average_price: Decimal | None = None
     buy_quantity: int = 0
     sell_quantity: int = 0
-    buy_value: Decimal = Decimal("0")
-    sell_value: Decimal = Decimal("0")
-    realized_pnl: Decimal = Decimal("0")
-    unrealized_pnl: Decimal = Decimal("0")
+    buy_value: Decimal = Decimal(0)
+    sell_value: Decimal = Decimal(0)
+    realized_pnl: Decimal = Decimal(0)
+    unrealized_pnl: Decimal = Decimal(0)
     current_price: Decimal | None = None
-    mfe: Decimal = Decimal("0")
-    mae: Decimal = Decimal("0")
+    mfe: Decimal = Decimal(0)
+    mae: Decimal = Decimal(0)
     opened_at: datetime | None = None
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,17 +154,17 @@ class PaperPortfolioState:
         timestamp: When the snapshot was captured.
     """
 
-    cash: Decimal = Decimal("0")
-    equity: Decimal = Decimal("0")
-    buying_power: Decimal = Decimal("0")
-    margin_used: Decimal = Decimal("0")
-    daily_pnl: Decimal = Decimal("0")
-    total_return: Decimal = Decimal("0")
-    total_pnl: Decimal = Decimal("0")
-    drawdown: Decimal = Decimal("0")
-    exposure: Decimal = Decimal("0")
+    cash: Decimal = Decimal(0)
+    equity: Decimal = Decimal(0)
+    buying_power: Decimal = Decimal(0)
+    margin_used: Decimal = Decimal(0)
+    daily_pnl: Decimal = Decimal(0)
+    total_return: Decimal = Decimal(0)
+    total_pnl: Decimal = Decimal(0)
+    drawdown: Decimal = Decimal(0)
+    exposure: Decimal = Decimal(0)
     position_count: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,11 +193,11 @@ class PaperPerformanceMetrics:
     win_rate: float = 0.0
     loss_rate: float = 0.0
     profit_factor: float = 0.0
-    expectancy: Decimal = Decimal("0")
-    avg_winner: Decimal = Decimal("0")
-    avg_loser: Decimal = Decimal("0")
+    expectancy: Decimal = Decimal(0)
+    avg_winner: Decimal = Decimal(0)
+    avg_loser: Decimal = Decimal(0)
     avg_holding_time_seconds: float = 0.0
-    max_drawdown: Decimal = Decimal("0")
+    max_drawdown: Decimal = Decimal(0)
     sharpe_ratio: float = 0.0
     sortino_ratio: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

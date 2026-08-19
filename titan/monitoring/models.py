@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -63,14 +63,14 @@ class MetricValue:
     type: MetricType = MetricType.GAUGE
     unit: MetricUnit = MetricUnit.NONE
     tags: Mapping[str, str] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     description: str = ""
 
 
 @dataclass(frozen=True, slots=True)
 class MetricSnapshot:
     metrics: tuple[MetricValue, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     source: str = "unknown"
 
 
@@ -80,7 +80,7 @@ class SubsystemHealth:
     status: HealthStatus = HealthStatus.HEALTHY
     message: str = ""
     last_healthy: datetime | None = None
-    last_check: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
     latency_ms: float = 0.0
     failures: int = 0
     metadata: Mapping[str, Any] = field(default_factory=dict)
@@ -94,7 +94,7 @@ class SystemHealth:
     warning_count: int = 0
     critical_count: int = 0
     offline_count: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,7 +103,7 @@ class TelemetrySnapshot:
     health: SystemHealth | None = None
     failed_collections: int = 0
     total_collections: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,7 +136,7 @@ class DashboardStatus:
     total_collections: int = 0
     failed_collections: int = 0
     uptime_seconds: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,4 +149,4 @@ class MonitoringReport:
     failed_collections: int = 0
     total_collections: int = 0
     uptime_seconds: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

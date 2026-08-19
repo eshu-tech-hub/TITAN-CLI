@@ -7,7 +7,6 @@ from titan.market.models import Candle
 
 
 class DummyIndicator(Indicator):
-
     @property
     def name(self) -> str:
         return "Dummy"

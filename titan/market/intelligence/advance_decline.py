@@ -50,8 +50,8 @@ class AdvanceDeclineAnalyzer:
             return AdvanceDecline(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need at least {MIN_SYMBOLS} "
-                    f"symbols, got {snapshot.total_symbols}.",
+                    (f"Insufficient data: need at least {MIN_SYMBOLS} "
+                    f"symbols, got {snapshot.total_symbols}."),
                 ),
             )
 

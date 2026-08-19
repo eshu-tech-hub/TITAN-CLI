@@ -17,7 +17,7 @@ class Timeframe(str, Enum):
     ONE_MONTH = "1mo"
 
     @classmethod
-    def from_value(cls, value: str | "Timeframe") -> "Timeframe":
+    def from_value(cls, value: str | Timeframe) -> Timeframe:
         """Return a timeframe from a canonical enum or string value.
 
         Args:

@@ -1,11 +1,10 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Callable
 from uuid import uuid4
 
 from titan.brokers.models import OrderRequest, OrderType, Quote
-
 from titan.paper.exceptions import PaperFillError
 from titan.paper.models import PaperFill
 
@@ -16,7 +15,7 @@ LatencyModel = Callable[[OrderRequest], float]
 def default_slippage(request: OrderRequest, quote: Quote) -> Decimal:
     """Default slippage model: 0.1% of last price for market orders."""
     if request.order_type != OrderType.MARKET:
-        return Decimal("0")
+        return Decimal(0)
     return quote.last_price * Decimal("0.001")
 
 
@@ -94,7 +93,7 @@ class FillEngine:
             commission=commission,
             slippage=slippage,
             latency_ms=latency,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         return [fill]
@@ -188,6 +187,6 @@ class FillEngine:
         """
         trade_value = price * Decimal(str(quantity))
         percentage_fee = trade_value * Decimal("0.0001")
-        flat_fee = Decimal("10")
+        flat_fee = Decimal(10)
         result = flat_fee + percentage_fee
         return result.quantize(Decimal("0.01"))

@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 
 from titan.options.analytics import (
-    HVTrend,
     HVStability,
+    HVTrend,
     IVHVRelation,
     IVLevel,
     IVRankLevel,
@@ -106,19 +106,19 @@ class TestVolatilityAnalysis:
 class TestIVAnalyzer:
     def test_high_iv(self) -> None:
         analyzer = IVAnalyzer()
-        level, trend, conf = analyzer.analyze(make_snapshot(implied_volatility=0.50))
+        level, _trend, _conf = analyzer.analyze(make_snapshot(implied_volatility=0.50))
 
         assert level is IVLevel.HIGH
 
     def test_low_iv(self) -> None:
         analyzer = IVAnalyzer()
-        level, trend, conf = analyzer.analyze(make_snapshot(implied_volatility=0.10))
+        level, _trend, _conf = analyzer.analyze(make_snapshot(implied_volatility=0.10))
 
         assert level is IVLevel.LOW
 
     def test_normal_iv(self) -> None:
         analyzer = IVAnalyzer()
-        level, trend, conf = analyzer.analyze(make_snapshot(implied_volatility=0.25))
+        level, _trend, _conf = analyzer.analyze(make_snapshot(implied_volatility=0.25))
 
         assert level is IVLevel.NORMAL
 
@@ -133,7 +133,7 @@ class TestIVAnalyzer:
     def test_rising_trend(self) -> None:
         analyzer = IVAnalyzer()
         values = (0.20, 0.22, 0.25, 0.30)
-        level, trend, conf = analyzer.analyze(
+        _level, trend, _conf = analyzer.analyze(
             make_snapshot(implied_volatility=0.30, implied_volatilities=values)
         )
 
@@ -142,7 +142,7 @@ class TestIVAnalyzer:
     def test_falling_trend(self) -> None:
         analyzer = IVAnalyzer()
         values = (0.30, 0.28, 0.25, 0.20)
-        level, trend, conf = analyzer.analyze(
+        _level, trend, _conf = analyzer.analyze(
             make_snapshot(implied_volatility=0.20, implied_volatilities=values)
         )
 
@@ -151,7 +151,7 @@ class TestIVAnalyzer:
     def test_flat_trend(self) -> None:
         analyzer = IVAnalyzer()
         values = (0.25, 0.26, 0.25, 0.24)
-        level, trend, conf = analyzer.analyze(
+        _level, trend, _conf = analyzer.analyze(
             make_snapshot(implied_volatility=0.24, implied_volatilities=values)
         )
 
@@ -166,7 +166,7 @@ class TestIVAnalyzer:
 class TestHVAnalyzer:
     def test_returns_hv_value(self) -> None:
         analyzer = HVAnalyzer()
-        hv, trend, stability, conf = analyzer.analyze(
+        hv, _trend, _stability, _conf = analyzer.analyze(
             make_snapshot(historical_volatility=0.20)
         )
 
@@ -186,7 +186,7 @@ class TestHVAnalyzer:
     def test_rising_trend(self) -> None:
         analyzer = HVAnalyzer()
         values = (0.15, 0.18, 0.20, 0.25)
-        hv, trend, stability, conf = analyzer.analyze(
+        _hv, trend, _stability, _conf = analyzer.analyze(
             make_snapshot(
                 historical_volatility=0.25,
                 historical_volatilities=values,
@@ -198,7 +198,7 @@ class TestHVAnalyzer:
     def test_falling_trend(self) -> None:
         analyzer = HVAnalyzer()
         values = (0.30, 0.28, 0.22, 0.18)
-        hv, trend, stability, conf = analyzer.analyze(
+        _hv, trend, _stability, _conf = analyzer.analyze(
             make_snapshot(
                 historical_volatility=0.18,
                 historical_volatilities=values,
@@ -210,7 +210,7 @@ class TestHVAnalyzer:
     def test_stable_hv(self) -> None:
         analyzer = HVAnalyzer()
         values = (0.20, 0.21, 0.19, 0.20)
-        hv, trend, stability, conf = analyzer.analyze(
+        _hv, _trend, stability, _conf = analyzer.analyze(
             make_snapshot(
                 historical_volatility=0.20,
                 historical_volatilities=values,
@@ -222,7 +222,7 @@ class TestHVAnalyzer:
     def test_unstable_hv(self) -> None:
         analyzer = HVAnalyzer()
         values = (0.10, 0.30, 0.15, 0.40)
-        hv, trend, stability, conf = analyzer.analyze(
+        _hv, _trend, stability, _conf = analyzer.analyze(
             make_snapshot(
                 historical_volatility=0.40,
                 historical_volatilities=values,
@@ -240,26 +240,26 @@ class TestHVAnalyzer:
 class TestIVRankAnalyzer:
     def test_very_high_rank(self) -> None:
         analyzer = IVRankAnalyzer()
-        level, rank, conf = analyzer.analyze(make_snapshot(iv_rank=90.0))
+        level, rank, _conf = analyzer.analyze(make_snapshot(iv_rank=90.0))
 
         assert level is IVRankLevel.VERY_HIGH
         assert rank == 90.0
 
     def test_high_rank(self) -> None:
         analyzer = IVRankAnalyzer()
-        level, rank, conf = analyzer.analyze(make_snapshot(iv_rank=70.0))
+        level, _rank, _conf = analyzer.analyze(make_snapshot(iv_rank=70.0))
 
         assert level is IVRankLevel.HIGH
 
     def test_neutral_rank(self) -> None:
         analyzer = IVRankAnalyzer()
-        level, rank, conf = analyzer.analyze(make_snapshot(iv_rank=50.0))
+        level, _rank, _conf = analyzer.analyze(make_snapshot(iv_rank=50.0))
 
         assert level is IVRankLevel.NEUTRAL
 
     def test_very_low_rank(self) -> None:
         analyzer = IVRankAnalyzer()
-        level, rank, conf = analyzer.analyze(make_snapshot(iv_rank=10.0))
+        level, _rank, _conf = analyzer.analyze(make_snapshot(iv_rank=10.0))
 
         assert level is IVRankLevel.VERY_LOW
 
@@ -273,7 +273,7 @@ class TestIVRankAnalyzer:
 
     def test_out_of_range_high(self) -> None:
         analyzer = IVRankAnalyzer()
-        level, rank, conf = analyzer.analyze(make_snapshot(iv_rank=150.0))
+        level, _rank, _conf = analyzer.analyze(make_snapshot(iv_rank=150.0))
 
         assert level is IVRankLevel.UNKNOWN
 
@@ -286,25 +286,25 @@ class TestIVRankAnalyzer:
 class TestIVPercentileAnalyzer:
     def test_very_high_percentile(self) -> None:
         analyzer = IVPercentileAnalyzer()
-        level, pctl, conf = analyzer.analyze(make_snapshot(iv_percentile=90.0))
+        level, _pctl, _conf = analyzer.analyze(make_snapshot(iv_percentile=90.0))
 
         assert level is IVRankLevel.VERY_HIGH
 
     def test_high_percentile(self) -> None:
         analyzer = IVPercentileAnalyzer()
-        level, pctl, conf = analyzer.analyze(make_snapshot(iv_percentile=70.0))
+        level, _pctl, _conf = analyzer.analyze(make_snapshot(iv_percentile=70.0))
 
         assert level is IVRankLevel.HIGH
 
     def test_neutral_percentile(self) -> None:
         analyzer = IVPercentileAnalyzer()
-        level, pctl, conf = analyzer.analyze(make_snapshot(iv_percentile=50.0))
+        level, _pctl, _conf = analyzer.analyze(make_snapshot(iv_percentile=50.0))
 
         assert level is IVRankLevel.NEUTRAL
 
     def test_low_percentile(self) -> None:
         analyzer = IVPercentileAnalyzer()
-        level, pctl, conf = analyzer.analyze(make_snapshot(iv_percentile=10.0))
+        level, _pctl, _conf = analyzer.analyze(make_snapshot(iv_percentile=10.0))
 
         assert level is IVRankLevel.LOW
 
@@ -318,7 +318,7 @@ class TestIVPercentileAnalyzer:
 
     def test_out_of_range_negative(self) -> None:
         analyzer = IVPercentileAnalyzer()
-        level, pctl, conf = analyzer.analyze(make_snapshot(iv_percentile=-10.0))
+        level, _pctl, _conf = analyzer.analyze(make_snapshot(iv_percentile=-10.0))
 
         assert level is IVRankLevel.UNKNOWN
 
@@ -331,7 +331,7 @@ class TestIVPercentileAnalyzer:
 class TestVolatilityRegimeAnalyzer:
     def test_expansion(self) -> None:
         analyzer = VolatilityRegimeAnalyzer()
-        regime, buy, sell, conf = analyzer.analyze(
+        regime, _buy, sell, _conf = analyzer.analyze(
             make_snapshot(
                 implied_volatility=0.40,
                 historical_volatility=0.20,
@@ -345,7 +345,7 @@ class TestVolatilityRegimeAnalyzer:
 
     def test_compression(self) -> None:
         analyzer = VolatilityRegimeAnalyzer()
-        regime, buy, sell, conf = analyzer.analyze(
+        regime, buy, _sell, _conf = analyzer.analyze(
             make_snapshot(
                 implied_volatility=0.15,
                 historical_volatility=0.30,
@@ -359,7 +359,7 @@ class TestVolatilityRegimeAnalyzer:
 
     def test_stable(self) -> None:
         analyzer = VolatilityRegimeAnalyzer()
-        regime, buy, sell, conf = analyzer.analyze(
+        regime, _buy, _sell, _conf = analyzer.analyze(
             make_snapshot(
                 implied_volatility=0.25,
                 historical_volatility=0.25,
@@ -372,7 +372,7 @@ class TestVolatilityRegimeAnalyzer:
 
     def test_transition_rising(self) -> None:
         analyzer = VolatilityRegimeAnalyzer()
-        regime, buy, sell, conf = analyzer.analyze(
+        regime, _buy, _sell, _conf = analyzer.analyze(
             make_snapshot(
                 implied_volatility=0.25,
                 historical_volatility=0.25,
@@ -385,7 +385,7 @@ class TestVolatilityRegimeAnalyzer:
 
     def test_none_values(self) -> None:
         analyzer = VolatilityRegimeAnalyzer()
-        regime, buy, sell, conf = analyzer.analyze(
+        regime, _buy, _sell, conf = analyzer.analyze(
             make_snapshot(
                 implied_volatility=None,
                 historical_volatility=None,
@@ -599,4 +599,4 @@ def test_volatility_has_no_forbidden_imports():
                 term not in imported_name.lower()
                 for imported_name in imported_names
                 for term in forbidden_terms
-            ), (f"Forbidden import found in {path}: " f"{imported_names}")
+            ), f"Forbidden import found in {path}: {imported_names}"

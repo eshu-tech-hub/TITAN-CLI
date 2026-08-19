@@ -7,7 +7,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.models import (
     OptionChainSnapshot,
     SmileAnalysis,
@@ -297,9 +296,7 @@ class SmileAnalyzer:
         else:
             multiplier = 0.0
 
-        if shape is SmileShape.UNKNOWN:
-            shape_bonus = 0.0
-        elif shape is SmileShape.FLAT:
+        if shape is SmileShape.UNKNOWN or shape is SmileShape.FLAT:
             shape_bonus = 0.0
         else:
             shape_bonus = 0.1

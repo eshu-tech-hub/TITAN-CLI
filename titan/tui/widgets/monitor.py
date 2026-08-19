@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from textual.app import ComposeResult
-from textual.widgets import Static
 from textual.widget import Widget
+from textual.widgets import Static
 
 from titan.tui.models import (
     AlertEntry,
@@ -14,8 +14,8 @@ from titan.tui.models import (
     AlertSummaryInfo,
     MonitoringEventEntry,
     RecoveryStatusInfo,
-    ResourceMetricsInfo,
     ResourceMetricEntry,
+    ResourceMetricsInfo,
     SystemHealthInfo,
     TelemetryInfo,
 )

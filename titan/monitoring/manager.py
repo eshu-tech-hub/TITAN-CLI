@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 
 from titan.monitoring.collector import MetricCollector
@@ -24,9 +24,7 @@ class MonitoringManager:
     _telemetry: TelemetryManager = field(default_factory=TelemetryManager)
     _collector: MetricCollector = field(default_factory=MetricCollector)
     _dashboard: MonitoringDashboard = field(default_factory=MonitoringDashboard)
-    _start_time: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc), init=False
-    )
+    _start_time: datetime = field(default_factory=lambda: datetime.now(UTC), init=False)
     _lock: Lock = field(default_factory=Lock, init=False)
 
     def __post_init__(self) -> None:
@@ -122,7 +120,7 @@ class MonitoringManager:
                 "Check collector configurations and subsystem availability."
             )
 
-        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
+        uptime = (datetime.now(UTC) - self._start_time).total_seconds()
         collector_count = len(self._collector.descriptors())
 
         return MonitoringReport(
@@ -134,7 +132,7 @@ class MonitoringManager:
             failed_collections=snapshot.failed_collections,
             total_collections=snapshot.total_collections,
             uptime_seconds=uptime,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def start(self) -> None:
@@ -147,5 +145,5 @@ class MonitoringManager:
         self._telemetry.reset()
         self._collector.reset()
         self._dashboard.reset()
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self.__post_init__()

@@ -6,7 +6,6 @@ Converts deterministic TITAN DTOs into structured natural language explanations.
 
 from __future__ import annotations
 
-
 from titan.ai.base import AIProvider
 from titan.ai.models import AIResponse, PromptContext
 from titan.ai.providers.gemini import MockAIProvider
@@ -60,7 +59,7 @@ class AIAssistantEngine:
         for s in report.strategies:
             summary_lines.append(
                 f"Strategy '{s.strategy_name}': Trades={s.total_trades}, "
-                f"WinRate={s.win_rate*100:.1f}%, ProfitFactor={s.profit_factor:.2f}, "
+                f"WinRate={s.win_rate * 100:.1f}%, ProfitFactor={s.profit_factor:.2f}, "
                 f"NetPnL=₹{s.net_pnl:,.2f}, MaxDrawdown=₹{s.max_drawdown:,.2f}"
             )
 

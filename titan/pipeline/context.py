@@ -7,7 +7,6 @@ from titan.decision.models import TradeDecision
 from titan.events.models import EventAnalysis, NewsAnalysis
 from titan.execution.orchestrator import OrchestratorReport
 from titan.intelligence.fusion.models import IntelligenceFusion
-from titan.market.series import MarketDataSeries
 from titan.market.intelligence.models import (
     BreadthAnalysis,
     MarketRegimeAnalysis,
@@ -15,6 +14,7 @@ from titan.market.intelligence.models import (
     VolumeAnalysis,
     VWAPAnalysis,
 )
+from titan.market.series import MarketDataSeries
 from titan.options.analytics.models import (
     CharmExposureAnalysis,
     DealerPositioningAnalysis,

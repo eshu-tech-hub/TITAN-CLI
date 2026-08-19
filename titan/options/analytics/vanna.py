@@ -23,7 +23,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.models import (
     DealerPositioningAnalysis,
     GammaExposureAnalysis,
@@ -31,9 +30,9 @@ from titan.options.analytics.models import (
     OptionChainAnalysis,
     OptionChainSnapshot,
     SurfaceIntelligenceAnalysis,
+    VannaExplanation,
     VannaExposureAnalysis,
     VannaExposureInput,
-    VannaExplanation,
     VannaPressure,
     VannaPressureLevel,
     VannaRegime,
@@ -395,8 +394,7 @@ class VannaExposureAnalyzer:
 
         if price_sens < CONFIDENCE_LOW:
             parts.append(
-                "Price changes are unlikely to materially affect "
-                "dealer vanna exposure."
+                "Price changes are unlikely to materially affect dealer vanna exposure."
             )
         elif regime is VannaRegimeType.POSITIVE:
             parts.append(

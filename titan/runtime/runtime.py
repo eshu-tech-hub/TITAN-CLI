@@ -1,20 +1,18 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Event
 from typing import Any
-from titan.core.logger import logger
 
 from titan.brokers.broker import Broker
 from titan.brokers.models import ConnectionStatus, Exchange
+from titan.core.logger import logger
 from titan.decision.journal import DecisionJournal
 from titan.decision.replay import DecisionReplayService
-from titan.portfolio.replay import PortfolioReplayService
 from titan.pipeline.pipeline import TradePipeline
-from titan.trading.journal import TradeJournal, TradeLifecycleState
+from titan.portfolio.replay import PortfolioReplayService
 from titan.runtime.events import RuntimeEventBus
 from titan.runtime.exceptions import RuntimeError, SchedulerError, StreamError
 from titan.runtime.health import HealthCheck
-from titan.runtime.supervisor import RuntimeSupervisor
 from titan.runtime.models import (
     HealthStatus,
     RuntimeEventType,
@@ -24,6 +22,8 @@ from titan.runtime.models import (
 from titan.runtime.scheduler import PipelineScheduler
 from titan.runtime.stream import MarketStream
 from titan.runtime.subscriptions import SubscriptionManager
+from titan.runtime.supervisor import RuntimeSupervisor
+from titan.trading.journal import TradeJournal, TradeLifecycleState
 
 
 @dataclass(slots=True)
@@ -106,7 +106,7 @@ class RuntimeEngine:
 
         self._status = RuntimeStatus.STARTING
         self._error = ""
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self._stop_event.clear()
 
         try:
@@ -276,7 +276,7 @@ class RuntimeEngine:
         """Seconds since the runtime started."""
         if self._start_time is None:
             return 0.0
-        return (datetime.now(timezone.utc) - self._start_time).total_seconds()
+        return (datetime.now(UTC) - self._start_time).total_seconds()
 
     # ── Report ────────────────────────────────────────────────
 
@@ -287,11 +287,11 @@ class RuntimeEngine:
             RuntimeReport with current status, health, and metrics.
         """
         from titan.runtime.models import (
-            RuntimeHealth,
-            SchedulerStatus,
             BrokerStatus,
             MarketStatus,
             PerformanceStatus,
+            RuntimeHealth,
+            SchedulerStatus,
         )
 
         component_health = self.health.all_health()
@@ -362,47 +362,36 @@ class RuntimeEngine:
     def _validate_configuration(self) -> None:
         """Validate configuration settings."""
         logger.info("Validating configuration settings")
-        pass
 
     def _validate_environment(self) -> None:
         """Validate runtime environment and dependencies."""
-        pass
 
     def _validate_storage(self) -> None:
         """Validate storage connectivity and permissions."""
-        pass
 
     def _validate_trade_journal(self) -> None:
         """Validate trade journal integrity."""
-        pass
 
     def _validate_decision_journal(self) -> None:
         """Validate decision journal integrity."""
-        pass
 
     def _start_recovery(self) -> None:
         """Initialize recovery services."""
-        pass
 
     def _stop_recovery(self) -> None:
         """Stop recovery services."""
-        pass
 
     def _start_supervisor(self) -> None:
         """Start reliability supervisor."""
-        pass
 
     def _stop_supervisor(self) -> None:
         """Stop reliability supervisor."""
-        pass
 
     def _start_monitoring(self) -> None:
         """Start system monitoring."""
-        pass
 
     def _stop_monitoring(self) -> None:
         """Stop system monitoring."""
-        pass
 
     def _start_broker(self) -> None:
         """Connect the broker."""
@@ -485,11 +474,12 @@ class RuntimeEngine:
 
         # Record execution results if any orders were submitted
         if report.orders_submitted > 0:
+            from datetime import datetime
+
             from titan.trading.factory import TradeJournalFactory
-            from datetime import datetime, timezone
 
             session_id = str(
-                getattr(self, "_start_time", datetime.now(timezone.utc).timestamp())
+                getattr(self, "_start_time", datetime.now(UTC).timestamp())
             )
             entries_data = TradeJournalFactory.from_pipeline_report(report, session_id)
 

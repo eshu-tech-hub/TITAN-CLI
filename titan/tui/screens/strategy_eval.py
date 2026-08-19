@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Static, DataTable
+from textual.widgets import DataTable, Static
 
 from titan.tui.models import StrategyEvalScreenState
 
@@ -60,7 +60,7 @@ class StrategyScorecardWidget(Static):
 class StrategyEvalScreen(Screen):
     """Strategy Intelligence Dashboard."""
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS: ClassVar[str] = """
     StrategyEvalScreen {
         layout: vertical;
         padding: 1 2;
@@ -96,7 +96,7 @@ class StrategyEvalScreen(Screen):
     }
     """
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("q", "quit", "Quit"),
         ("r", "refresh", "Refresh"),
         ("escape", "back", "Back"),

@@ -1,6 +1,6 @@
 import subprocess
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 
 def test_detached_runtime_lifecycle():

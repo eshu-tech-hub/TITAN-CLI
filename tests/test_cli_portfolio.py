@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
 from typer.testing import CliRunner
 
 from titan.cli import app

@@ -1,8 +1,9 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from titan.brokers.models import Exchange
 
@@ -161,12 +162,12 @@ class BacktestStatistics:
     win_rate: float = 0.0
     loss_rate: float = 0.0
     profit_factor: float = 0.0
-    average_gain: Decimal = Decimal("0")
-    average_loss: Decimal = Decimal("0")
-    expectancy: Decimal = Decimal("0")
+    average_gain: Decimal = Decimal(0)
+    average_loss: Decimal = Decimal(0)
+    expectancy: Decimal = Decimal(0)
     max_consecutive_wins: int = 0
     max_consecutive_losses: int = 0
-    max_drawdown: Decimal = Decimal("0")
+    max_drawdown: Decimal = Decimal(0)
     recovery_factor: float = 0.0
 
 
@@ -209,7 +210,7 @@ class EquityPoint:
     timestamp: datetime
     equity: Decimal
     cash: Decimal
-    drawdown: Decimal = Decimal("0")
+    drawdown: Decimal = Decimal(0)
 
 
 @dataclass(frozen=True, slots=True)

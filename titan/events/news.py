@@ -20,7 +20,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.events.credibility import CredibilityAnalyzer
 from titan.events.entities import EntityAnalyzer
 from titan.events.models import (
@@ -178,9 +177,7 @@ class NewsIntelligenceAnalyzer:
             total = sum(sentiment_counts.values())
             dominant_count = sentiment_counts[dominant]
             if dominant_count / total <= CONFLICT_THRESHOLD:
-                if avg_score > 0.1:
-                    dominant = NewsSentiment.MIXED
-                elif avg_score < -0.1:
+                if avg_score > 0.1 or avg_score < -0.1:
                     dominant = NewsSentiment.MIXED
                 else:
                     dominant = NewsSentiment.MIXED
@@ -400,7 +397,7 @@ class NewsIntelligenceAnalyzer:
         return {
             "analyzer": self.name,
             "article_count": len(articles),
-            "sources": list(set(a.source for a in articles)),
+            "sources": list({a.source for a in articles}),
         }
 
     # ------------------------------------------------------------------

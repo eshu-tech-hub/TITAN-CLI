@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from titan.brokers.models import FundsInfo, MarginInfo
-
 from titan.paper.exceptions import PaperPortfolioError
 from titan.paper.models import PaperFill, PaperPortfolioState, PaperPosition
 
@@ -23,7 +22,7 @@ class PaperPortfolio:
         _current_day: Current trading day tracker.
     """
 
-    initial_cash: Decimal = Decimal("100000")
+    initial_cash: Decimal = Decimal(100000)
     _cash: Decimal = field(init=False)
     _peak_equity: Decimal = field(init=False)
     _daily_start_equity: Decimal = field(init=False)
@@ -33,7 +32,7 @@ class PaperPortfolio:
         self._cash = self.initial_cash
         self._peak_equity = self.initial_cash
         self._daily_start_equity = self.initial_cash
-        self._current_day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self._current_day = datetime.now(UTC).strftime("%Y-%m-%d")
 
     def apply_fill(self, fill: PaperFill) -> None:
         """Update cash balance based on a fill.
@@ -68,7 +67,7 @@ class PaperPortfolio:
         Returns:
             A PaperPortfolioState snapshot.
         """
-        position_value = Decimal("0")
+        position_value = Decimal(0)
         for pos in positions:
             if pos.current_price is not None:
                 position_value += pos.current_price * Decimal(str(abs(pos.quantity)))
@@ -77,17 +76,16 @@ class PaperPortfolio:
         daily_pnl = equity - self._daily_start_equity
         total_pnl = equity - self.initial_cash
 
-        if equity > self._peak_equity:
-            self._peak_equity = equity
+        self._peak_equity = max(self._peak_equity, equity)
 
         drawdown = (
             (self._peak_equity - equity) / self._peak_equity
-            if self._peak_equity > Decimal("0")
-            else Decimal("0")
+            if self._peak_equity > Decimal(0)
+            else Decimal(0)
         )
 
         buying_power = self._cash
-        margin_used = Decimal("0")
+        margin_used = Decimal(0)
         exposure = position_value
 
         return PaperPortfolioState(
@@ -115,7 +113,7 @@ class PaperPortfolio:
         return FundsInfo(
             available_cash=self._cash,
             used_cash=self.initial_cash - self._cash,
-            realised_pnl=Decimal("0"),
+            realised_pnl=Decimal(0),
             unrealised_pnl=state.total_pnl,
         )
 
@@ -141,4 +139,4 @@ class PaperPortfolio:
         self._cash = self.initial_cash
         self._peak_equity = self.initial_cash
         self._daily_start_equity = self.initial_cash
-        self._current_day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self._current_day = datetime.now(UTC).strftime("%Y-%m-%d")

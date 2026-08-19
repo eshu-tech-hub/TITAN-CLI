@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from titan.brokers.broker import Broker
@@ -13,7 +14,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from titan.decision.models import TradeDecision
@@ -34,7 +34,7 @@ class OrchestratorReport:
     orders_rejected: int = 0
     average_price: Decimal | None = None
     broker_order_ids: tuple[str, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     errors: tuple[str, ...] = field(default_factory=tuple)
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
@@ -80,7 +80,7 @@ class ExecutionOrchestrator:
         warnings: list[str] = []
         broker_order_ids: list[str] = []
         total_filled_qty: int = 0
-        total_filled_value: Decimal = Decimal("0")
+        total_filled_value: Decimal = Decimal(0)
         orders_submitted: int = 0
         orders_accepted: int = 0
         orders_rejected: int = 0
@@ -187,7 +187,7 @@ class ExecutionOrchestrator:
             orders_rejected=orders_rejected,
             average_price=avg_price,
             broker_order_ids=tuple(broker_order_ids),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             errors=tuple(errors),
             warnings=tuple(warnings),
         )
@@ -217,9 +217,10 @@ class ExecutionOrchestrator:
             accepted_ratio = report.orders_accepted / report.orders_submitted
             score_value = accepted_ratio * 100.0
             confidence_value = accepted_ratio
-            if report.orders_accepted == report.orders_submitted:
-                signal = EvidenceSignal.NEUTRAL
-            elif report.orders_accepted > 0:
+            if (
+                report.orders_accepted == report.orders_submitted
+                or report.orders_accepted > 0
+            ):
                 signal = EvidenceSignal.NEUTRAL
             else:
                 signal = EvidenceSignal.NEUTRAL
@@ -311,5 +312,5 @@ class ExecutionOrchestrator:
         return OrchestratorReport(
             execution_id=execution_id,
             errors=tuple(errors or []),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )

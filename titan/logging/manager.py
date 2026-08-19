@@ -14,9 +14,9 @@ from titan.logging.models import (
     FormatterType,
     HandlerConfig,
     HandlerType,
-    LogLevel,
     LoggingConfig,
     LoggingReport,
+    LogLevel,
 )
 
 

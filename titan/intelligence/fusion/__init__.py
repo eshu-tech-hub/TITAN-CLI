@@ -24,7 +24,6 @@ from titan.intelligence.fusion.weighting import (
 )
 
 __all__ = [
-    "check_missing_categories",
     "ConflictType",
     "EqualWeightProvider",
     "EvidenceConflict",
@@ -36,8 +35,9 @@ __all__ = [
     "FusionValidationError",
     "IntelligenceFusion",
     "StaticWeightProvider",
+    "WeightProvider",
+    "check_missing_categories",
     "validate_evidence",
     "validate_evidence_list",
     "validate_weights",
-    "WeightProvider",
 ]

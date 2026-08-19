@@ -12,7 +12,7 @@ Provides the unified institutional desktop layout with:
 from __future__ import annotations
 
 import socket
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.app import App
 from textual.containers import Horizontal, Vertical
@@ -51,7 +51,7 @@ class ShellApp(App):
 
     CSS = SCREEN_CSS
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("f1", "goto_dashboard", "Dashboard"),
         ("f2", "goto_runtime", "Runtime"),
         ("f3", "goto_paper", "Paper"),

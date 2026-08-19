@@ -1,6 +1,6 @@
 """Tests for News Intelligence Engine (M4.1.2)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -30,7 +30,7 @@ from titan.events import (
     SentimentResult,
 )
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 # ---------------------------------------------------------------------------

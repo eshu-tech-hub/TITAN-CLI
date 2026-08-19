@@ -1,6 +1,6 @@
 """Tests for Event Intelligence Foundation (M4.1.1)."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -24,12 +24,12 @@ from titan.events import (
     EventImportance,
     EventIntelligenceAnalyzer,
     EventRisk,
-    EventRiskAssessment,
     EventRiskAnalyzer,
+    EventRiskAssessment,
     ImpactAnalyzer,
 )
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 # ---------------------------------------------------------------------------
@@ -88,7 +88,7 @@ class TestEconomicCalendarAnalyzer:
     def test_single_event(self) -> None:
         analyzer = EconomicCalendarAnalyzer()
         event = make_economic(EconomicEventType.GDP)
-        events, importance, confidence, reasons = analyzer.analyze((event,))
+        events, importance, confidence, _reasons = analyzer.analyze((event,))
         assert len(events) == 1
         assert events[0].importance is EventImportance.HIGH
         assert importance is EventImportance.HIGH
@@ -101,7 +101,7 @@ class TestEconomicCalendarAnalyzer:
             make_economic(EconomicEventType.NFP),
             make_economic(EconomicEventType.PMI, days_from_now=3),
         )
-        sorted_events, importance, confidence, reasons = analyzer.analyze(events)
+        sorted_events, importance, confidence, _reasons = analyzer.analyze(events)
         assert len(sorted_events) == 3
         assert importance is EventImportance.CRITICAL  # NFP is critical
         assert confidence > 0.0
@@ -174,7 +174,7 @@ class TestCorporateEventAnalyzer:
     def test_single_event(self) -> None:
         analyzer = CorporateEventAnalyzer()
         event = make_corporate(CorporateEventType.DIVIDEND)
-        events, importance, confidence, reasons = analyzer.analyze((event,))
+        events, importance, confidence, _reasons = analyzer.analyze((event,))
         assert len(events) == 1
         assert importance is EventImportance.MEDIUM
         assert confidence > 0.0
@@ -186,7 +186,7 @@ class TestCorporateEventAnalyzer:
             make_corporate(CorporateEventType.BUYBACK),
             make_corporate(CorporateEventType.SPLIT, days_from_now=5),
         )
-        sorted_events, importance, confidence, reasons = analyzer.analyze(events)
+        sorted_events, importance, confidence, _reasons = analyzer.analyze(events)
         assert len(sorted_events) == 3
         assert importance is EventImportance.CRITICAL
         assert confidence > 0.0

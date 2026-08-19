@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import threading
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from titan.audit.exceptions import StorageError
 from titan.audit.models import AuditEvent

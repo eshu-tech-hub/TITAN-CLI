@@ -789,8 +789,8 @@ class TestShellAppAsync:
 
     @pytest.mark.asyncio
     async def test_shell_f2_opens_runtime(self) -> None:
-        from titan.tui.shell import ShellApp
         from titan.tui.screens.runtime import RuntimeScreen
+        from titan.tui.shell import ShellApp
 
         app = ShellApp()
         app.register_screen(
@@ -807,8 +807,8 @@ class TestShellAppAsync:
 
     @pytest.mark.asyncio
     async def test_shell_f3_opens_paper(self) -> None:
-        from titan.tui.shell import ShellApp
         from titan.tui.screens.paper import PaperScreen
+        from titan.tui.shell import ShellApp
 
         app = ShellApp()
         app.register_screen(

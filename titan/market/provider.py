@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Sequence
 
 from titan.market.models import Candle, Symbol
 from titan.market.timeframe import Timeframe

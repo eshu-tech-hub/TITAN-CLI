@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -18,24 +18,24 @@ from titan.brokers.models import (
     Validity,
 )
 from titan.paper import (
-    PaperBroker,
     FillEngine,
-    PositionEngine,
+    PaperBroker,
+    PaperFill,
+    PaperFillError,
+    PaperOrder,
+    PaperOrderError,
     PaperPortfolio,
-    TradeJournal,
-    PerformanceEngine,
-    PaperTradingReport,
+    PaperPortfolioError,
+    PaperPortfolioState,
+    PaperPosition,
+    PaperTradingError,
     PaperTradingExplanation,
+    PaperTradingReport,
+    PerformanceEngine,
+    PositionEngine,
+    TradeJournal,
     generate_evidence,
     generate_explanation,
-    PaperOrder,
-    PaperFill,
-    PaperPosition,
-    PaperPortfolioState,
-    PaperTradingError,
-    PaperOrderError,
-    PaperFillError,
-    PaperPortfolioError,
 )
 from titan.paper.exceptions import (
     PaperPositionError,
@@ -48,7 +48,7 @@ from titan.paper.exceptions import (
 
 @pytest.fixture
 def broker() -> PaperBroker:
-    b = PaperBroker(initial_cash=Decimal("100000"))
+    b = PaperBroker(initial_cash=Decimal(100000))
     b.connect()
     b.set_price("RELIANCE", Decimal("2500.00"))
     return b
@@ -92,7 +92,7 @@ def position_engine() -> PositionEngine:
 
 @pytest.fixture
 def portfolio() -> PaperPortfolio:
-    return PaperPortfolio(initial_cash=Decimal("100000"))
+    return PaperPortfolio(initial_cash=Decimal(100000))
 
 
 @pytest.fixture
@@ -125,7 +125,7 @@ class TestFillEngine:
         fills = fill_engine.fill(request, quote, "order-1", "broker-1")
         assert len(fills) == 1
         assert fills[0].quantity == 10
-        assert fills[0].price > Decimal("0")
+        assert fills[0].price > Decimal(0)
         assert fills[0].order_id == "order-1"
         assert fills[0].broker_order_id == "broker-1"
 
@@ -283,7 +283,7 @@ class TestFillEngine:
 
     def test_custom_slippage_model(self) -> None:
         def zero_slippage(request: OrderRequest, quote: Quote) -> Decimal:
-            return Decimal("0")
+            return Decimal(0)
 
         engine = FillEngine(slippage_model=zero_slippage)
         assert engine.slippage_model is zero_slippage
@@ -309,10 +309,10 @@ class TestFillEngine:
             quantity=100,
         )
         fills = fill_engine.fill(request, quote, "order-11", "broker-11")
-        assert fills[0].commission > Decimal("0")
+        assert fills[0].commission > Decimal(0)
 
 
-from titan.brokers.models import Quote  # noqa: E402, I100
+from titan.brokers.models import Quote
 
 # ===========================================================================
 # PositionEngine Tests
@@ -410,7 +410,7 @@ class TestPositionEngine:
         pos = position_engine.get_position("RELIANCE")
         assert pos is not None
         assert pos.quantity == 5
-        assert pos.realized_pnl > Decimal("0")
+        assert pos.realized_pnl > Decimal(0)
 
     def test_close_position(self, position_engine: PositionEngine) -> None:
         f1 = PaperFill(
@@ -558,10 +558,10 @@ class TestPositionEngine:
 
 class TestPaperPortfolio:
     def test_initial_cash(self) -> None:
-        pf = PaperPortfolio(initial_cash=Decimal("50000"))
+        pf = PaperPortfolio(initial_cash=Decimal(50000))
         state = pf.compute_state([])
-        assert state.cash == Decimal("50000")
-        assert state.equity == Decimal("50000")
+        assert state.cash == Decimal(50000)
+        assert state.equity == Decimal(50000)
 
     def test_buy_reduces_cash(self, portfolio: PaperPortfolio) -> None:
         fill = PaperFill(
@@ -577,7 +577,7 @@ class TestPaperPortfolio:
         )
         portfolio.apply_fill(fill)
         state = portfolio.compute_state([])
-        assert state.cash == Decimal("100000") - Decimal("1010.00")
+        assert state.cash == Decimal(100000) - Decimal("1010.00")
 
     def test_sell_increases_cash(self, portfolio: PaperPortfolio) -> None:
         fill = PaperFill(
@@ -593,7 +593,7 @@ class TestPaperPortfolio:
         )
         portfolio.apply_fill(fill)
         state = portfolio.compute_state([])
-        assert state.cash == Decimal("100000") + Decimal("990.00")
+        assert state.cash == Decimal(100000) + Decimal("990.00")
 
     def test_insufficient_cash_raises(self, portfolio: PaperPortfolio) -> None:
         fill = PaperFill(
@@ -625,7 +625,7 @@ class TestPaperPortfolio:
         assert state.equity > state.cash
 
     def test_equity_tracks_pnl(self) -> None:
-        pf = PaperPortfolio(initial_cash=Decimal("100000"))
+        pf = PaperPortfolio(initial_cash=Decimal(100000))
         positions = [
             PaperPosition(
                 symbol="HDFC",
@@ -635,23 +635,23 @@ class TestPaperPortfolio:
                 current_price=Decimal("110.00"),
                 buy_quantity=10,
                 sell_quantity=0,
-                realized_pnl=Decimal("0"),
-                unrealized_pnl=Decimal("100"),
+                realized_pnl=Decimal(0),
+                unrealized_pnl=Decimal(100),
             )
         ]
         state = pf.compute_state(positions)
-        position_value = Decimal("110.00") * Decimal("10")
-        assert state.equity == Decimal("100000") + position_value
-        assert state.exposure == Decimal("1100")
+        position_value = Decimal("110.00") * Decimal(10)
+        assert state.equity == Decimal(100000) + position_value
+        assert state.exposure == Decimal(1100)
 
     def test_to_funds_info(self, portfolio: PaperPortfolio) -> None:
         state = portfolio.compute_state([])
         funds = portfolio.to_funds_info(state)
-        assert funds.available_cash == Decimal("100000")
+        assert funds.available_cash == Decimal(100000)
 
     def test_to_margin_info(self, portfolio: PaperPortfolio) -> None:
         margin = portfolio.to_margin_info()
-        assert margin.total_margin == Decimal("100000")
+        assert margin.total_margin == Decimal(100000)
 
     def test_reset(self, portfolio: PaperPortfolio) -> None:
         fill = PaperFill(
@@ -667,12 +667,12 @@ class TestPaperPortfolio:
         portfolio.apply_fill(fill)
         portfolio.reset()
         state = portfolio.compute_state([])
-        assert state.cash == Decimal("100000")
+        assert state.cash == Decimal(100000)
 
     def test_drawdown_computed(self) -> None:
-        pf = PaperPortfolio(initial_cash=Decimal("100000"))
+        pf = PaperPortfolio(initial_cash=Decimal(100000))
         state = pf.compute_state([])
-        assert state.drawdown == Decimal("0")
+        assert state.drawdown == Decimal(0)
 
 
 # ===========================================================================
@@ -915,7 +915,7 @@ class TestTradeJournal:
 class TestPerformanceEngine:
     def test_compute_no_journal(self) -> None:
         engine = PerformanceEngine()
-        metrics = engine.compute(PaperPortfolioState(cash=Decimal("100000")))
+        metrics = engine.compute(PaperPortfolioState(cash=Decimal(100000)))
         assert metrics.total_trades == 0
 
     def test_compute_with_trades(self) -> None:
@@ -943,7 +943,7 @@ class TestPerformanceEngine:
         journal.record_fill(buy, order)
 
         engine = PerformanceEngine(journal=journal)
-        metrics = engine.compute(PaperPortfolioState(cash=Decimal("100000")))
+        metrics = engine.compute(PaperPortfolioState(cash=Decimal(100000)))
         assert metrics.total_trades == 1
 
 
@@ -955,12 +955,12 @@ class TestPerformanceEngine:
 class TestPaperBrokerConstruction:
     def test_default_construction(self) -> None:
         broker = PaperBroker()
-        assert broker._initial_cash == Decimal("100000")
+        assert broker._initial_cash == Decimal(100000)
         assert not broker.is_connected()
 
     def test_custom_initial_cash(self) -> None:
-        broker = PaperBroker(initial_cash=Decimal("50000"))
-        assert broker._initial_cash == Decimal("50000")
+        broker = PaperBroker(initial_cash=Decimal(50000))
+        assert broker._initial_cash == Decimal(50000)
 
     def test_custom_engines_injected(self) -> None:
         fill = FillEngine()
@@ -969,7 +969,7 @@ class TestPaperBrokerConstruction:
         journal = TradeJournal()
         perf = PerformanceEngine()
         broker = PaperBroker(
-            initial_cash=Decimal("50000"),
+            initial_cash=Decimal(50000),
             fill_engine=fill,
             position_engine=pos,
             portfolio=pf,
@@ -1046,7 +1046,7 @@ class TestPaperBrokerHistoricalData:
         data = broker.history(
             "RELIANCE",
             "1day",
-            datetime.now(timezone.utc),
+            datetime.now(UTC),
         )
         assert data == []
 
@@ -1281,7 +1281,7 @@ class TestPaperBrokerPortfolio:
         broker.place_order(request)
         funds = broker.funds()
         assert funds.available_cash is not None
-        assert funds.available_cash < Decimal("100000")
+        assert funds.available_cash < Decimal(100000)
 
     def test_margin(self, broker: PaperBroker) -> None:
         margin = broker.margin()
@@ -1345,7 +1345,7 @@ class TestPaperTradingReport:
         report = PaperTradingReport()
         assert report.orders == ()
         assert report.trades == ()
-        assert report.portfolio_state.cash == Decimal("0")
+        assert report.portfolio_state.cash == Decimal(0)
 
     def test_with_data(self) -> None:
         order = PaperOrder(
@@ -1395,9 +1395,9 @@ class TestEvidenceGeneration:
 
     def test_generate_evidence_with_trades(self) -> None:
         state = PaperPortfolioState(
-            cash=Decimal("90000"),
-            equity=Decimal("95000"),
-            total_pnl=Decimal("5000"),
+            cash=Decimal(90000),
+            equity=Decimal(95000),
+            total_pnl=Decimal(5000),
         )
         report = PaperTradingReport(portfolio_state=state)
         evidence = generate_evidence(report)
@@ -1405,9 +1405,9 @@ class TestEvidenceGeneration:
 
     def test_generate_evidence_loss(self) -> None:
         state = PaperPortfolioState(
-            cash=Decimal("80000"),
-            equity=Decimal("75000"),
-            total_pnl=Decimal("-5000"),
+            cash=Decimal(80000),
+            equity=Decimal(75000),
+            total_pnl=Decimal(-5000),
         )
         report = PaperTradingReport(portfolio_state=state)
         evidence = generate_evidence(report)
@@ -1470,8 +1470,8 @@ class TestSerialization:
 
     def test_portfolio_state_serializable(self) -> None:
         state = PaperPortfolioState(
-            cash=Decimal("100000"),
-            equity=Decimal("105000"),
+            cash=Decimal(100000),
+            equity=Decimal(105000),
         )
         data = {
             "cash": str(state.cash),

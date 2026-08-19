@@ -1,4 +1,5 @@
 import pytest
+
 from titan.ai.decision_engine import AIDecisionSynthesizer
 from titan.market.options import OptionContract
 

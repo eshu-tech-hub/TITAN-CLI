@@ -88,8 +88,7 @@ class ConfigManager:
             data = load_json(p)
         else:
             raise ConfigLoadError(
-                f"Unsupported config file format: {p.suffix}. "
-                f"Use .yaml, .yml, or .json"
+                f"Unsupported config file format: {p.suffix}. Use .yaml, .yml, or .json"
             )
 
         self._raw = merge_sources(self._raw, data)

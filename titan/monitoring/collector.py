@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock, Thread
 from time import sleep
 
@@ -104,7 +104,7 @@ class MetricCollector:
         with self._lock:
             descriptors = dict(self._collectors)
 
-        for name, desc in descriptors.items():
+        for desc in descriptors.values():
             if not desc.enabled:
                 continue
             try:
@@ -119,7 +119,7 @@ class MetricCollector:
 
         return MetricSnapshot(
             metrics=tuple(collected),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             source="metric_collector",
         )
 
@@ -167,7 +167,7 @@ class MetricCollector:
                     return
                 descriptors = dict(self._collectors)
 
-            for name, desc in descriptors.items():
+            for desc in descriptors.values():
                 if not desc.enabled or desc.type != CollectorType.PERIODIC:
                     continue
                 try:

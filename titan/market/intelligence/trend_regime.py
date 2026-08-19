@@ -119,9 +119,7 @@ class TrendRegimeAnalyzer:
     ) -> bool:
         if ms.primary_trend is TrendDirection.BULLISH and vwap.bias.value == "bullish":
             return True
-        if ms.primary_trend is TrendDirection.BEARISH and vwap.bias.value == "bearish":
-            return True
-        return False
+        return bool(ms.primary_trend is TrendDirection.BEARISH and vwap.bias.value == "bearish")
 
     def _momentum_environment(
         self,

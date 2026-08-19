@@ -4,19 +4,20 @@ Report generation for the Broker Certification Framework.
 Produces immutable matrices and final certification reports.
 """
 
-from typing import List, Optional
-from datetime import datetime, timezone
+from __future__ import annotations
+
+from datetime import UTC, datetime
 
 from titan.brokers.certification.models import (
     BrokerCapability,
     BrokerCapabilityMatrix,
-    BrokerCertificationReport,
-    BrokerCertificationSummary,
     BrokerCertificationMetadata,
+    BrokerCertificationReport,
     BrokerCertificationResult,
+    BrokerCertificationSummary,
     BrokerValidationResult,
-    CertificationStatus,
     CertificationSeverity,
+    CertificationStatus,
 )
 
 
@@ -25,11 +26,11 @@ class BrokerCapabilityMatrixBuilder:
 
     def __init__(self, broker_id: str):
         self._broker_id = broker_id
-        self._capabilities: List[BrokerCapability] = []
+        self._capabilities: list[BrokerCapability] = []
 
     def add_capability(
         self, capability: BrokerCapability
-    ) -> "BrokerCapabilityMatrixBuilder":
+    ) -> BrokerCapabilityMatrixBuilder:
         """Adds a capability to the matrix."""
         self._capabilities.append(capability)
         return self
@@ -38,7 +39,7 @@ class BrokerCapabilityMatrixBuilder:
         """Constructs and returns the immutable BrokerCapabilityMatrix."""
         return BrokerCapabilityMatrix(
             broker_id=self._broker_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             capabilities=tuple(self._capabilities),
         )
 
@@ -53,23 +54,23 @@ class CertificationReportBuilder:
             environment=environment,
             certification_version="1.0",
         )
-        self._capability_matrix: Optional[BrokerCapabilityMatrix] = None
-        self._scenario_results: List[BrokerCertificationResult] = []
-        self._validation_results: List[BrokerValidationResult] = []
-        self._warnings: List[str] = []
-        self._known_limitations: List[str] = []
-        self._recommendations: List[str] = []
+        self._capability_matrix: BrokerCapabilityMatrix | None = None
+        self._scenario_results: list[BrokerCertificationResult] = []
+        self._validation_results: list[BrokerValidationResult] = []
+        self._warnings: list[str] = []
+        self._known_limitations: list[str] = []
+        self._recommendations: list[str] = []
 
     def set_capability_matrix(
         self, matrix: BrokerCapabilityMatrix
-    ) -> "CertificationReportBuilder":
+    ) -> CertificationReportBuilder:
         """Sets the capability matrix for the report."""
         self._capability_matrix = matrix
         return self
 
     def add_scenario_result(
         self, result: BrokerCertificationResult
-    ) -> "CertificationReportBuilder":
+    ) -> CertificationReportBuilder:
         """Adds a scenario execution result."""
         self._scenario_results.append(result)
         if (
@@ -81,25 +82,25 @@ class CertificationReportBuilder:
 
     def add_validation_result(
         self, result: BrokerValidationResult
-    ) -> "CertificationReportBuilder":
+    ) -> CertificationReportBuilder:
         """Adds a static validation result."""
         self._validation_results.append(result)
         if result.status == CertificationStatus.FAIL:
             self.add_warning(f"Validation failure: {result.description}")
         return self
 
-    def add_warning(self, warning: str) -> "CertificationReportBuilder":
+    def add_warning(self, warning: str) -> CertificationReportBuilder:
         """Adds a general warning."""
         if warning not in self._warnings:
             self._warnings.append(warning)
         return self
 
-    def add_known_limitation(self, limitation: str) -> "CertificationReportBuilder":
+    def add_known_limitation(self, limitation: str) -> CertificationReportBuilder:
         """Adds a known limitation to the report."""
         self._known_limitations.append(limitation)
         return self
 
-    def add_recommendation(self, recommendation: str) -> "CertificationReportBuilder":
+    def add_recommendation(self, recommendation: str) -> CertificationReportBuilder:
         """Adds a recommendation to the report."""
         self._recommendations.append(recommendation)
         return self

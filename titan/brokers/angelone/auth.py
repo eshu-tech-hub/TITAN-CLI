@@ -1,9 +1,11 @@
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from titan.brokers.angelone.exceptions import translate_error
 from titan.brokers.models import ConnectionStatus
 
 TOTPGenerator = Callable[[str], str]
+
 
 def default_totp_generator(secret: str) -> str:
     if not secret:

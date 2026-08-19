@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -56,7 +56,7 @@ class StateManager:
             portfolio_snapshot=captured.get("portfolio_snapshot", {}),
             runtime_config=captured.get("runtime_config", {}),
             monitoring_status=captured.get("monitoring_status", {}),
-            captured_at=datetime.now(timezone.utc),
+            captured_at=datetime.now(UTC),
         )
 
         with self._lock:

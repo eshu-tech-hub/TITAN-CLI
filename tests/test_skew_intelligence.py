@@ -845,7 +845,7 @@ def test_skew_has_no_forbidden_imports():
                 term not in imported_name.lower()
                 for imported_name in imported_names
                 for term in forbidden_terms
-            ), (f"Forbidden import found in {path}: " f"{imported_names}")
+            ), f"Forbidden import found in {path}: {imported_names}"
 
 
 # ---------------------------------------------------------------------------

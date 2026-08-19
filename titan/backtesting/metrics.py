@@ -160,19 +160,15 @@ class MetricsEngine:
             Maximum drawdown as a Decimal ratio.
         """
         if not curve:
-            return Decimal("0")
+            return Decimal(0)
 
         peak = curve[0].equity
-        max_drawdown = Decimal("0")
+        max_drawdown = Decimal(0)
 
         for point in curve:
-            if point.equity > peak:
-                peak = point.equity
-            drawdown = (
-                (peak - point.equity) / peak if peak > Decimal("0") else Decimal("0")
-            )
-            if drawdown > max_drawdown:
-                max_drawdown = drawdown
+            peak = max(peak, point.equity)
+            drawdown = (peak - point.equity) / peak if peak > Decimal(0) else Decimal(0)
+            max_drawdown = max(max_drawdown, drawdown)
 
         return max_drawdown
 

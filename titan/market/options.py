@@ -31,7 +31,9 @@ class OptionChainManager:
                     opt_type = (
                         "CE"
                         if "CE" in symbol.upper()
-                        else "PE" if "PE" in symbol.upper() else "UNKNOWN"
+                        else "PE"
+                        if "PE" in symbol.upper()
+                        else "UNKNOWN"
                     )
 
                     if opt_type != "UNKNOWN":
@@ -88,7 +90,9 @@ class OptionChainManager:
                     opt_type = (
                         "CE"
                         if "CE" in symbol.upper()
-                        else "PE" if "PE" in symbol.upper() else "UNKNOWN"
+                        else "PE"
+                        if "PE" in symbol.upper()
+                        else "UNKNOWN"
                     )
                     contract = OptionContract(
                         symbol=symbol,

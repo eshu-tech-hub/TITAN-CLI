@@ -1,6 +1,8 @@
 import time
 import tracemalloc
-from typing import Callable, Any, Dict
+from collections.abc import Callable
+from typing import Any
+
 from titan.validation.metrics import ResourceMetrics
 
 
@@ -9,7 +11,7 @@ class PerformanceProfiler:
 
     def __init__(self):
         self._start_time: float = 0.0
-        self._latencies: Dict[str, float] = {}
+        self._latencies: dict[str, float] = {}
 
     def start(self) -> None:
         tracemalloc.start()

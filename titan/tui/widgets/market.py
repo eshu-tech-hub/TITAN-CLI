@@ -3,7 +3,7 @@
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widget import Widget
-from textual.widgets import Label, DataTable
+from textual.widgets import DataTable, Label
 
 from titan.tui.models import (
     EvidenceSummaryInfo,

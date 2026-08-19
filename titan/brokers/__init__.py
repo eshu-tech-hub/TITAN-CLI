@@ -78,6 +78,6 @@ __all__ = [
     "ProductType",
     "Quote",
     "Trade",
-    "Validity",
     "ValidationError",
+    "Validity",
 ]

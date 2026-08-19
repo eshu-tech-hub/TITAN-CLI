@@ -1,14 +1,13 @@
 from math import floor
 
 from titan.options.analytics.models import ExecutionGrade, IVRankLevel, VolatilityRegime
-
 from titan.risk.exceptions import RiskEngineError
 from titan.risk.models import (
+    RISK_PROFILE_MAP,
     PositionSizing,
     RiskInput,
     RiskProfile,
     RiskProfileConfig,
-    RISK_PROFILE_MAP,
 )
 
 
@@ -157,8 +156,8 @@ class PositionSizingEngine:
         if risk_per_unit <= 0.0:
             return 0
 
-        units_from_risk = int(floor(risk_per_trade / risk_per_unit))
-        units_from_capital = int(floor(max_capital / entry_price))
+        units_from_risk = floor(risk_per_trade / risk_per_unit)
+        units_from_capital = floor(max_capital / entry_price)
 
         return max(1, min(units_from_risk, units_from_capital))
 
@@ -167,7 +166,7 @@ class PositionSizingEngine:
             return 0
 
         lot_size = self._estimate_lot_size(entry_price)
-        return max(1, int(floor(units / lot_size)))
+        return max(1, floor(units / lot_size))
 
     def _maximum_quantity(
         self,
@@ -183,7 +182,7 @@ class PositionSizingEngine:
             if risk_val == "extreme":
                 quantity = min(quantity, 1)
             elif risk_val == "high":
-                quantity = min(quantity, int(round(quantity * 0.5)))
+                quantity = min(quantity, round(quantity * 0.5))
 
         return max(1, quantity)
 

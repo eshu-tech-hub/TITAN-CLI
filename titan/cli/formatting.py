@@ -35,7 +35,7 @@ def status_icon(status: str) -> str:
     return f"[{style}]*[/{style}]"
 
 
-def kv_table(**kwargs: str | int | float | bool) -> Table:
+def kv_table(**kwargs: str | float | bool) -> Table:
     table = Table(show_header=False, box=None, padding=(0, 2))
     table.add_column("Key", style="bold")
     table.add_column("Value")

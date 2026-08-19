@@ -1,6 +1,6 @@
+from titan.tui.layout import build_strategy_eval_state
 from titan.tui.models import StrategyEvalScreenState
 from titan.tui.screens.strategy_eval import StrategyEvalScreen
-from titan.tui.layout import build_strategy_eval_state
 
 
 def test_strategy_screen_state_defaults():

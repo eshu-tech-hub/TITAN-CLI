@@ -58,10 +58,12 @@ def test_readiness_review_fail_fast():
         "Core", ValidationSeverity.CRITICAL, "Fatal Setup Error"
     )
 
-    with patch.object(
-        ConfigurationValidator,
-        "validate_all",
-        return_value=ValidationReport(issues=(critical_issue,)),
+    with (
+        patch.object(
+            ConfigurationValidator,
+            "validate_all",
+            return_value=ValidationReport(issues=(critical_issue,)),
+        ),
+        pytest.raises(ConfigurationError, match="Pre-flight checks failed"),
     ):
-        with pytest.raises(ConfigurationError, match="Pre-flight checks failed"):
-            review.run_pre_flight_checks()
+        review.run_pre_flight_checks()

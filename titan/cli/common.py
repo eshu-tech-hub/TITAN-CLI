@@ -60,7 +60,7 @@ def get_runtime_engine() -> RuntimeEngine:
         from titan.paper.broker import PaperBroker
         from titan.runtime.runtime import RuntimeEngine
 
-        broker = PaperBroker(initial_cash=Decimal("100000"))
+        broker = PaperBroker(initial_cash=Decimal(100000))
         _runtime_engine = RuntimeEngine(broker=broker)
     return _runtime_engine
 

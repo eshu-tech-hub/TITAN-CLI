@@ -9,6 +9,23 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
+from titan.decision import (
+    DecisionAction,
+    DecisionEngine,
+    DecisionEngineError,
+    DecisionExplanation,
+    DecisionInput,
+    DecisionInputError,
+    DecisionRank,
+    DecisionRankingEngine,
+    DecisionSelectionEngine,
+    DecisionValidationEngine,
+    DecisionValidationError,
+    HoldingStyle,
+    InstrumentType,
+    TradeDecision,
+)
+from titan.decision.exceptions import DecisionError
 from titan.events.models import EventAnalysis, EventImportance, EventRisk
 from titan.intelligence.fusion.models import (
     ConflictType,
@@ -47,24 +64,6 @@ from titan.trading.models import (
     TradeScore,
     TradeStatus,
 )
-
-from titan.decision import (
-    DecisionAction,
-    DecisionEngine,
-    DecisionEngineError,
-    DecisionExplanation,
-    DecisionInput,
-    DecisionInputError,
-    DecisionRank,
-    DecisionRankingEngine,
-    DecisionSelectionEngine,
-    DecisionValidationEngine,
-    DecisionValidationError,
-    HoldingStyle,
-    InstrumentType,
-    TradeDecision,
-)
-from titan.decision.exceptions import DecisionError
 
 # ===========================================================================
 # Helpers — factory functions

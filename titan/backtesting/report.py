@@ -23,9 +23,9 @@ def generate_evidence(report: BacktestReport) -> Evidence:
         Evidence item describing the backtest execution.
     """
     signal: EvidenceSignal = EvidenceSignal.NEUTRAL
-    if report.total_pnl > Decimal("0"):
+    if report.total_pnl > Decimal(0):
         signal = EvidenceSignal.BULLISH
-    elif report.total_pnl < Decimal("0"):
+    elif report.total_pnl < Decimal(0):
         signal = EvidenceSignal.BEARISH
 
     score_value = min(abs(float(report.total_pnl)), 100.0)

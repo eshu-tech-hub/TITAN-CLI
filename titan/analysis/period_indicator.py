@@ -1,9 +1,8 @@
 from abc import ABC
 
 from titan.analysis.base import Indicator
-from titan.market.series import MarketDataSeries
-
 from titan.core.exceptions import IndicatorError
+from titan.market.series import MarketDataSeries
 
 
 class PeriodIndicator(Indicator, ABC):

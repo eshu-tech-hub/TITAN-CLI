@@ -3,13 +3,14 @@ Tests for Broker Certification Models.
 """
 
 from dataclasses import FrozenInstanceError
+
 import pytest
 
 from titan.brokers.certification.models import (
-    BrokerCertificationMetadata,
-    CertificationSeverity,
     BrokerCapability,
+    BrokerCertificationMetadata,
     BrokerCertificationScenario,
+    CertificationSeverity,
 )
 
 
@@ -29,7 +30,7 @@ def test_capability_default_values():
         is_supported=True,
     )
     assert not cap.requires_approval
-    assert cap.limitations == tuple()
+    assert cap.limitations == ()
 
 
 def test_scenario_serialization():

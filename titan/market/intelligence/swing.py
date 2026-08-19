@@ -48,8 +48,8 @@ class SwingAnalyzer:
             return SwingStructure(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need {lookback * 2 + 1} candles, "
-                    f"got {len(series)}.",
+                    (f"Insufficient data: need {lookback * 2 + 1} candles, "
+                    f"got {len(series)}."),
                 ),
             )
 

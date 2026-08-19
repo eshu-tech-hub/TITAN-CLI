@@ -110,8 +110,9 @@ def validate(
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Validate current configuration and environment against requirements."""
-    from titan.config.validators import ConfigurationValidator
     import dataclasses
+
+    from titan.config.validators import ConfigurationValidator
 
     manager = get_config_manager()
     validator = ConfigurationValidator(manager)
@@ -120,10 +121,9 @@ def validate(
     if json_output:
         profile_name = "default"
         try:
-            profile_name = manager.get_config().app.profile.value
-        except Exception:
-            pass
-            
+            profile_name = manager.get_config().app.environment
+        except (RuntimeError, ValueError, TypeError, OSError, AttributeError, KeyError) as e:
+            logger.debug(f"Ignored error: {e}")
         data = {
             "validation_status": "valid" if report.is_valid else "invalid",
             "profile": profile_name,
@@ -145,20 +145,20 @@ def validate(
         )
 
     if verbose or not report.is_valid:
-        for e in report.blocking_errors:
-            console.print(f"  [red]ERROR ({e.category}):[/red] {e.message}")
-            if e.resolution:
-                console.print(f"    [dim]Resolution: {e.resolution}[/dim]")
+        for err in report.blocking_errors:
+            console.print(f"  [red]ERROR ({err.category}):[/red] {err.message}")
+            if err.resolution:
+                console.print(f"    [dim]Resolution: {err.resolution}[/dim]")
         for w in report.warnings:
             console.print(f"  [yellow]WARNING ({w.category}):[/yellow] {w.message}")
             if w.resolution:
                 console.print(f"    [dim]Resolution: {w.resolution}[/dim]")
 
     if verbose:
-        for r in report.recommendations:
-            console.print(f"  [blue]INFO ({r.category}):[/blue] {r.message}")
-            if r.resolution:
-                console.print(f"    [dim]Resolution: {r.resolution}[/dim]")
+        for rec in report.recommendations:
+            console.print(f"  [blue]INFO ({rec.category}):[/blue] {rec.message}")
+            if rec.resolution:
+                console.print(f"    [dim]Resolution: {rec.resolution}[/dim]")
 
     if not report.is_valid or (strict and report.warnings):
         raise typer.Exit(code=1)

@@ -6,6 +6,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import pytest
+from textual.widgets import Static
 
 from titan.tui.layout import (
     _format_inr,
@@ -44,8 +45,6 @@ from titan.tui.widgets.live import (
     _live_status_class,
     _pnl_class,
 )
-
-from textual.widgets import Static
 
 # ──────────────────────────────────────────────────
 # Model tests: LiveStatusInfo
@@ -488,10 +487,10 @@ class TestFormatHelpers:
         assert _format_uptime(86400) == "24:00:00"
 
     def test_format_inr_positive(self) -> None:
-        assert _format_inr(Decimal("1234")) == "₹1,234"
+        assert _format_inr(Decimal(1234)) == "₹1,234"
 
     def test_format_inr_negative(self) -> None:
-        assert _format_inr(Decimal("-1234")) == "-₹1,234"
+        assert _format_inr(Decimal(-1234)) == "-₹1,234"
 
     def test_format_inr_zero(self) -> None:
         assert _format_inr(0) == "₹0"
@@ -500,13 +499,13 @@ class TestFormatHelpers:
         assert _format_inr(None) == "₹0"
 
     def test_format_pnl_positive(self) -> None:
-        assert _format_pnl(Decimal("500")) == "+₹500"
+        assert _format_pnl(Decimal(500)) == "+₹500"
 
     def test_format_pnl_negative(self) -> None:
-        assert _format_pnl(Decimal("-300")) == "-₹300"
+        assert _format_pnl(Decimal(-300)) == "-₹300"
 
     def test_format_pnl_zero(self) -> None:
-        assert _format_pnl(Decimal("0")) == "+₹0"
+        assert _format_pnl(Decimal(0)) == "+₹0"
 
 
 # ──────────────────────────────────────────────────
@@ -1018,13 +1017,13 @@ class TestReadLiveAccount:
     def test_with_funds(self, mock_get: MagicMock) -> None:
         engine = MagicMock()
         engine.broker.funds.return_value = MagicMock(
-            available_cash=Decimal("100000"),
-            payin=Decimal("50000"),
-            payout=Decimal("0"),
+            available_cash=Decimal(100000),
+            payin=Decimal(50000),
+            payout=Decimal(0),
         )
         engine.broker.margin.return_value = MagicMock(
-            used_margin=Decimal("10000"),
-            available_margin=Decimal("90000"),
+            used_margin=Decimal(10000),
+            available_margin=Decimal(90000),
         )
         mock_get.return_value = engine
         info = _read_live_account()
@@ -1044,12 +1043,12 @@ class TestReadLiveExposure:
         engine = MagicMock()
         pos1 = MagicMock()
         pos1.quantity = 10
-        pos1.current_price = Decimal("100")
-        pos1.pnl = Decimal("200")
+        pos1.current_price = Decimal(100)
+        pos1.pnl = Decimal(200)
         pos2 = MagicMock()
         pos2.quantity = -5
-        pos2.current_price = Decimal("200")
-        pos2.pnl = Decimal("-100")
+        pos2.current_price = Decimal(200)
+        pos2.pnl = Decimal(-100)
         engine.broker.positions.return_value = [pos1, pos2]
         mock_get.return_value = engine
         info = _read_live_exposure()
@@ -1077,10 +1076,10 @@ class TestReadLivePositions:
         pos.quantity = 10
         pos.buy_quantity = 10
         pos.sell_quantity = 0
-        pos.buy_price = Decimal("2450")
-        pos.current_price = Decimal("2470")
-        pos.pnl = Decimal("200")
-        pos.realised_pnl = Decimal("0")
+        pos.buy_price = Decimal(2450)
+        pos.current_price = Decimal(2470)
+        pos.pnl = Decimal(200)
+        pos.realised_pnl = Decimal(0)
         engine.broker.positions.return_value = [pos]
         mock_get.return_value = engine
         result = _read_live_positions()
@@ -1108,7 +1107,7 @@ class TestReadLiveOrders:
         o.order_type = OrderType.LIMIT
         o.quantity = 10
         o.filled_quantity = 5
-        o.average_price = Decimal("2450")
+        o.average_price = Decimal(2450)
         o.price = None
         o.status = OrderStatus.OPEN
         o.placed_at = None
@@ -1150,7 +1149,7 @@ class TestReadRecentExecutions:
         t.symbol = "RELIANCE"
         t.side = OrderSide.BUY
         t.quantity = 10
-        t.price = Decimal("2450")
+        t.price = Decimal(2450)
         t.trade_time = None
         engine.broker.trades.return_value = [t]
         mock_get.return_value = engine

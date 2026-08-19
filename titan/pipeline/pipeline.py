@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -216,7 +216,7 @@ class TradePipeline:
             pipeline_id=str(uuid4()),
             symbol=symbol,
             exchange=exchange,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             market_data=market_data,
             existing_portfolio=portfolio,
             max_retries=self._max_retries,
@@ -286,12 +286,12 @@ class TradePipeline:
         while attempt < max_attempts:
             attempt += 1
             context.stage_attempts[stage_key] = attempt
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
 
             try:
                 self._hooks.run_before_stage(stage, context)
                 result = handler(context, risk_profile)
-                duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000.0
+                duration = (datetime.now(UTC) - start).total_seconds() * 1000.0
 
                 context.stage_results[stage_key] = result
                 self._hooks.run_after_stage(stage, context, result, duration)
@@ -299,7 +299,7 @@ class TradePipeline:
                 timing = StageTiming(
                     stage=stage,
                     start_time=start,
-                    end_time=datetime.now(timezone.utc),
+                    end_time=datetime.now(UTC),
                     duration_ms=duration,
                     success=True,
                 )
@@ -314,9 +314,8 @@ class TradePipeline:
                 timing = StageTiming(
                     stage=stage,
                     start_time=start,
-                    end_time=datetime.now(timezone.utc),
-                    duration_ms=(datetime.now(timezone.utc) - start).total_seconds()
-                    * 1000.0,
+                    end_time=datetime.now(UTC),
+                    duration_ms=(datetime.now(UTC) - start).total_seconds() * 1000.0,
                     success=False,
                     error="Pipeline aborted",
                 )
@@ -332,8 +331,8 @@ class TradePipeline:
                     timing = StageTiming(
                         stage=stage,
                         start_time=start,
-                        end_time=datetime.now(timezone.utc),
-                        duration_ms=(datetime.now(timezone.utc) - start).total_seconds()
+                        end_time=datetime.now(UTC),
+                        duration_ms=(datetime.now(UTC) - start).total_seconds()
                         * 1000.0,
                         success=False,
                         error=msg,
@@ -347,9 +346,8 @@ class TradePipeline:
                 timing = StageTiming(
                     stage=stage,
                     start_time=start,
-                    end_time=datetime.now(timezone.utc),
-                    duration_ms=(datetime.now(timezone.utc) - start).total_seconds()
-                    * 1000.0,
+                    end_time=datetime.now(UTC),
+                    duration_ms=(datetime.now(UTC) - start).total_seconds() * 1000.0,
                     success=False,
                     error=msg,
                 )
@@ -363,9 +361,8 @@ class TradePipeline:
                 timing = StageTiming(
                     stage=stage,
                     start_time=start,
-                    end_time=datetime.now(timezone.utc),
-                    duration_ms=(datetime.now(timezone.utc) - start).total_seconds()
-                    * 1000.0,
+                    end_time=datetime.now(UTC),
+                    duration_ms=(datetime.now(UTC) - start).total_seconds() * 1000.0,
                     success=False,
                     error=msg,
                 )
@@ -897,7 +894,7 @@ class TradePipeline:
     # ------------------------------------------------------------------
 
     def _build_report(self, ctx: PipelineContext) -> PipelineReport:
-        end = datetime.now(timezone.utc)
+        end = datetime.now(UTC)
         total_duration = (end - ctx.start_time).total_seconds() * 1000.0
 
         stages: list[StageTiming] = []

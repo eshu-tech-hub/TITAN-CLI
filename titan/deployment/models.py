@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 
 
@@ -67,7 +67,7 @@ class EnvironmentReport:
     broker_configured: bool = False
     warnings: tuple[str, ...] = ()
     errors: tuple[str, ...] = ()
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,7 +90,7 @@ class StartupReport:
     environment: DeploymentEnvironment = DeploymentEnvironment.DEVELOPMENT
     version: str = ""
     errors: tuple[str, ...] = ()
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,7 +101,7 @@ class SubsystemHealth:
     status: SubsystemStatus = SubsystemStatus.UNKNOWN
     message: str = ""
     latency_ms: float = 0.0
-    last_check: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,7 +114,7 @@ class DeploymentHealthReport:
     readiness: bool = False
     liveness: bool = False
     startup_complete: bool = False
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,4 +143,4 @@ class DeploymentReport:
     health: DeploymentHealthReport = field(default_factory=DeploymentHealthReport)
     warnings: tuple[str, ...] = ()
     errors: tuple[str, ...] = ()
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

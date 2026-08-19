@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from statistics import mean
 from threading import Lock
 
@@ -17,9 +17,7 @@ class MonitoringDashboard:
     _metrics: MetricsRegistry = field(default_factory=MetricsRegistry)
     _health: HealthEngine = field(default_factory=HealthEngine)
     _failures: list[str] = field(default_factory=list, init=False)
-    _start_time: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc), init=False
-    )
+    _start_time: datetime = field(default_factory=lambda: datetime.now(UTC), init=False)
     _lock: Lock = field(default_factory=Lock, init=False)
 
     def record_failure(self, failure: str) -> None:
@@ -40,7 +38,7 @@ class MonitoringDashboard:
                     continue
 
                 all_for_name = self._metrics.range(
-                    name, datetime(1970, 1, 1, tzinfo=timezone.utc)
+                    name, datetime(1970, 1, 1, tzinfo=UTC)
                 )
                 values = [v.value for v in all_for_name]
                 if not values:
@@ -60,7 +58,7 @@ class MonitoringDashboard:
                 )
 
             recent_failures = tuple(self._failures[-10:])
-            uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
+            uptime = (datetime.now(UTC) - self._start_time).total_seconds()
 
             return DashboardStatus(
                 system_health=system_health,
@@ -70,7 +68,7 @@ class MonitoringDashboard:
                 total_collections=0,
                 failed_collections=0,
                 uptime_seconds=uptime,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
     def subsystem_health(self, subsystem_name: str) -> SubsystemHealth | None:
@@ -86,9 +84,7 @@ class MonitoringDashboard:
         if latest is None:
             return None
 
-        all_for_name = self._metrics.range(
-            name, datetime(1970, 1, 1, tzinfo=timezone.utc)
-        )
+        all_for_name = self._metrics.range(name, datetime(1970, 1, 1, tzinfo=UTC))
         values = [v.value for v in all_for_name]
         if not values:
             return None
@@ -123,4 +119,4 @@ class MonitoringDashboard:
     def reset(self) -> None:
         with self._lock:
             self._failures.clear()
-            self._start_time = datetime.now(timezone.utc)
+            self._start_time = datetime.now(UTC)

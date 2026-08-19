@@ -590,7 +590,7 @@ def _live_status_class(status: str) -> str:
 def _pnl_class(value: str) -> str:
     """Map a P&L string to a CSS class."""
     stripped = value.strip()
-    if stripped.startswith("-") or stripped.startswith("\u2212"):
+    if stripped.startswith(("-", "\u2212")):
         return "value-negative"
     if stripped.startswith("+"):
         return "value-positive"

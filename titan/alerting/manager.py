@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -26,9 +26,7 @@ from titan.alerting.rules import AlertRuleEngine
 @dataclass(slots=True)
 class AlertManager:
     _engine: AlertEngine = field(default_factory=AlertEngine)
-    _start_time: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc), init=False
-    )
+    _start_time: datetime = field(default_factory=lambda: datetime.now(UTC), init=False)
     _lock: Lock = field(default_factory=Lock, init=False)
 
     def __post_init__(self) -> None:
@@ -131,5 +129,5 @@ class AlertManager:
 
     def reset(self) -> None:
         self._engine.reset()
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self._register_default_channel()

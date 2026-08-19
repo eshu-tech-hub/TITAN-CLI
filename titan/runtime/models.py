@@ -1,7 +1,8 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
-from typing import Any, Mapping
+from typing import Any
 
 from titan.brokers.models import ConnectionStatus, Exchange
 
@@ -99,7 +100,7 @@ class RuntimeEvent:
 
     event_type: RuntimeEventType
     source: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     data: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -138,9 +139,7 @@ class ComponentHealth:
 
     component_name: str
     status: HealthStatus = HealthStatus.UNKNOWN
-    status_changed_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    status_changed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     last_update: datetime | None = None
     latency_ms: float = 0.0
     error: str = ""
@@ -218,7 +217,7 @@ class RuntimeReport:
     recovery: RecoveryStatus = field(default_factory=RecoveryStatus)
     paper: PaperBrokerStatus = field(default_factory=PaperBrokerStatus)
     portfolio: PortfolioStatus = field(default_factory=PortfolioStatus)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def uptime_seconds(self) -> float:

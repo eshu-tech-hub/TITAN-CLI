@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from textual.containers import VerticalScroll
 from textual.screen import Screen
@@ -50,7 +50,7 @@ SHORTCUTS = [
 class HelpScreen(Screen):
     """Full-screen help with keyboard shortcuts and navigation reference."""
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("escape", "back", "Back"),
         ("q", "back", "Back"),
         ("f11", "back", "Back"),

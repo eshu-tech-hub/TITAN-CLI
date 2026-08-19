@@ -286,13 +286,13 @@ class TestPnlClass:
 
 class TestFormatPnl:
     def test_positive_decimal(self) -> None:
-        assert _format_pnl(Decimal("2140")) == "+₹2,140"
+        assert _format_pnl(Decimal(2140)) == "+₹2,140"
 
     def test_negative_decimal(self) -> None:
-        assert _format_pnl(Decimal("-1240")) == "-₹1,240"
+        assert _format_pnl(Decimal(-1240)) == "-₹1,240"
 
     def test_zero(self) -> None:
-        assert _format_pnl(Decimal("0")) == "+₹0"
+        assert _format_pnl(Decimal(0)) == "+₹0"
 
     def test_float_input(self) -> None:
         result = _format_pnl(1500.0)
@@ -309,13 +309,13 @@ class TestFormatPnl:
 
 class TestFormatInr:
     def test_positive_decimal(self) -> None:
-        assert _format_inr(Decimal("2140")) == "₹2,140"
+        assert _format_inr(Decimal(2140)) == "₹2,140"
 
     def test_negative_decimal(self) -> None:
-        assert _format_inr(Decimal("-1240")) == "-₹1,240"
+        assert _format_inr(Decimal(-1240)) == "-₹1,240"
 
     def test_zero(self) -> None:
-        assert _format_inr(Decimal("0")) == "₹0"
+        assert _format_inr(Decimal(0)) == "₹0"
 
     def test_none(self) -> None:
         assert _format_inr(None) == "₹0"
@@ -671,7 +671,7 @@ class TestTITANAppPaper:
 
 def _make_mock_broker(
     connected: bool = True,
-    initial_cash: Decimal = Decimal("100000"),
+    initial_cash: Decimal = Decimal(100000),
 ) -> MagicMock:
     broker = MagicMock()
     broker.is_connected.return_value = connected
@@ -680,15 +680,15 @@ def _make_mock_broker(
 
 
 def _make_mock_portfolio_state(
-    cash: Decimal = Decimal("98450"),
-    equity: Decimal = Decimal("101830"),
-    total_pnl: Decimal = Decimal("1830"),
+    cash: Decimal = Decimal(98450),
+    equity: Decimal = Decimal(101830),
+    total_pnl: Decimal = Decimal(1830),
 ) -> MagicMock:
     ps = MagicMock()
     ps.cash = cash
     ps.equity = equity
     ps.total_pnl = total_pnl
-    ps.daily_pnl = Decimal("500")
+    ps.daily_pnl = Decimal(500)
     ps.drawdown = Decimal("0.018")
     return ps
 
@@ -742,7 +742,7 @@ class TestReadPaperSession:
         info = _read_paper_session()
         assert info.status == "Stopped"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         info = _read_paper_session()
         assert info.status == "Stopped"
@@ -758,17 +758,17 @@ class TestReadPaperAccounts:
     def test_with_broker(self, mock_broker: MagicMock) -> None:
         broker = _make_mock_broker()
         funds = MagicMock()
-        funds.available_cash = Decimal("98450")
-        funds.used_cash = Decimal("1550")
-        funds.payin = Decimal("50000")
-        funds.payout = Decimal("0")
-        funds.realised_pnl = Decimal("1240")
-        funds.unrealised_pnl = Decimal("2140")
+        funds.available_cash = Decimal(98450)
+        funds.used_cash = Decimal(1550)
+        funds.payin = Decimal(50000)
+        funds.payout = Decimal(0)
+        funds.realised_pnl = Decimal(1240)
+        funds.unrealised_pnl = Decimal(2140)
         broker.funds.return_value = funds
         margin = MagicMock()
-        margin.total_margin = Decimal("100000")
-        margin.used_margin = Decimal("12000")
-        margin.available_margin = Decimal("88000")
+        margin.total_margin = Decimal(100000)
+        margin.used_margin = Decimal(12000)
+        margin.available_margin = Decimal(88000)
         margin.delivery_margin = None
         margin.span_margin = None
         margin.exposure_margin = None
@@ -780,7 +780,7 @@ class TestReadPaperAccounts:
         assert "88,000" in info.available_margin
         assert "50,000" in info.payin
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         info = _read_paper_accounts()
         assert info.available_cash == "₹0"
@@ -802,7 +802,7 @@ class TestReadPaperOrders:
 
     @patch("titan.cli.commands.paper._get_broker")
     def test_with_pending_order(self, mock_broker: MagicMock) -> None:
-        from titan.brokers.models import OrderStatus, OrderSide, OrderType
+        from titan.brokers.models import OrderSide, OrderStatus, OrderType
 
         order = MagicMock()
         order.broker_order_id = "O001"
@@ -812,7 +812,7 @@ class TestReadPaperOrders:
         order.quantity = 10
         order.filled_quantity = 0
         order.average_price = None
-        order.price = Decimal("2450")
+        order.price = Decimal(2450)
         order.status = OrderStatus.PENDING
         order.placed_at = None
         broker = _make_mock_broker()
@@ -847,7 +847,7 @@ class TestReadPaperOrders:
         order.order_type.value = "market"
         order.quantity = 5
         order.filled_quantity = 2
-        order.average_price = Decimal("1500")
+        order.average_price = Decimal(1500)
         order.price = None
         order.status = OrderStatus.PARTIALLY_FILLED
         order.placed_at = MagicMock()
@@ -860,7 +860,7 @@ class TestReadPaperOrders:
         assert result[0].filled_quantity == 2
         assert result[0].placed_at == "10:30"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         result = _read_paper_orders()
         assert result == ()
@@ -883,7 +883,7 @@ class TestReadPaperPortfolio:
         assert "98,450" in info.cash
         assert "101,830" in info.equity
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         info = _read_paper_portfolio()
         assert info.cash == "₹0"
@@ -907,7 +907,7 @@ class TestReadPaperPerformance:
         assert info.win_rate == "72%"
         assert info.profit_factor == "2.31"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         info = _read_paper_performance()
         assert info.total_trades == 0
@@ -932,9 +932,9 @@ class TestReadPaperPositions:
         pos = MagicMock()
         pos.symbol = "RELIANCE"
         pos.quantity = 10
-        pos.average_price = Decimal("2450")
-        pos.current_price = Decimal("2470")
-        pos.unrealized_pnl = Decimal("200")
+        pos.average_price = Decimal(2450)
+        pos.current_price = Decimal(2470)
+        pos.unrealized_pnl = Decimal(200)
         broker = _make_mock_broker()
         broker.position_engine.open_positions.return_value = [pos]
         mock_broker.return_value = broker
@@ -942,7 +942,7 @@ class TestReadPaperPositions:
         assert len(result) == 1
         assert result[0].symbol == "RELIANCE"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         result = _read_paper_positions()
         assert result == ()
@@ -968,8 +968,8 @@ class TestReadPaperTrades:
         trade.symbol = "INFY"
         trade.side.value = "buy"
         trade.quantity = 5
-        trade.price = Decimal("1500")
-        trade.pnl = Decimal("75")
+        trade.price = Decimal(1500)
+        trade.pnl = Decimal(75)
         trade.timestamp = MagicMock()
         trade.timestamp.strftime.return_value = "10:30"
         broker = _make_mock_broker()
@@ -980,7 +980,7 @@ class TestReadPaperTrades:
         assert result[0].symbol == "INFY"
         assert result[0].side == "buy"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=Exception)
+    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
     def test_exception(self, mock_broker: MagicMock) -> None:
         result = _read_paper_trades()
         assert result == ()

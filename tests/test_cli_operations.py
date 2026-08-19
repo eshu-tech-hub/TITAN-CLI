@@ -626,15 +626,25 @@ class TestConfigShow:
 class TestConfigValidate:
     def test_validate(self) -> None:
         from unittest.mock import patch
+
         from titan.config.validation_models import ConfigurationReport
-        with patch("titan.config.validators.ConfigurationValidator.validate_all", return_value=ConfigurationReport(is_valid=True, results=())):
+
+        with patch(
+            "titan.config.validators.ConfigurationValidator.validate_all",
+            return_value=ConfigurationReport(is_valid=True, results=()),
+        ):
             result = runner.invoke(app, ["config", "validate"])
             assert result.exit_code == 0
 
     def test_validate_json(self) -> None:
         from unittest.mock import patch
+
         from titan.config.validation_models import ConfigurationReport
-        with patch("titan.config.validators.ConfigurationValidator.validate_all", return_value=ConfigurationReport(is_valid=True, results=())):
+
+        with patch(
+            "titan.config.validators.ConfigurationValidator.validate_all",
+            return_value=ConfigurationReport(is_valid=True, results=()),
+        ):
             result = runner.invoke(app, ["config", "validate", "--json"])
             assert result.exit_code == 0
             data = _extract_json(result.output)
@@ -787,9 +797,24 @@ class TestAuditEdgeCases:
 class TestConfigEdgeCases:
     def test_validate_returns_warnings(self) -> None:
         from unittest.mock import patch
-        from titan.config.validation_models import ConfigurationReport, ValidationResult, ValidationLevel
-        warning_result = ValidationResult(level=ValidationLevel.WARNING, category="Test", message="Warning", component="test", resolution="Fix it")
-        with patch("titan.config.validators.ConfigurationValidator.validate_all", return_value=ConfigurationReport(is_valid=True, results=(warning_result,))):
+
+        from titan.config.validation_models import (
+            ConfigurationReport,
+            ValidationLevel,
+            ValidationResult,
+        )
+
+        warning_result = ValidationResult(
+            level=ValidationLevel.WARNING,
+            category="Test",
+            message="Warning",
+            component="test",
+            resolution="Fix it",
+        )
+        with patch(
+            "titan.config.validators.ConfigurationValidator.validate_all",
+            return_value=ConfigurationReport(is_valid=True, results=(warning_result,)),
+        ):
             result = runner.invoke(app, ["config", "validate", "--json"])
             assert result.exit_code == 0
             data = _extract_json(result.output)

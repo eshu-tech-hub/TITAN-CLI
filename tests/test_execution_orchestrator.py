@@ -17,17 +17,23 @@ from titan.brokers.models import (
     MarginInfo,
     MarketDepth,
     ModifyOrderRequest,
-    Order as BrokerOrder,
-    OrderRequest as BrokerOrderRequest,
     OrderResponse,
     OrderSide,
-    OrderStatus as BrokerOrderStatus,
     OrderType,
     Position,
     ProductType,
     Quote,
     Trade,
     Validity,
+)
+from titan.brokers.models import (
+    Order as BrokerOrder,
+)
+from titan.brokers.models import (
+    OrderRequest as BrokerOrderRequest,
+)
+from titan.brokers.models import (
+    OrderStatus as BrokerOrderStatus,
 )
 from titan.core.evidence import (
     Confidence,
@@ -38,6 +44,7 @@ from titan.core.evidence import (
 )
 from titan.decision.models import DecisionAction, TradeDecision
 from titan.execution import (
+    AllocationInstruction,
     ExecutionAllocator,
     ExecutionEngine,
     ExecutionOrchestrator,
@@ -48,7 +55,6 @@ from titan.execution import (
     OrchestratorReport,
     PlannedOrder,
     ValidationResult,
-    AllocationInstruction,
 )
 from titan.portfolio.models import PortfolioSnapshot
 from titan.risk.models import (
@@ -514,9 +520,7 @@ class TestExecutionValidator:
         validator = ExecutionValidator()
         oms = MagicMock()
         oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
-        result = validator.validate(
-            plan, broker, oms, required_capital=Decimal("10000")
-        )
+        result = validator.validate(plan, broker, oms, required_capital=Decimal(10000))
         assert result.valid is False
         assert any("insufficient funds" in i.lower() for i in result.issues)
 

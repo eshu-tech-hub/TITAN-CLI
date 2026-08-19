@@ -116,9 +116,7 @@ class StrategySuitabilityAnalyzer:
             MarketRegime.MIXED,
         ):
             return True
-        if trend is not None and trend.mean_reversion_environment:
-            return True
-        return False
+        return bool(trend is not None and trend.mean_reversion_environment)
 
     def _avoid_mean_reversion(
         self,
@@ -132,9 +130,7 @@ class StrategySuitabilityAnalyzer:
             MarketRegime.BREAKDOWN,
         ):
             return True
-        if trend is not None and trend.momentum_environment:
-            return True
-        return False
+        return bool(trend is not None and trend.momentum_environment)
 
     def _confidence(
         self,
@@ -174,10 +170,10 @@ class StrategySuitabilityAnalyzer:
 
         if avoid_breakouts:
             reasons.append(
-                "Avoid breakout strategies — " "environment does not support them."
+                "Avoid breakout strategies — environment does not support them."
             )
 
         if avoid_mean_rev:
-            reasons.append("Avoid mean reversion strategies — " "trend is strong.")
+            reasons.append("Avoid mean reversion strategies — trend is strong.")
 
         return reasons

@@ -18,11 +18,9 @@ from titan.tui.models import (
 from titan.tui.screens.dashboard import DashboardScreen
 from titan.tui.widgets.health_card import HealthCard
 from titan.tui.widgets.market_card import MarketCard
-from titan.tui.widgets.runtime_card import RuntimeCard
-from titan.tui.widgets.runtime_card import _status_class
+from titan.tui.widgets.runtime_card import RuntimeCard, _status_class
 from titan.tui.widgets.system_card import SystemCard
-from titan.tui.widgets.trading_card import TradingCard
-from titan.tui.widgets.trading_card import _trading_status_class
+from titan.tui.widgets.trading_card import TradingCard, _trading_status_class
 
 # ──────────────────────────────────────────────────
 # Model tests

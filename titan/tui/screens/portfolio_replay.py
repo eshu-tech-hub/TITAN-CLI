@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
-from textual.containers import VerticalScroll, Horizontal
+from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Static
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class PortfolioReplayScreen(Screen):
     """Portfolio historical replay dashboard."""
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS: ClassVar[str] = """
     PortfolioReplayScreen {
         layout: vertical;
         padding: 1 2;
@@ -48,7 +48,7 @@ class PortfolioReplayScreen(Screen):
     }
     """
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("q", "quit", "Quit"),
     ]
 
@@ -65,10 +65,9 @@ class PortfolioReplayScreen(Screen):
         yield Static("TITAN Portfolio Historical Replay", id="replay-title")
         yield Static(id="replay-time-display")
 
-        with VerticalScroll(id="replay-scroll"):
-            with Horizontal():
-                yield self._timeline_widget
-                yield self._analytics_widget
+        with VerticalScroll(id="replay-scroll"), Horizontal():
+            yield self._timeline_widget
+            yield self._analytics_widget
 
     def set_service(self, service: PortfolioReplayService) -> None:
         """Inject the replay service."""

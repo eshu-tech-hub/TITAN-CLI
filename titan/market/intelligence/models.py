@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from titan.core.evidence import Evidence
 
@@ -211,7 +214,7 @@ class MarketStructureAnalysis:
     explanation: MarketStructureExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "MarketStructureAnalysis":
+    def neutral_placeholder(cls) -> MarketStructureAnalysis:
         return cls(
             primary_trend=TrendDirection.UNKNOWN,
             secondary_trend=TrendDirection.UNKNOWN,
@@ -353,7 +356,7 @@ class VWAPAnalysis:
     explanation: VWAPExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "VWAPAnalysis":
+    def neutral_placeholder(cls) -> VWAPAnalysis:
         return cls(
             vwap=0.0,
             current_price=0.0,
@@ -510,7 +513,7 @@ class VolumeAnalysis:
     explanation: VolumeExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "VolumeAnalysis":
+    def neutral_placeholder(cls) -> VolumeAnalysis:
         return cls(
             confidence=0.0,
             warnings=("Volume data unavailable.",),
@@ -730,7 +733,7 @@ class BreadthAnalysis:
     explanation: BreadthExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "BreadthAnalysis":
+    def neutral_placeholder(cls) -> BreadthAnalysis:
         return cls(
             confidence=0.0,
             warnings=("Breadth data unavailable.",),
@@ -899,7 +902,7 @@ class MarketRegimeAnalysis:
     explanation: MarketRegimeExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "MarketRegimeAnalysis":
+    def neutral_placeholder(cls) -> MarketRegimeAnalysis:
         return cls(
             confidence=0.0,
             warnings=("Market regime data unavailable.",),

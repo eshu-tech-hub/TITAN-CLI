@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import tempfile
 from decimal import Decimal
+
 import pytest
 
 from titan.config.exceptions import (
@@ -77,7 +78,7 @@ class TestBrokerConfig:
     def test_defaults(self) -> None:
         cfg = BrokerConfig()
         assert cfg.provider == "paper"
-        assert cfg.paper_initial_cash == Decimal("100000")
+        assert cfg.paper_initial_cash == Decimal(100000)
         assert cfg.max_retries == 3
 
     def test_frozen(self) -> None:
@@ -98,7 +99,7 @@ class TestRuntimeConfig:
 class TestRiskConfig:
     def test_defaults(self) -> None:
         cfg = RiskConfig()
-        assert cfg.max_position_size == Decimal("100000")
+        assert cfg.max_position_size == Decimal(100000)
         assert cfg.max_drawdown_percent == Decimal("20.0")
         assert cfg.max_leverage == Decimal("1.0")
 

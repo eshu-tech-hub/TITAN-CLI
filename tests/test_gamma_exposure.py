@@ -441,7 +441,7 @@ class TestGammaWallsAnalyzer:
         )
         snapshot = make_snapshot(strikes)
         inp = GammaExposureInput(option_chain_snapshot=snapshot)
-        call, put = analyzer.analyze(inp)
+        call, _put = analyzer.analyze(inp)
         assert call is not None
         assert call.wall_type is WallType.CALL_WALL
         assert call.strike == 105.0
@@ -456,7 +456,7 @@ class TestGammaWallsAnalyzer:
         )
         snapshot = make_snapshot(strikes)
         inp = GammaExposureInput(option_chain_snapshot=snapshot)
-        call, put = analyzer.analyze(inp)
+        _call, put = analyzer.analyze(inp)
         assert put is not None
         assert put.wall_type is WallType.PUT_WALL
         assert put.strike == 90.0
@@ -471,7 +471,7 @@ class TestGammaWallsAnalyzer:
         )
         snapshot = make_snapshot(strikes)
         inp = GammaExposureInput(option_chain_snapshot=snapshot)
-        call, put = analyzer.analyze(inp)
+        call, _put = analyzer.analyze(inp)
         assert call is not None
         assert call.strike == 100.0
 

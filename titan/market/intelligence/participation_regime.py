@@ -170,11 +170,11 @@ class ParticipationRegimeAnalyzer:
 
         if compressed:
             reasons.append(
-                "Market appears compressed — low volume " "and neutral breadth."
+                "Market appears compressed — low volume and neutral breadth."
             )
         if expanding:
             reasons.append(
-                "Market is expanding — rising volume " "with directional breadth."
+                "Market is expanding — rising volume with directional breadth."
             )
 
         return reasons

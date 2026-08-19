@@ -81,26 +81,26 @@ class SurfaceHealthAnalyzer:
             if min_conf >= HEALTHY_CONFIDENCE:
                 return (
                     SurfaceHealthLevel.HEALTHY,
-                    f"All {available_count} components healthy "
-                    f"(avg confidence {avg_confidence:.0%}).",
+                    (f"All {available_count} components healthy "
+                    f"(avg confidence {avg_confidence:.0%})."),
                 )
 
         if available_count >= 3 and avg_confidence >= GOOD_CONFIDENCE:
             return (
                 SurfaceHealthLevel.GOOD,
-                f"Surface is functional with {available_count}/4 components "
-                f"(avg confidence {avg_confidence:.0%}).",
+                (f"Surface is functional with {available_count}/4 components "
+                f"(avg confidence {avg_confidence:.0%})."),
             )
 
         if available_count >= 2:
             return (
                 SurfaceHealthLevel.CAUTION,
-                f"Surface quality is degraded: {available_count}/4 components, "
-                f"avg confidence {avg_confidence:.0%}. Review component warnings.",
+                (f"Surface quality is degraded: {available_count}/4 components, "
+                f"avg confidence {avg_confidence:.0%}. Review component warnings."),
             )
 
         return (
             SurfaceHealthLevel.UNHEALTHY,
-            f"Surface is compromised: only {available_count}/4 components "
-            f"available with avg confidence {avg_confidence:.0%}.",
+            (f"Surface is compromised: only {available_count}/4 components "
+            f"available with avg confidence {avg_confidence:.0%}."),
         )

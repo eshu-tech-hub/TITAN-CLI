@@ -1,11 +1,11 @@
 import csv
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from titan.decision.journal import DecisionJournal
-from titan.trading.journal import TradeJournal
 from titan.portfolio.analytics import PortfolioAnalytics
 from titan.portfolio.models import ExistingPortfolio
+from titan.trading.journal import TradeJournal
 
 
 class ReportingService:
@@ -100,7 +100,7 @@ class ReportingService:
     ) -> None:
         """Generate a bundle of all daily reports into a directory."""
         export_dir.mkdir(parents=True, exist_ok=True)
-        date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+        date_str = datetime.now(UTC).strftime("%Y%m%d")
 
         self.export_trade_journal_csv(export_dir / f"trades_{date_str}.csv")
         self.export_decision_journal_csv(export_dir / f"decisions_{date_str}.csv")

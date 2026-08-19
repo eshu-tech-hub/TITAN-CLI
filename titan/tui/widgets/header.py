@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from textual.widget import Widget
@@ -101,7 +101,7 @@ class HeaderWidget(Widget):
 
     def update_clock(self) -> None:
         """Update the clock display. Called every second."""
-        self._clock = datetime.now(timezone.utc).strftime("%H:%M:%S UTC")
+        self._clock = datetime.now(UTC).strftime("%H:%M:%S UTC")
         if hasattr(self, "_clock_widget"):
             self._clock_widget.update(f"[bold]{self._clock}[/bold]")
 

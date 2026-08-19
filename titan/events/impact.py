@@ -11,6 +11,8 @@ Integrates with:
   - Event Risk Analyzer
 """
 
+from typing import ClassVar
+
 from titan.events.models import (
     AssetClass,
     CorporateEvent,
@@ -29,35 +31,35 @@ class ImpactAnalyzer:
 
     name = "ImpactAnalyzer"
 
-    VOLATILITY_MAP: dict[EventImportance, float] = {
+    VOLATILITY_MAP: ClassVar[dict[EventImportance, float]] = {
         EventImportance.CRITICAL: 0.85,
         EventImportance.HIGH: 0.65,
         EventImportance.MEDIUM: 0.35,
         EventImportance.LOW: 0.15,
     }
 
-    LIQUIDITY_MAP: dict[EventImportance, float] = {
+    LIQUIDITY_MAP: ClassVar[dict[EventImportance, float]] = {
         EventImportance.CRITICAL: 0.30,
         EventImportance.HIGH: 0.45,
         EventImportance.MEDIUM: 0.70,
         EventImportance.LOW: 0.90,
     }
 
-    GAP_RISK_MAP: dict[EventImportance, float] = {
+    GAP_RISK_MAP: ClassVar[dict[EventImportance, float]] = {
         EventImportance.CRITICAL: 0.80,
         EventImportance.HIGH: 0.55,
         EventImportance.MEDIUM: 0.25,
         EventImportance.LOW: 0.10,
     }
 
-    DURATION_MAP: dict[EventImportance, str] = {
+    DURATION_MAP: ClassVar[dict[EventImportance, str]] = {
         EventImportance.CRITICAL: "Multiple sessions",
         EventImportance.HIGH: "Intraday to next session",
         EventImportance.MEDIUM: "Intraday",
         EventImportance.LOW: "Brief intraday",
     }
 
-    ASSET_MAP: dict[str, AssetClass] = {
+    ASSET_MAP: ClassVar[dict[str, AssetClass]] = {
         "rbi_policy": AssetClass.CURRENCY,
         "fomc": AssetClass.CURRENCY,
         "ecb": AssetClass.CURRENCY,

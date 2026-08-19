@@ -4,6 +4,7 @@ import json
 import socket
 import threading
 from dataclasses import asdict
+from datetime import UTC
 from enum import Enum
 from typing import Any, cast
 
@@ -72,7 +73,7 @@ class LocalTransportServer:
                 break
             try:
                 conn, _ = self._server_socket.accept()
-            except socket.timeout:
+            except TimeoutError:
                 continue
             except OSError:
                 if not self._stop_event.is_set():
@@ -88,8 +89,10 @@ class LocalTransportServer:
 
                     response = self._handle_request(data)
                     conn.sendall(json.dumps(response).encode("utf-8"))
-                except socket.timeout:
-                    logger.warning("Local transport client timed out before completing a request")
+                except TimeoutError:
+                    logger.warning(
+                        "Local transport client timed out before completing a request"
+                    )
                 except OSError as exc:
                     if not self._stop_event.is_set():
                         logger.warning(f"Local transport client I/O failed: {exc}")
@@ -122,8 +125,9 @@ class LocalTransportServer:
         elif command == "paper_status":
             try:
                 broker = self.service.engine.broker
+                from datetime import datetime
                 from decimal import Decimal
-                from datetime import datetime, timezone
+
                 from titan.paper.broker import PaperBroker
 
                 if not isinstance(broker, PaperBroker):
@@ -155,9 +159,7 @@ class LocalTransportServer:
                     else []
                 )
 
-                realized_pnl = sum(
-                    (p.realized_pnl for p in open_positions), Decimal("0")
-                )
+                realized_pnl = sum((p.realized_pnl for p in open_positions), Decimal(0))
 
                 def _d(v):
                     return float(v) if v is not None else 0.0
@@ -211,7 +213,7 @@ class LocalTransportServer:
                     "expectancy": _d(perf.expectancy) if perf else 0.0,
                     "session_uptime_seconds": self.service.engine.uptime_seconds,
                     "start_time": getattr(
-                        self.service.engine, "_start_time", datetime.now(timezone.utc)
+                        self.service.engine, "_start_time", datetime.now(UTC)
                     ).isoformat(),
                     "positions": [
                         {
@@ -288,7 +290,7 @@ class LocalTransport(RuntimeTransport):
             raise TitanRuntimeError(
                 "Runtime engine is not running (connection refused)."
             )
-        except socket.timeout:
+        except TimeoutError:
             raise TitanRuntimeError("Timeout waiting for runtime engine response.")
         except Exception as e:
             raise TitanRuntimeError(f"IPC error: {e}")
@@ -336,23 +338,24 @@ class LocalTransport(RuntimeTransport):
         return cast(dict[str, Any], resp.get("data", {}))
 
     def _reconstruct_report(self, data: dict[str, Any]) -> RuntimeReport:
+        from datetime import datetime
+
+        from titan.brokers.models import ConnectionStatus
         from titan.runtime.models import (
-            RuntimeStatus,
-            RuntimeHealth,
-            SchedulerStatus,
             BrokerStatus,
-            MarketStatus,
-            JournalStatus,
-            ResourceStatus,
-            PerformanceStatus,
-            RecoveryStatus,
-            PaperBrokerStatus,
-            PortfolioStatus,
             ComponentHealth,
             HealthStatus,
+            JournalStatus,
+            MarketStatus,
+            PaperBrokerStatus,
+            PerformanceStatus,
+            PortfolioStatus,
+            RecoveryStatus,
+            ResourceStatus,
+            RuntimeHealth,
+            RuntimeStatus,
+            SchedulerStatus,
         )
-        from titan.brokers.models import ConnectionStatus
-        from datetime import datetime
 
         def parse_dt(s: str | None) -> datetime | None:
             if not s:

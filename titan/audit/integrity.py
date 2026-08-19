@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Sequence
+from datetime import UTC, datetime
 
 from titan.audit.event import compute_event_hash
 from titan.audit.exceptions import IntegrityError
@@ -29,7 +29,7 @@ class IntegrityReport:
     valid_events: int = 0
     violations: tuple[IntegrityViolation, ...] = field(default_factory=tuple)
     chain_valid: bool = True
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def is_valid(self) -> bool:

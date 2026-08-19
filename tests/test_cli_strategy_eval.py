@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from typer.testing import CliRunner
 
 from titan.cli.commands.backtest import app

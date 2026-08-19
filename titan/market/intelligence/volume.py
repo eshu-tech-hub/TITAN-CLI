@@ -22,7 +22,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.market.intelligence.accumulation_distribution import (
     AccumulationDistributionAnalyzer,
 )
@@ -403,14 +402,14 @@ class VolumeAnalyzer:
             ),
             ParticipationLevel.LOW: ("Participation is below normal. Low conviction."),
             ParticipationLevel.NORMAL: (
-                "Participation is normal. No anomalous " "activity detected."
+                "Participation is normal. No anomalous activity detected."
             ),
             ParticipationLevel.HIGH: (
                 "Participation is high. Significant market "
                 "interest in current price levels."
             ),
             ParticipationLevel.EXTREME: (
-                "Participation is extreme. Potential climax " "or exhaustion risk."
+                "Participation is extreme. Potential climax or exhaustion risk."
             ),
         }
         return mapping.get(
@@ -422,20 +421,14 @@ class VolumeAnalyzer:
         parts: list[str] = ["Accumulation / Distribution:"]
 
         if ad.accumulation:
-            parts.append(
-                "Accumulation detected — price increasing with " "rising volume."
-            )
+            parts.append("Accumulation detected — price increasing with rising volume.")
         elif ad.distribution:
-            parts.append(
-                "Distribution detected — price decreasing with " "rising volume."
-            )
+            parts.append("Distribution detected — price decreasing with rising volume.")
         else:
             parts.append("No clear accumulation or distribution pattern.")
 
         if ad.divergence:
-            parts.append(
-                "Price-volume divergence detected — trend " "may be weakening."
-            )
+            parts.append("Price-volume divergence detected — trend may be weakening.")
 
         return " ".join(parts)
 
@@ -449,9 +442,9 @@ class VolumeAnalyzer:
         if analysis.breakout_confirmation:
             parts.append("Volume confirms breakout — high conviction setup.")
         elif trend.expanding:
-            parts.append("Volume is expanding but no clear breakout " "signal yet.")
+            parts.append("Volume is expanding but no clear breakout signal yet.")
         else:
-            parts.append("Volume is not confirming breakouts. " "Caution warranted.")
+            parts.append("Volume is not confirming breakouts. Caution warranted.")
 
         return " ".join(parts)
 
@@ -473,7 +466,7 @@ class VolumeAnalyzer:
             )
         elif bias is VolumeBias.NEUTRAL:
             parts.append(
-                "Volume is neutral. Institutions are not " "actively positioning."
+                "Volume is neutral. Institutions are not actively positioning."
             )
         else:
             parts.append(
@@ -482,7 +475,7 @@ class VolumeAnalyzer:
             )
 
         if ex_prob >= 0.6:
-            parts.append("Elevated exhaustion risk. Monitor for " "potential reversal.")
+            parts.append("Elevated exhaustion risk. Monitor for potential reversal.")
         elif ex_prob >= 0.3:
             parts.append("Moderate exhaustion risk. Exercise caution.")
 
@@ -502,12 +495,12 @@ class VolumeAnalyzer:
         analysis = VolumeAnalysis.neutral_placeholder()
         object.__setattr__(analysis, "warnings", (reason,))
         explanation = VolumeExplanation(
-            current_volume="Volume assessment unavailable: " "insufficient data.",
-            relative_volume="Relative volume unavailable: " "insufficient data.",
-            participation="Participation unavailable: " "insufficient data.",
+            current_volume="Volume assessment unavailable: insufficient data.",
+            relative_volume="Relative volume unavailable: insufficient data.",
+            participation="Participation unavailable: insufficient data.",
             accumulation_distribution="Accumulation/distribution "
             "unavailable: insufficient data.",
-            breakout_quality="Breakout quality unavailable: " "insufficient data.",
+            breakout_quality="Breakout quality unavailable: insufficient data.",
             institutional_interpretation="Institutional "
             "Interpretation: Volume data is unavailable.",
         )

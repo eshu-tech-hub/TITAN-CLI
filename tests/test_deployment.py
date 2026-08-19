@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -128,7 +128,7 @@ class TestBackupManifest:
     def test_creation(self) -> None:
         manifest = BackupManifest(
             backup_id="backup-001",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             components=("data",),
         )
         assert manifest.backup_id == "backup-001"

@@ -9,8 +9,8 @@ from titan.brokers.angelone.portfolio import AngelOnePortfolioProvider
 
 __all__ = [
     "AngelOneAccountProvider",
-    "AngelOneBroker",
     "AngelOneAuthenticator",
+    "AngelOneBroker",
     "AngelOneHistoricalDataProvider",
     "AngelOneMarketDataProvider",
     "AngelOneOrderProvider",

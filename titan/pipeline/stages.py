@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 
@@ -23,7 +25,7 @@ class PipelineStage(str, Enum):
     FAILED = "failed"
 
     @classmethod
-    def execution_order(cls) -> tuple["PipelineStage", ...]:
+    def execution_order(cls) -> tuple[PipelineStage, ...]:
         """Return stages in execution order (excluding COMPLETE and FAILED)."""
         return (
             cls.PREPARE,
@@ -45,5 +47,5 @@ class PipelineStage(str, Enum):
         )
 
     @classmethod
-    def terminal_stages(cls) -> tuple["PipelineStage", ...]:
+    def terminal_stages(cls) -> tuple[PipelineStage, ...]:
         return (cls.COMPLETE, cls.FAILED)

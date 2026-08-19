@@ -6,16 +6,16 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
+from titan.cli.exit_codes import (
+    CONFIG_ERROR,
+    NETWORK_ERROR,
+    RUNTIME_ERROR,
+)
 from titan.core.exceptions import (
     AnalysisError,
     BrokerError,
     ConfigurationError,
     TitanError,
-)
-from titan.cli.exit_codes import (
-    CONFIG_ERROR,
-    NETWORK_ERROR,
-    RUNTIME_ERROR,
 )
 
 console = Console(stderr=True)

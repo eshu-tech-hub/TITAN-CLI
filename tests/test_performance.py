@@ -10,7 +10,7 @@ import gc
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -88,7 +88,7 @@ def _generate_historical_bars(n: int, base_price: float = 100.0) -> list[Histori
 
     bars: list[HistoricalBar] = []
     price = base_price
-    base = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    base = datetime(2025, 1, 1, tzinfo=UTC)
     for i in range(n):
         change = (i % 7 - 3) * 0.5
         price += change
@@ -166,7 +166,7 @@ def _get_memory_mb() -> float:
         pass
     import tracemalloc
 
-    current, peak = tracemalloc.get_traced_memory()
+    current, _peak = tracemalloc.get_traced_memory()
     return current / (1024 * 1024)
 
 
@@ -200,9 +200,9 @@ class TestCPUPrefiling:
             results[name] = stats
 
         for name, stats in results.items():
-            assert (
-                stats["p95_ms"] < 5000
-            ), f"{name} p95 latency {stats['p95_ms']:.1f}ms exceeds 5000ms threshold"
+            assert stats["p95_ms"] < 5000, (
+                f"{name} p95 latency {stats['p95_ms']:.1f}ms exceeds 5000ms threshold"
+            )
 
     def test_fusion_engine_cpu(self) -> None:
         """Profile intelligence fusion computation."""
@@ -219,9 +219,9 @@ class TestCPUPrefiling:
             return fusion.fuse()
 
         stats = _measure(_run, iterations=100)
-        assert (
-            stats["p95_ms"] < 100
-        ), f"Fusion p95 {stats['p95_ms']:.1f}ms exceeds 100ms threshold"
+        assert stats["p95_ms"] < 100, (
+            f"Fusion p95 {stats['p95_ms']:.1f}ms exceeds 100ms threshold"
+        )
 
     def test_risk_engine_cpu(self) -> None:
         """Profile risk engine computation."""
@@ -232,13 +232,13 @@ class TestCPUPrefiling:
             return risk.analyze(risk_input=risk_input)
 
         stats = _measure(_run, iterations=200)
-        assert (
-            stats["p95_ms"] < 50
-        ), f"RiskEngine p95 {stats['p95_ms']:.1f}ms exceeds 50ms threshold"
+        assert stats["p95_ms"] < 50, (
+            f"RiskEngine p95 {stats['p95_ms']:.1f}ms exceeds 50ms threshold"
+        )
 
     def test_paper_broker_cpu(self) -> None:
         """Profile paper broker order placement."""
-        broker = PaperBroker(initial_cash=Decimal("1000000"))
+        broker = PaperBroker(initial_cash=Decimal(1000000))
         broker.connect()
 
         def _run() -> Any:
@@ -253,9 +253,9 @@ class TestCPUPrefiling:
             )
 
         stats = _measure(_run, iterations=50)
-        assert (
-            stats["p95_ms"] < 50
-        ), f"PaperBroker p95 {stats['p95_ms']:.1f}ms exceeds 50ms threshold"
+        assert stats["p95_ms"] < 50, (
+            f"PaperBroker p95 {stats['p95_ms']:.1f}ms exceeds 50ms threshold"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -305,9 +305,9 @@ class TestMemoryProfiling:
         mem_after = _get_memory_mb()
         delta = mem_after - mem_before
 
-        assert (
-            delta < 100
-        ), f"Memory grew by {delta:.1f}MB for 10k events (threshold: 100MB)"
+        assert delta < 100, (
+            f"Memory grew by {delta:.1f}MB for 10k events (threshold: 100MB)"
+        )
 
     def test_alert_engine_memory(self) -> None:
         """Verify alert engine memory is bounded."""
@@ -352,9 +352,9 @@ class TestLatencyProfiling:
             )
 
         stats = _measure(_run, iterations=100)
-        assert (
-            stats["p95_ms"] < 10
-        ), f"Order creation p95 {stats['p95_ms']:.2f}ms exceeds 10ms threshold"
+        assert stats["p95_ms"] < 10, (
+            f"Order creation p95 {stats['p95_ms']:.2f}ms exceeds 10ms threshold"
+        )
 
     def test_audit_event_creation_latency(self) -> None:
         """Profile audit event creation latency."""
@@ -368,9 +368,9 @@ class TestLatencyProfiling:
             )
 
         stats = _measure(_run, iterations=1000)
-        assert (
-            stats["p95_ms"] < 5
-        ), f"Audit event creation p95 {stats['p95_ms']:.2f}ms exceeds 5ms threshold"
+        assert stats["p95_ms"] < 5, (
+            f"Audit event creation p95 {stats['p95_ms']:.2f}ms exceeds 5ms threshold"
+        )
 
     def test_monitoring_collector_latency(self) -> None:
         """Profile monitoring metric collection."""
@@ -385,13 +385,13 @@ class TestLatencyProfiling:
             return collector.collect_all()
 
         stats = _measure(_run, iterations=1000)
-        assert (
-            stats["p95_ms"] < 5
-        ), f"Monitoring collector p95 {stats['p95_ms']:.2f}ms exceeds 5ms threshold"
+        assert stats["p95_ms"] < 5, (
+            f"Monitoring collector p95 {stats['p95_ms']:.2f}ms exceeds 5ms threshold"
+        )
 
     def test_paper_broker_latency(self) -> None:
         """Profile paper broker order execution."""
-        broker = PaperBroker(initial_cash=Decimal("1000000"))
+        broker = PaperBroker(initial_cash=Decimal(1000000))
         broker.connect()
 
         def _run() -> Any:
@@ -406,9 +406,9 @@ class TestLatencyProfiling:
             )
 
         stats = _measure(_run, iterations=50)
-        assert (
-            stats["p95_ms"] < 50
-        ), f"PaperBroker p95 {stats['p95_ms']:.2f}ms exceeds 50ms threshold"
+        assert stats["p95_ms"] < 50, (
+            f"PaperBroker p95 {stats['p95_ms']:.2f}ms exceeds 50ms threshold"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -427,16 +427,16 @@ class TestThroughputProfiling:
             exchange=Exchange.NSE,
             bars=bars,
         )
-        engine = BacktestEngine(dataset=dataset, total_capital=Decimal("100000"))
+        engine = BacktestEngine(dataset=dataset, total_capital=Decimal(100000))
 
         start = time.perf_counter()
         engine.run()
         elapsed = time.perf_counter() - start
 
         bars_per_sec = len(bars) / elapsed if elapsed > 0 else 0
-        assert (
-            bars_per_sec > 1
-        ), f"Backtesting throughput {bars_per_sec:.1f} bars/s below 1 bars/s threshold"
+        assert bars_per_sec > 1, (
+            f"Backtesting throughput {bars_per_sec:.1f} bars/s below 1 bars/s threshold"
+        )
 
     def test_audit_query_throughput(self) -> None:
         """Profile audit query throughput."""
@@ -456,9 +456,9 @@ class TestThroughputProfiling:
             return manager.search(AuditQuery(category=AuditCategory.SYSTEM_START))
 
         stats = _measure(_run, iterations=50)
-        assert (
-            stats["p95_ms"] < 100
-        ), f"Audit query p95 {stats['p95_ms']:.1f}ms exceeds 100ms threshold"
+        assert stats["p95_ms"] < 100, (
+            f"Audit query p95 {stats['p95_ms']:.1f}ms exceeds 100ms threshold"
+        )
 
     def test_integrity_check_throughput(self) -> None:
         """Profile integrity verification throughput."""
@@ -477,9 +477,9 @@ class TestThroughputProfiling:
             return engine.verify(events)
 
         stats = _measure(_run, iterations=20)
-        assert (
-            stats["p95_ms"] < 500
-        ), f"Integrity check p95 {stats['p95_ms']:.1f}ms exceeds 500ms threshold"
+        assert stats["p95_ms"] < 500, (
+            f"Integrity check p95 {stats['p95_ms']:.1f}ms exceeds 500ms threshold"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -625,7 +625,7 @@ class TestFailureInjection:
 
     def test_paper_broker_insufficient_balance(self) -> None:
         """Verify paper broker rejects orders exceeding balance."""
-        broker = PaperBroker(initial_cash=Decimal("100"))
+        broker = PaperBroker(initial_cash=Decimal(100))
         broker.connect()
 
         for _ in range(5):
@@ -685,9 +685,7 @@ class TestRecoveryValidation:
         def _flaky() -> bool:
             nonlocal call_count
             call_count += 1
-            if call_count < 3:
-                return False
-            return True
+            return not call_count < 3
 
         result = engine.execute(_flaky)
         assert result.value == "success"
@@ -799,9 +797,9 @@ class TestLongRunningStability:
             assert result is not None
         elapsed = time.perf_counter() - start
 
-        assert (
-            elapsed < 30
-        ), f"100 analytics iterations took {elapsed:.1f}s (threshold: 30s)"
+        assert elapsed < 30, (
+            f"100 analytics iterations took {elapsed:.1f}s (threshold: 30s)"
+        )
 
     def test_sustained_audit_recording(self) -> None:
         """Record audit events continuously for stability check."""
@@ -833,6 +831,6 @@ class TestLongRunningStability:
             collector.collect_all()
         elapsed = time.perf_counter() - start
 
-        assert (
-            elapsed < 10
-        ), f"5000 metric collections took {elapsed:.1f}s (threshold: 10s)"
+        assert elapsed < 10, (
+            f"5000 metric collections took {elapsed:.1f}s (threshold: 10s)"
+        )

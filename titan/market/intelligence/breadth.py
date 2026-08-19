@@ -23,7 +23,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.market.intelligence.advance_decline import (
     AdvanceDeclineAnalyzer,
 )
@@ -408,9 +407,7 @@ class BreadthAnalyzer:
         if participation.internal_strength:
             parts.append("Broad participation confirms price action.")
         elif participation.internal_weakness:
-            parts.append(
-                "Participation is narrow — internals do not " "support the move."
-            )
+            parts.append("Participation is narrow — internals do not support the move.")
         else:
             parts.append("Participation is neutral.")
 
@@ -429,7 +426,7 @@ class BreadthAnalyzer:
             parts.append(f"Lagging: {', '.join(analysis.lagging_sectors)}.")
 
         if sector.rotation_detected:
-            parts.append("Rotation detected — capital is rotating " "between sectors.")
+            parts.append("Rotation detected — capital is rotating between sectors.")
 
         if not analysis.leading_sectors and not analysis.lagging_sectors:
             parts.append("No sector data available.")
@@ -441,7 +438,7 @@ class BreadthAnalyzer:
 
         health_map = {
             "healthy": (
-                "Breadth confirms price action. " "Market internals are supportive."
+                "Breadth confirms price action. Market internals are supportive."
             ),
             "unhealthy": (
                 "Breadth does not confirm price action. "
@@ -452,7 +449,7 @@ class BreadthAnalyzer:
                 "Current price levels may not be sustainable."
             ),
             "neutral": (
-                "Breadth is neither confirming nor " "contradicting price action."
+                "Breadth is neither confirming nor contradicting price action."
             ),
         }
         parts.append(
@@ -481,8 +478,7 @@ class BreadthAnalyzer:
             )
         elif bias is BreadthBias.NEUTRAL:
             parts.append(
-                "Breadth is neutral. No strong institutional "
-                "conviction from internals."
+                "Breadth is neutral. No strong institutional conviction from internals."
             )
         else:
             parts.append(
@@ -512,11 +508,11 @@ class BreadthAnalyzer:
         analysis = BreadthAnalysis.neutral_placeholder()
         object.__setattr__(analysis, "warnings", (reason,))
         explanation = BreadthExplanation(
-            overall_breadth="Breadth assessment unavailable: " "insufficient data.",
-            advance_decline="A/D analysis unavailable: " "insufficient data.",
-            participation="Participation analysis unavailable: " "insufficient data.",
-            sector_leadership="Sector analysis unavailable: " "insufficient data.",
-            market_health="Market health unavailable: " "insufficient data.",
+            overall_breadth="Breadth assessment unavailable: insufficient data.",
+            advance_decline="A/D analysis unavailable: insufficient data.",
+            participation="Participation analysis unavailable: insufficient data.",
+            sector_leadership="Sector analysis unavailable: insufficient data.",
+            market_health="Market health unavailable: insufficient data.",
             institutional_interpretation="Institutional "
             "Interpretation: Breadth data is unavailable.",
         )

@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from titan.execution.exceptions import InvalidStateTransitionError
 from titan.execution.models import OrderEvent, OrderState
 
@@ -9,7 +11,7 @@ class OrderStateMachine:
     as an OrderEvent for full auditability.
     """
 
-    _TRANSITIONS: dict[OrderState, set[OrderState]] = {
+    _TRANSITIONS: ClassVar[dict[OrderState, set[OrderState]]] = {
         OrderState.NEW: {
             OrderState.VALIDATED,
             OrderState.REJECTED,
@@ -55,7 +57,7 @@ class OrderStateMachine:
         OrderState.FAILED: set(),
     }
 
-    _TERMINAL_STATES: frozenset[OrderState] = frozenset(
+    _TERMINAL_STATES: ClassVar[frozenset[OrderState]] = frozenset(
         {
             OrderState.FILLED,
             OrderState.REJECTED,

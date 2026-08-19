@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from titan.validation.reports import BurnInReport, StressReport
 
 

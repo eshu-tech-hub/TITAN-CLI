@@ -82,10 +82,10 @@ class VannaPressureAnalyzer:
         score = 0.0
         factors = 0
 
-        if regime.regime_type is VannaRegimeType.POSITIVE:
-            score += 0.6
-            factors += 1
-        elif regime.regime_type is VannaRegimeType.NEGATIVE:
+        if (
+            regime.regime_type is VannaRegimeType.POSITIVE
+            or regime.regime_type is VannaRegimeType.NEGATIVE
+        ):
             score += 0.6
             factors += 1
         elif regime.regime_type is VannaRegimeType.BALANCED:

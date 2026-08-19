@@ -1,7 +1,8 @@
 from unittest.mock import MagicMock
+
+from titan.runtime.models import RuntimeStatus
 from titan.runtime.runtime import RuntimeEngine
 from titan.runtime.service import RuntimeService
-from titan.runtime.models import RuntimeStatus
 
 
 def test_runtime_service_wrapper():

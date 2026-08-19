@@ -12,8 +12,8 @@ from titan.options.analytics.models import (
     GreeksAnalysis,
     MarketBias,
     OptionChainAnalysis,
-    SurfaceIntelligenceAnalysis,
     SurfaceHealthLevel,
+    SurfaceIntelligenceAnalysis,
 )
 
 BIAS_CONFIDENCE_LOW = 0.15

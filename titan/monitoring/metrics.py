@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from statistics import mean
 from threading import Lock
 
@@ -38,7 +38,7 @@ class MetricsRegistry:
                 all_metrics.extend(vals)
             return MetricSnapshot(
                 metrics=tuple(all_metrics),
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 source="metrics_registry",
             )
 
@@ -90,9 +90,7 @@ class MetricAggregator:
                     "count": 0.0,
                 }
 
-            vals = self._registry.range(
-                metric_name, datetime(1970, 1, 1, tzinfo=timezone.utc)
-            )
+            vals = self._registry.range(metric_name, datetime(1970, 1, 1, tzinfo=UTC))
             if not vals:
                 return {
                     "current": 0.0,
@@ -157,7 +155,7 @@ class MetricsEngine:
 
         return MetricSnapshot(
             metrics=tuple(collected),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             source="metrics_engine",
         )
 

@@ -1,5 +1,6 @@
 import os
 
+
 def bundle_python_files(output_filename="all_project_code.txt"):
     current_dir = os.getcwd()
     excluded_dirs = {".venv", "__pycache__", ".git", ".pytest_cache", "build", "dist"}

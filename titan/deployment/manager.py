@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import time
 import threading
-from datetime import datetime, timezone
-from typing import Any, Callable
+import time
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
 from titan.deployment.environment import EnvironmentManager
 from titan.deployment.exceptions import DeploymentError, ShutdownError, StartupError
@@ -16,8 +17,8 @@ from titan.deployment.models import (
     SubsystemStatus,
     VersionInfo,
 )
-from titan.deployment.startup import StartupManager, build_default_steps
 from titan.deployment.service import ProductionValidator
+from titan.deployment.startup import StartupManager, build_default_steps
 from titan.deployment.version import VersionManager
 
 
@@ -171,7 +172,7 @@ class DeploymentManager:
             environment=self._environment,
             version=self._version_manager.get(),
             uptime_seconds=self.uptime_seconds,
-            start_time=(datetime.now(timezone.utc) if self._start_time > 0 else None),
+            start_time=(datetime.now(UTC) if self._start_time > 0 else None),
             health=health,
         )
 
@@ -191,7 +192,7 @@ class DeploymentManager:
 
         dest = Path(destination)
         dest.mkdir(parents=True, exist_ok=True)
-        backup_id = f"backup-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        backup_id = f"backup-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
         backup_dir = dest / backup_id
         backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -222,7 +223,7 @@ class DeploymentManager:
 
         return BackupManifest(
             backup_id=backup_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             components=tuple(components),
             total_files=total_files,
             destination=str(backup_dir),
@@ -260,6 +261,6 @@ class DeploymentManager:
             environment=self._environment,
             version=self._version_manager.get(),
             uptime_seconds=self.uptime_seconds,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             health=health,
         )

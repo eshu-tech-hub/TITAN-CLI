@@ -70,5 +70,5 @@ def get_theme() -> ThemeColors:
 
 def set_theme(theme: ThemeColors) -> None:
     """Set the current theme."""
-    global _DEFAULT_THEME  # noqa: PLW0603
+    global _DEFAULT_THEME
     _DEFAULT_THEME = theme

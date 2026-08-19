@@ -3,7 +3,7 @@
 All tests mock the SmartAPI SDK. No live servers are contacted.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 from unittest.mock import MagicMock
@@ -224,13 +224,13 @@ class TestQuoteFromSmartAPI:
     def test_minimal_quote(self) -> None:
         quote = quote_from_smartapi({"symbol": "TEST", "exchange": "NSE", "ltp": 100})
         assert quote.symbol == "TEST"
-        assert quote.last_price == Decimal("100")
+        assert quote.last_price == Decimal(100)
         assert quote.bid is None
 
     def test_empty_data(self) -> None:
         quote = quote_from_smartapi({})
         assert quote.symbol == ""
-        assert quote.last_price == Decimal("0")
+        assert quote.last_price == Decimal(0)
 
 
 class TestCandleFromSmartAPI:
@@ -253,7 +253,7 @@ class TestCandleFromSmartAPI:
                 "volume": 5000,
             }
         )
-        assert candle.open == Decimal("100")
+        assert candle.open == Decimal(100)
         assert candle.volume == 5000
 
 
@@ -362,8 +362,8 @@ class TestMarginFromSmartAPI:
         m = margin_from_smartapi(
             {"totalmargin": 500000, "usedmargin": 100000, "availablemargin": 400000}
         )
-        assert m.total_margin == Decimal("500000")
-        assert m.available_margin == Decimal("400000")
+        assert m.total_margin == Decimal(500000)
+        assert m.available_margin == Decimal(400000)
 
     def test_empty_margin(self) -> None:
         m = margin_from_smartapi({})
@@ -572,7 +572,7 @@ class TestAngelOneHistoricalDataProvider:
         candles = provider.history(
             "RELIANCE",
             "1min",
-            start=datetime(2026, 7, 3, 9, 15, tzinfo=timezone.utc),
+            start=datetime(2026, 7, 3, 9, 15, tzinfo=UTC),
         )
         assert len(candles) == 2
         assert candles[0].open == Decimal("2500.00")
@@ -714,7 +714,7 @@ class TestAngelOneAccountProvider:
         }
         provider = AngelOneAccountProvider(smart_connect=mock_smart_connect)
         margin = provider.margin()
-        assert margin.total_margin == Decimal("500000")
+        assert margin.total_margin == Decimal(500000)
 
     def test_profile(
         self, mock_smart_connect: MagicMock, sample_profile_data: dict[str, Any]

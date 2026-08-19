@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -8,7 +8,6 @@ from titan.brokers.models import (
     OrderStatus,
     Trade,
 )
-
 from titan.paper.models import PaperFill, PaperOrder
 
 
@@ -339,7 +338,7 @@ class TradeJournal:
         """Append an event to the chronological log."""
         entry: dict[str, Any] = {
             "type": event_type,
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
         }
         entry.update(kwargs)
         self._events.append(entry)

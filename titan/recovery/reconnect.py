@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 
 from titan.recovery.exceptions import RecoveryReconnectError
@@ -63,11 +63,11 @@ class BrokerReconnector:
         if result is RecoveryStatus.SUCCESS:
             with self._lock:
                 self._reconnect_attempts += 1
-                self._last_reconnect_time = datetime.now(timezone.utc)
+                self._last_reconnect_time = datetime.now(UTC)
                 self._state = BrokerSessionState(
                     is_connected=True,
                     session_id=self._state.session_id,
-                    last_heartbeat=datetime.now(timezone.utc),
+                    last_heartbeat=datetime.now(UTC),
                     subscriptions=subscriptions,
                     reconnect_attempts=self._reconnect_attempts,
                 )
@@ -103,7 +103,7 @@ class BrokerReconnector:
                 is_connected=alive,
                 session_id=self._state.session_id,
                 last_heartbeat=(
-                    datetime.now(timezone.utc) if alive else self._state.last_heartbeat
+                    datetime.now(UTC) if alive else self._state.last_heartbeat
                 ),
                 subscriptions=self._state.subscriptions,
                 reconnect_attempts=self._reconnect_attempts,

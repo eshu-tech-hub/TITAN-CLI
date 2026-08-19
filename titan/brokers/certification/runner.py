@@ -2,24 +2,24 @@
 Runner for orchestrating the broker certification process.
 """
 
-from collections.abc import Sequence
-from typing import Any
 import time
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
+from typing import Any
 
+from titan.brokers.certification.adapters import BrokerFeatureDiscovery
 from titan.brokers.certification.models import (
     BrokerCapability,
     BrokerCertificationReport,
     BrokerCertificationResult,
     CertificationStatus,
 )
-from titan.brokers.certification.validator import CertificationEngine
 from titan.brokers.certification.report import (
     BrokerCapabilityMatrixBuilder,
     CertificationReportBuilder,
 )
 from titan.brokers.certification.scenarios import ALL_SCENARIOS
-from titan.brokers.certification.adapters import BrokerFeatureDiscovery
+from titan.brokers.certification.validator import CertificationEngine
 
 
 class BrokerCertificationRunner:
@@ -46,9 +46,7 @@ class BrokerCertificationRunner:
         """
 
         if capabilities is None:
-            capabilities = BrokerFeatureDiscovery.discover_capabilities(
-                broker_instance
-            )
+            capabilities = BrokerFeatureDiscovery.discover_capabilities(broker_instance)
 
         matrix_builder = BrokerCapabilityMatrixBuilder(broker_id=self._broker_id)
         for cap in capabilities:
@@ -57,7 +55,7 @@ class BrokerCertificationRunner:
         self._report_builder.set_capability_matrix(capability_matrix)
 
         # Basic validations
-        validation_results = self._engine.run_validations(broker_instance, capabilities)
+        validation_results = self._engine.run_validations(broker_instance, list(capabilities))
         for val_res in validation_results:
             self._report_builder.add_validation_result(val_res)
 
@@ -111,7 +109,7 @@ class BrokerCertificationRunner:
                     scenario=scenario,
                     status=CertificationStatus.NOT_APPLICABLE,
                     execution_time_ms=execution_time_ms,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     message="Skipped due to lack of broker capability.",
                 )
             else:
@@ -131,7 +129,7 @@ class BrokerCertificationRunner:
                     msg = "Scenario executed successfully."
                 except Exception as e:
                     status = CertificationStatus.FAIL
-                    msg = f"Execution failed: {str(e)}"
+                    msg = f"Execution failed: {e!s}"
 
                 execution_time_ms = (time.perf_counter() - start_time) * 1000
 
@@ -139,7 +137,7 @@ class BrokerCertificationRunner:
                     scenario=scenario,
                     status=status,
                     execution_time_ms=execution_time_ms,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     message=msg,
                 )
             self._report_builder.add_scenario_result(result)

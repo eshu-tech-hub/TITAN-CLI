@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from titan.core.evidence import Evidence, EvidenceSignal
 
@@ -318,7 +321,7 @@ class AnalysisResult:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def neutral_placeholder(cls, analyzer_name: str) -> "AnalysisResult":  # type: ignore[misc]
+    def neutral_placeholder(cls, analyzer_name: str) -> AnalysisResult:  # type: ignore[misc]
         """Build a neutral placeholder result for milestone foundations.
 
         Args:
@@ -481,7 +484,7 @@ class VolatilityAnalysis:
     explanation: VolatilityExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "VolatilityAnalysis":
+    def neutral_placeholder(cls) -> VolatilityAnalysis:
         """Build a neutral placeholder for missing volatility data."""
 
         return cls(
@@ -591,7 +594,7 @@ class SmileAnalysis:
     explanation: SmileExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "SmileAnalysis":
+    def neutral_placeholder(cls) -> SmileAnalysis:
         """Build a neutral placeholder for missing smile data."""
 
         return cls(
@@ -709,7 +712,7 @@ class SkewAnalysis:
     explanation: SkewExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "SkewAnalysis":
+    def neutral_placeholder(cls) -> SkewAnalysis:
         """Build a neutral placeholder for missing skew data."""
 
         return cls(
@@ -853,7 +856,7 @@ class TermStructureAnalysis:
     explanation: TermStructureExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "TermStructureAnalysis":
+    def neutral_placeholder(cls) -> TermStructureAnalysis:
         """Build a neutral placeholder for missing term structure data."""
 
         return cls(
@@ -1055,7 +1058,7 @@ class SurfaceIntelligenceAnalysis:
     explanation: SurfaceExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "SurfaceIntelligenceAnalysis":
+    def neutral_placeholder(cls) -> SurfaceIntelligenceAnalysis:
         """Build a neutral placeholder for missing surface data."""
 
         return cls(
@@ -1205,7 +1208,7 @@ class DealerPositioningAnalysis:
     explanation: DealerPositioningExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "DealerPositioningAnalysis":
+    def neutral_placeholder(cls) -> DealerPositioningAnalysis:
         """Build a neutral placeholder for missing dealer data."""
 
         return cls(
@@ -1384,7 +1387,7 @@ class GammaExposureAnalysis:
     explanation: GammaExposureExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "GammaExposureAnalysis":
+    def neutral_placeholder(cls) -> GammaExposureAnalysis:
         """Build a neutral placeholder for missing gamma exposure data."""
 
         return cls(
@@ -1544,7 +1547,7 @@ class VannaExposureAnalysis:
     explanation: VannaExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "VannaExposureAnalysis":
+    def neutral_placeholder(cls) -> VannaExposureAnalysis:
         """Build a neutral placeholder for missing vanna data."""
 
         return cls(
@@ -1718,7 +1721,7 @@ class CharmExposureAnalysis:
     explanation: CharmExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "CharmExposureAnalysis":
+    def neutral_placeholder(cls) -> CharmExposureAnalysis:
         """Build a neutral placeholder for missing charm data."""
 
         return cls(

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import contextvars
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any, Iterator
+from typing import Any, ClassVar
 
 
 class LoggingContext:
@@ -53,7 +54,7 @@ class LoggingContext:
         "extra", default={}
     )
 
-    _FIELDS = {
+    _FIELDS: ClassVar[dict[str, contextvars.ContextVar[str | None]]] = {
         "pipeline_id": _pipeline_id,
         "correlation_id": _correlation_id,
         "request_id": _request_id,

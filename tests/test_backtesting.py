@@ -1,5 +1,6 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
+
 import pytest
 
 from titan.backtesting.clock import SimulationClock
@@ -46,7 +47,7 @@ def make_bar(
     volume: int = 1000,
 ) -> HistoricalBar:
     return HistoricalBar(
-        timestamp=timestamp or datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
+        timestamp=timestamp or datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
         open=Decimal(open),
         high=Decimal(high),
         low=Decimal(low),
@@ -64,7 +65,7 @@ def make_dataset(
     for i in range(n_bars):
         bars.append(
             make_bar(
-                timestamp=datetime(2026, 1, 1, 9, 15 + i, tzinfo=timezone.utc),
+                timestamp=datetime(2026, 1, 1, 9, 15 + i, tzinfo=UTC),
                 close=str(100.0 + i),
             )
         )
@@ -101,17 +102,17 @@ class TestHistoricalBar:
     def test_is_frozen(self) -> None:
         bar = make_bar()
         with pytest.raises(AttributeError):
-            bar.close = Decimal("200")  # type: ignore[misc]
+            bar.close = Decimal(200)  # type: ignore[misc]
 
     def test_open_interest_optional(self) -> None:
         bar = make_bar()
         assert bar.open_interest is None
         bar2 = HistoricalBar(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            open=Decimal("100"),
-            high=Decimal("110"),
-            low=Decimal("90"),
-            close=Decimal("105"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            open=Decimal(100),
+            high=Decimal(110),
+            low=Decimal(90),
+            close=Decimal(105),
             volume=1000,
             open_interest=500,
         )
@@ -164,18 +165,18 @@ class TestBacktestReport:
             exchange="nse",
             status=BacktestStatus.COMPLETED,
             bars_processed=100,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 2, tzinfo=UTC),
             duration_seconds=10.5,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("105000"),
-            total_pnl=Decimal("5000"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(105000),
+            total_pnl=Decimal(5000),
             total_return=Decimal("0.05"),
             statistics=BacktestStatistics(),
             metrics=BacktestMetrics(),
         )
         assert report.bars_processed == 100
-        assert report.total_pnl == Decimal("5000")
+        assert report.total_pnl == Decimal(5000)
 
     def test_is_frozen(self) -> None:
         report = BacktestReport(
@@ -184,18 +185,18 @@ class TestBacktestReport:
             exchange="nse",
             status=BacktestStatus.PENDING,
             bars_processed=0,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 1, tzinfo=UTC),
             duration_seconds=0.0,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("100000"),
-            total_pnl=Decimal("0"),
-            total_return=Decimal("0"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(100000),
+            total_pnl=Decimal(0),
+            total_return=Decimal(0),
             statistics=BacktestStatistics(),
             metrics=BacktestMetrics(),
         )
         with pytest.raises(AttributeError):
-            report.total_pnl = Decimal("100")  # type: ignore[misc]
+            report.total_pnl = Decimal(100)  # type: ignore[misc]
 
 
 class TestBacktestStatus:
@@ -210,21 +211,21 @@ class TestBacktestStatus:
 class TestEquityPoint:
     def test_construction(self) -> None:
         ep = EquityPoint(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            equity=Decimal("100000"),
-            cash=Decimal("50000"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            equity=Decimal(100000),
+            cash=Decimal(50000),
         )
-        assert ep.equity == Decimal("100000")
-        assert ep.drawdown == Decimal("0")
+        assert ep.equity == Decimal(100000)
+        assert ep.drawdown == Decimal(0)
 
     def test_is_frozen(self) -> None:
         ep = EquityPoint(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            equity=Decimal("100000"),
-            cash=Decimal("50000"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            equity=Decimal(100000),
+            cash=Decimal(50000),
         )
         with pytest.raises(AttributeError):
-            ep.equity = Decimal("200000")  # type: ignore[misc]
+            ep.equity = Decimal(200000)  # type: ignore[misc]
 
 
 class TestBacktestExplanation:
@@ -249,32 +250,32 @@ class TestBacktestExplanation:
 class TestOptionSnapshot:
     def test_construction(self) -> None:
         snap = OptionSnapshot(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
             symbol="NIFTY",
             expiry="2026-01-30",
-            strike=Decimal("20000"),
+            strike=Decimal(20000),
             option_type="CE",
-            open=Decimal("100"),
-            high=Decimal("110"),
-            low=Decimal("90"),
-            close=Decimal("105"),
+            open=Decimal(100),
+            high=Decimal(110),
+            low=Decimal(90),
+            close=Decimal(105),
             volume=1000,
             open_interest=5000,
         )
         assert snap.option_type == "CE"
-        assert snap.strike == Decimal("20000")
+        assert snap.strike == Decimal(20000)
 
     def test_is_frozen(self) -> None:
         snap = OptionSnapshot(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
             symbol="NIFTY",
             expiry="2026-01-30",
-            strike=Decimal("20000"),
+            strike=Decimal(20000),
             option_type="CE",
-            open=Decimal("100"),
-            high=Decimal("110"),
-            low=Decimal("90"),
-            close=Decimal("105"),
+            open=Decimal(100),
+            high=Decimal(110),
+            low=Decimal(90),
+            close=Decimal(105),
             volume=1000,
             open_interest=5000,
         )
@@ -285,7 +286,7 @@ class TestOptionSnapshot:
 class TestNewsSnapshot:
     def test_construction(self) -> None:
         snap = NewsSnapshot(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
             headline="Market up",
             sentiment=0.5,
             source="Reuters",
@@ -298,7 +299,7 @@ class TestNewsSnapshot:
 class TestEventSnapshot:
     def test_construction(self) -> None:
         snap = EventSnapshot(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
             event_type="earnings",
             description="Q4 earnings report",
             importance=5,
@@ -329,11 +330,11 @@ class TestHistoricalDataset:
 
     def test_negative_price_raises(self) -> None:
         bar = HistoricalBar(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            open=Decimal("-1"),
-            high=Decimal("10"),
-            low=Decimal("-1"),
-            close=Decimal("10"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            open=Decimal(-1),
+            high=Decimal(10),
+            low=Decimal(-1),
+            close=Decimal(10),
             volume=100,
         )
         with pytest.raises(DatasetValidationError):
@@ -341,11 +342,11 @@ class TestHistoricalDataset:
 
     def test_high_low_violation_raises(self) -> None:
         bar = HistoricalBar(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            open=Decimal("100"),
-            high=Decimal("95"),
-            low=Decimal("100"),
-            close=Decimal("100"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            open=Decimal(100),
+            high=Decimal(95),
+            low=Decimal(100),
+            close=Decimal(100),
             volume=100,
         )
         with pytest.raises(DatasetValidationError):
@@ -353,11 +354,11 @@ class TestHistoricalDataset:
 
     def test_negative_volume_raises(self) -> None:
         bar = HistoricalBar(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            open=Decimal("100"),
-            high=Decimal("110"),
-            low=Decimal("90"),
-            close=Decimal("105"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            open=Decimal(100),
+            high=Decimal(110),
+            low=Decimal(90),
+            close=Decimal(105),
             volume=-1,
         )
         with pytest.raises(DatasetValidationError):
@@ -365,8 +366,8 @@ class TestHistoricalDataset:
 
     def test_non_ascending_timestamps_raises(self) -> None:
         bars = [
-            make_bar(timestamp=datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc)),
-            make_bar(timestamp=datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc)),
+            make_bar(timestamp=datetime(2026, 1, 1, 9, 16, tzinfo=UTC)),
+            make_bar(timestamp=datetime(2026, 1, 1, 9, 15, tzinfo=UTC)),
         ]
         with pytest.raises(DatasetValidationError):
             HistoricalDataset(symbol="TEST", exchange=Exchange.NSE, bars=bars)
@@ -396,11 +397,11 @@ class TestHistoricalDataset:
     def test_from_broker_candles(self) -> None:
         candles = [
             Candle(
-                datetime=datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-                open=Decimal("100"),
-                high=Decimal("105"),
-                low=Decimal("95"),
-                close=Decimal("102"),
+                datetime=datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+                open=Decimal(100),
+                high=Decimal(105),
+                low=Decimal(95),
+                close=Decimal(102),
                 volume=1000,
                 oi=500,
             ),
@@ -420,7 +421,7 @@ class TestHistoricalDataset:
         for i in range(10):
             bars.append(
                 make_bar(
-                    timestamp=datetime(2026, 1, 1, 9, 15 + i, tzinfo=timezone.utc),
+                    timestamp=datetime(2026, 1, 1, 9, 15 + i, tzinfo=UTC),
                     high=str(105 + i),
                     low=str(95 - i),
                     close=str(102 + i),
@@ -443,8 +444,8 @@ class TestSimulationClock:
     def test_initialize(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
         ]
         clock.initialize(total_bars=2, start_time=times[0], bar_times=times)
         assert clock.current_index == 0
@@ -459,15 +460,15 @@ class TestSimulationClock:
 
     def test_initialize_mismatched_length_raises(self) -> None:
         clock = SimulationClock()
-        times = [datetime(2026, 1, 1, tzinfo=timezone.utc)]
+        times = [datetime(2026, 1, 1, tzinfo=UTC)]
         with pytest.raises(ClockError):
             clock.initialize(total_bars=5, start_time=times[0], bar_times=times)
 
     def test_next_bar(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
         ]
         clock.initialize(total_bars=2, start_time=times[0], bar_times=times)
         assert clock.next_bar()
@@ -477,15 +478,15 @@ class TestSimulationClock:
 
     def test_next_bar_at_end(self) -> None:
         clock = SimulationClock()
-        times = [datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc)]
+        times = [datetime(2026, 1, 1, 9, 15, tzinfo=UTC)]
         clock.initialize(total_bars=1, start_time=times[0], bar_times=times)
         assert not clock.next_bar()
 
     def test_previous_bar(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
         ]
         clock.initialize(total_bars=2, start_time=times[0], bar_times=times)
         clock.next_bar()
@@ -494,16 +495,16 @@ class TestSimulationClock:
 
     def test_previous_at_start(self) -> None:
         clock = SimulationClock()
-        times = [datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc)]
+        times = [datetime(2026, 1, 1, 9, 15, tzinfo=UTC)]
         clock.initialize(total_bars=1, start_time=times[0], bar_times=times)
         assert not clock.previous_bar()
 
     def test_seek(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 17, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 17, tzinfo=UTC),
         ]
         clock.initialize(total_bars=3, start_time=times[0], bar_times=times)
         clock.seek(2)
@@ -512,7 +513,7 @@ class TestSimulationClock:
 
     def test_seek_out_of_range_raises(self) -> None:
         clock = SimulationClock()
-        times = [datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc)]
+        times = [datetime(2026, 1, 1, 9, 15, tzinfo=UTC)]
         clock.initialize(total_bars=1, start_time=times[0], bar_times=times)
         with pytest.raises(ClockError):
             clock.seek(5)
@@ -520,8 +521,8 @@ class TestSimulationClock:
     def test_pause_resume(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
         ]
         clock.initialize(total_bars=2, start_time=times[0], bar_times=times)
         clock.pause()
@@ -536,9 +537,9 @@ class TestSimulationClock:
     def test_progress(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 17, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 17, tzinfo=UTC),
         ]
         clock.initialize(total_bars=3, start_time=times[0], bar_times=times)
         assert clock.progress == 0.0
@@ -550,8 +551,8 @@ class TestSimulationClock:
     def test_reset(self) -> None:
         clock = SimulationClock()
         times = [
-            datetime(2026, 1, 1, 9, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 1, 9, 16, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 9, 15, tzinfo=UTC),
+            datetime(2026, 1, 1, 9, 16, tzinfo=UTC),
         ]
         clock.initialize(total_bars=2, start_time=times[0], bar_times=times)
         clock.next_bar()
@@ -694,7 +695,7 @@ class TestStatisticsEngine:
 
     def test_single_winning_trade(self) -> None:
         se = StatisticsEngine()
-        se.record_trade(Decimal("100"))
+        se.record_trade(Decimal(100))
         stats = se.compute()
         assert stats.total_trades == 1
         assert stats.winning_trades == 1
@@ -702,7 +703,7 @@ class TestStatisticsEngine:
 
     def test_single_losing_trade(self) -> None:
         se = StatisticsEngine()
-        se.record_trade(Decimal("-50"))
+        se.record_trade(Decimal(-50))
         stats = se.compute()
         assert stats.total_trades == 1
         assert stats.losing_trades == 1
@@ -710,7 +711,7 @@ class TestStatisticsEngine:
 
     def test_profit_factor(self) -> None:
         se = StatisticsEngine()
-        se.record_trades([Decimal("200"), Decimal("-50"), Decimal("100")])
+        se.record_trades([Decimal(200), Decimal(-50), Decimal(100)])
         stats = se.compute()
         assert stats.total_trades == 3
         assert stats.winning_trades == 2
@@ -718,7 +719,7 @@ class TestStatisticsEngine:
 
     def test_expectancy(self) -> None:
         se = StatisticsEngine()
-        se.record_trades([Decimal("100"), Decimal("-30"), Decimal("50")])
+        se.record_trades([Decimal(100), Decimal(-30), Decimal(50)])
         stats = se.compute()
         assert stats.expectancy == Decimal("40.00")
 
@@ -726,12 +727,12 @@ class TestStatisticsEngine:
         se = StatisticsEngine()
         se.record_trades(
             [
-                Decimal("100"),
-                Decimal("50"),
-                Decimal("-30"),
-                Decimal("20"),
-                Decimal("10"),
-                Decimal("-10"),
+                Decimal(100),
+                Decimal(50),
+                Decimal(-30),
+                Decimal(20),
+                Decimal(10),
+                Decimal(-10),
             ]
         )
         stats = se.compute()
@@ -741,11 +742,11 @@ class TestStatisticsEngine:
         se = StatisticsEngine()
         se.record_trades(
             [
-                Decimal("-10"),
-                Decimal("-20"),
-                Decimal("100"),
-                Decimal("-5"),
-                Decimal("-5"),
+                Decimal(-10),
+                Decimal(-20),
+                Decimal(100),
+                Decimal(-5),
+                Decimal(-5),
             ]
         )
         stats = se.compute()
@@ -755,33 +756,31 @@ class TestStatisticsEngine:
         se = StatisticsEngine()
         se.record_trades(
             [
-                Decimal("100"),
-                Decimal("-50"),
-                Decimal("200"),
-                Decimal("-100"),
+                Decimal(100),
+                Decimal(-50),
+                Decimal(200),
+                Decimal(-100),
             ]
         )
         stats = se.compute()
-        assert stats.max_drawdown > Decimal("0")
+        assert stats.max_drawdown > Decimal(0)
 
     def test_recovery_factor(self) -> None:
         se = StatisticsEngine()
-        se.record_trades([Decimal("200"), Decimal("-50")])
+        se.record_trades([Decimal(200), Decimal(-50)])
         stats = se.compute()
         assert stats.recovery_factor > 0
 
     def test_averages(self) -> None:
         se = StatisticsEngine()
-        se.record_trades(
-            [Decimal("100"), Decimal("-50"), Decimal("200"), Decimal("-30")]
-        )
+        se.record_trades([Decimal(100), Decimal(-50), Decimal(200), Decimal(-30)])
         stats = se.compute()
         assert stats.average_gain == Decimal("150.00")
         assert stats.average_loss == Decimal("40.00")
 
     def test_reset(self) -> None:
         se = StatisticsEngine()
-        se.record_trade(Decimal("100"))
+        se.record_trade(Decimal(100))
         se.reset()
         stats = se.compute()
         assert stats.total_trades == 0
@@ -800,9 +799,9 @@ class TestMetricsEngine:
         me = MetricsEngine()
         curve = [
             EquityPoint(
-                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                equity=Decimal("100000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                equity=Decimal(100000),
+                cash=Decimal(100000),
             ),
         ]
         metrics = me.compute(equity_curve=curve)
@@ -812,19 +811,19 @@ class TestMetricsEngine:
         me = MetricsEngine()
         curve = [
             EquityPoint(
-                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                equity=Decimal("100000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                equity=Decimal(100000),
+                cash=Decimal(100000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 2, tzinfo=timezone.utc),
-                equity=Decimal("101000"),
-                cash=Decimal("99000"),
+                timestamp=datetime(2026, 1, 2, tzinfo=UTC),
+                equity=Decimal(101000),
+                cash=Decimal(99000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 3, tzinfo=timezone.utc),
-                equity=Decimal("102000"),
-                cash=Decimal("98000"),
+                timestamp=datetime(2026, 1, 3, tzinfo=UTC),
+                equity=Decimal(102000),
+                cash=Decimal(98000),
             ),
         ]
         metrics = me.compute(equity_curve=curve)
@@ -836,14 +835,14 @@ class TestMetricsEngine:
         me = MetricsEngine()
         curve = [
             EquityPoint(
-                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                equity=Decimal("100000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                equity=Decimal(100000),
+                cash=Decimal(100000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 2, tzinfo=timezone.utc),
-                equity=Decimal("99000"),
-                cash=Decimal("99000"),
+                timestamp=datetime(2026, 1, 2, tzinfo=UTC),
+                equity=Decimal(99000),
+                cash=Decimal(99000),
             ),
         ]
         metrics = me.compute(equity_curve=curve)
@@ -852,35 +851,35 @@ class TestMetricsEngine:
     def test_max_drawdown(self) -> None:
         curve = [
             EquityPoint(
-                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                equity=Decimal("100000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                equity=Decimal(100000),
+                cash=Decimal(100000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 2, tzinfo=timezone.utc),
-                equity=Decimal("110000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 2, tzinfo=UTC),
+                equity=Decimal(110000),
+                cash=Decimal(100000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 3, tzinfo=timezone.utc),
-                equity=Decimal("95000"),
-                cash=Decimal("90000"),
+                timestamp=datetime(2026, 1, 3, tzinfo=UTC),
+                equity=Decimal(95000),
+                cash=Decimal(90000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 4, tzinfo=timezone.utc),
-                equity=Decimal("105000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 4, tzinfo=UTC),
+                equity=Decimal(105000),
+                cash=Decimal(100000),
             ),
         ]
         dd = MetricsEngine._compute_max_drawdown(curve)
-        assert dd > Decimal("0")
+        assert dd > Decimal(0)
 
     def test_record_equity(self) -> None:
         me = MetricsEngine()
         ep = EquityPoint(
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            equity=Decimal("100000"),
-            cash=Decimal("100000"),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+            equity=Decimal(100000),
+            cash=Decimal(100000),
         )
         me.record_equity(ep)
         assert len(me._equity_points) == 1
@@ -889,14 +888,14 @@ class TestMetricsEngine:
         me = MetricsEngine()
         points = [
             EquityPoint(
-                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                equity=Decimal("100000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                equity=Decimal(100000),
+                cash=Decimal(100000),
             ),
             EquityPoint(
-                timestamp=datetime(2026, 1, 2, tzinfo=timezone.utc),
-                equity=Decimal("101000"),
-                cash=Decimal("99000"),
+                timestamp=datetime(2026, 1, 2, tzinfo=UTC),
+                equity=Decimal(101000),
+                cash=Decimal(99000),
             ),
         ]
         me.record_equity_many(points)
@@ -906,9 +905,9 @@ class TestMetricsEngine:
         me = MetricsEngine()
         me.record_equity(
             EquityPoint(
-                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                equity=Decimal("100000"),
-                cash=Decimal("100000"),
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                equity=Decimal(100000),
+                cash=Decimal(100000),
             )
         )
         me.reset()
@@ -926,13 +925,13 @@ class TestEvidenceGeneration:
             exchange="nse",
             status=BacktestStatus.COMPLETED,
             bars_processed=0,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 1, tzinfo=UTC),
             duration_seconds=0.0,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("100000"),
-            total_pnl=Decimal("0"),
-            total_return=Decimal("0"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(100000),
+            total_pnl=Decimal(0),
+            total_return=Decimal(0),
             statistics=BacktestStatistics(),
             metrics=BacktestMetrics(),
         )
@@ -947,12 +946,12 @@ class TestEvidenceGeneration:
             exchange="nse",
             status=BacktestStatus.COMPLETED,
             bars_processed=100,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 2, tzinfo=UTC),
             duration_seconds=1.5,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("105000"),
-            total_pnl=Decimal("5000"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(105000),
+            total_pnl=Decimal(5000),
             total_return=Decimal("0.05"),
             statistics=BacktestStatistics(total_trades=10, win_rate=0.6),
             metrics=BacktestMetrics(sharpe_ratio=1.5),
@@ -968,12 +967,12 @@ class TestEvidenceGeneration:
             exchange="nse",
             status=BacktestStatus.COMPLETED,
             bars_processed=50,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 2, tzinfo=UTC),
             duration_seconds=1.0,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("95000"),
-            total_pnl=Decimal("-5000"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(95000),
+            total_pnl=Decimal(-5000),
             total_return=Decimal("-0.05"),
             statistics=BacktestStatistics(),
             metrics=BacktestMetrics(),
@@ -988,13 +987,13 @@ class TestEvidenceGeneration:
             exchange="nse",
             status=BacktestStatus.COMPLETED,
             bars_processed=0,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 1, tzinfo=UTC),
             duration_seconds=0.0,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("100000"),
-            total_pnl=Decimal("0"),
-            total_return=Decimal("0"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(100000),
+            total_pnl=Decimal(0),
+            total_return=Decimal(0),
             statistics=BacktestStatistics(),
             metrics=BacktestMetrics(),
         )
@@ -1009,12 +1008,12 @@ class TestEvidenceGeneration:
             exchange="nse",
             status=BacktestStatus.COMPLETED,
             bars_processed=100,
-            start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
+            start_time=datetime(2026, 1, 1, tzinfo=UTC),
+            end_time=datetime(2026, 1, 2, tzinfo=UTC),
             duration_seconds=2.0,
-            total_capital=Decimal("100000"),
-            final_equity=Decimal("110000"),
-            total_pnl=Decimal("10000"),
+            total_capital=Decimal(100000),
+            final_equity=Decimal(110000),
+            total_pnl=Decimal(10000),
             total_return=Decimal("0.10"),
             statistics=BacktestStatistics(
                 total_trades=20, winning_trades=12, win_rate=0.6, profit_factor=2.0
@@ -1046,7 +1045,7 @@ class TestBacktestEngine:
         assert report.status == BacktestStatus.COMPLETED
         assert report.bars_processed == 3
         assert report.symbol == "TEST"
-        assert report.total_capital == Decimal("1000000")
+        assert report.total_capital == Decimal(1000000)
 
     def test_equity_curve_generated(self) -> None:
         ds = make_dataset(n_bars=3)
@@ -1068,9 +1067,9 @@ class TestBacktestEngine:
 
     def test_custom_capital(self) -> None:
         ds = make_dataset(n_bars=2)
-        engine = BacktestEngine(dataset=ds, total_capital=Decimal("500000"))
+        engine = BacktestEngine(dataset=ds, total_capital=Decimal(500000))
         report = engine.run()
-        assert report.total_capital == Decimal("500000")
+        assert report.total_capital == Decimal(500000)
 
     def test_statistics_in_report(self) -> None:
         ds = make_dataset(n_bars=3)
@@ -1097,14 +1096,14 @@ class TestBacktestEngine:
         from titan.paper.broker import PaperBroker
 
         ds = make_dataset(n_bars=2)
-        broker = PaperBroker(initial_cash=Decimal("500000"))
+        broker = PaperBroker(initial_cash=Decimal(500000))
         engine = BacktestEngine(
             dataset=ds,
             broker=broker,
-            total_capital=Decimal("500000"),
+            total_capital=Decimal(500000),
         )
         report = engine.run()
-        assert report.total_capital == Decimal("500000")
+        assert report.total_capital == Decimal(500000)
         assert broker.is_connected()
 
     def test_multiple_runs(self) -> None:
@@ -1144,12 +1143,12 @@ class TestBacktestBar:
             timestamp=bar.timestamp,
             symbol="NIFTY",
             expiry="2026-01-30",
-            strike=Decimal("20000"),
+            strike=Decimal(20000),
             option_type="CE",
-            open=Decimal("100"),
-            high=Decimal("110"),
-            low=Decimal("90"),
-            close=Decimal("105"),
+            open=Decimal(100),
+            high=Decimal(110),
+            low=Decimal(90),
+            close=Decimal(105),
             volume=1000,
             open_interest=5000,
         )

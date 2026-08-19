@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from titan.runtime.runtime import RuntimeEngine
     from titan.runtime.models import RuntimeReport
+    from titan.runtime.runtime import RuntimeEngine
 
 
 class RuntimeService:
@@ -44,9 +44,7 @@ class RuntimeService:
         PaperBroker configurations are integrated.
         """
         # TODO: Implement paper trading enablement logic
-        pass
 
     def disable_paper(self) -> None:
         """Disable paper trading."""
         # TODO: Implement paper trading disablement logic
-        pass

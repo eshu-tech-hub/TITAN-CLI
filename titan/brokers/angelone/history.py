@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, ClassVar
 
 from titan.brokers.angelone.exceptions import translate_error
 from titan.brokers.angelone.mapper import candle_from_smartapi
@@ -14,7 +14,7 @@ class AngelOneHistoricalDataProvider:
     titan.brokers.broker.
     """
 
-    _INTERVAL_MAP: dict[str, str] = {
+    _INTERVAL_MAP: ClassVar[dict[str, str]] = {
         "1min": "ONE_MINUTE",
         "3min": "THREE_MINUTE",
         "5min": "FIVE_MINUTE",
@@ -49,8 +49,8 @@ class AngelOneHistoricalDataProvider:
         """Fetch historical candles for a date range."""
         sc = self._require_client()
         smart_interval = self._INTERVAL_MAP.get(interval, "ONE_DAY")
-        from_date = start or datetime.now(timezone.utc)
-        to_date = end or datetime.now(timezone.utc)
+        from_date = start or datetime.now(UTC)
+        to_date = end or datetime.now(UTC)
 
         params: dict[str, Any] = {
             "symbol": symbol,
@@ -74,7 +74,7 @@ class AngelOneHistoricalDataProvider:
         exchange: str = "NSE",
     ) -> list[Candle]:
         """Fetch intraday candles for the current trading day."""
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         start = datetime.fromisoformat(f"{today} 09:15:00+00:00")
         end = datetime.fromisoformat(f"{today} 15:30:00+00:00")
         return self.history(symbol, interval, start, end, exchange)
@@ -87,7 +87,7 @@ class AngelOneHistoricalDataProvider:
         exchange: str = "NSE",
     ) -> list[Candle]:
         """Fetch the most recent OHLCV candles."""
-        end = datetime.now(timezone.utc)
+        end = datetime.now(UTC)
         days = limit * 2 if interval == "1day" else limit
         start = end.replace(hour=9, minute=15, second=0, microsecond=0)
         start = start.replace(day=start.day - min(days, 365))
@@ -126,28 +126,28 @@ class AngelOneHistoricalDataProvider:
                         try:
                             ts = datetime.fromisoformat(str(item[0]))
                         except (ValueError, TypeError):
-                            ts = datetime.now(timezone.utc)
+                            ts = datetime.now(UTC)
                         candle = Candle(
                             datetime=ts,
                             open=(
                                 Decimal(str(item[1]))
                                 if item[1] is not None
-                                else Decimal("0")
+                                else Decimal(0)
                             ),
                             high=(
                                 Decimal(str(item[2]))
                                 if item[2] is not None
-                                else Decimal("0")
+                                else Decimal(0)
                             ),
                             low=(
                                 Decimal(str(item[3]))
                                 if item[3] is not None
-                                else Decimal("0")
+                                else Decimal(0)
                             ),
                             close=(
                                 Decimal(str(item[4]))
                                 if item[4] is not None
-                                else Decimal("0")
+                                else Decimal(0)
                             ),
                             volume=int(item[5]) if item[5] is not None else 0,
                             oi=(

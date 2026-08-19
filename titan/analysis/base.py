@@ -15,7 +15,7 @@ class Indicator(ABC):
         """Return the indicator name."""
 
     @abstractmethod
-    def calculate(self, data: "MarketDataSeries") -> IndicatorResult:
+    def calculate(self, data: MarketDataSeries) -> IndicatorResult:
         """
         Calculate the indicator value.
         """

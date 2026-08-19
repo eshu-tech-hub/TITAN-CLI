@@ -20,12 +20,12 @@ from titan.execution.models import (
     OrderRoute,
     OrderState,
 )
-from titan.execution.order import Order
 from titan.execution.orchestrator import (
     ExecutionOrchestrator,
     OrchestratorExplanation,
     OrchestratorReport,
 )
+from titan.execution.order import Order
 from titan.execution.planner import ExecutionPlan, ExecutionPlanner, PlannedOrder
 from titan.execution.router import OrderRouter
 from titan.execution.state import OrderStateMachine

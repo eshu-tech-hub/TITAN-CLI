@@ -45,8 +45,8 @@ class VolumeTrendAnalyzer:
             return VolumeTrend(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need at least {MIN_CANDLES} "
-                    f"candles, got {len(volumes)}.",
+                    (f"Insufficient data: need at least {MIN_CANDLES} "
+                    f"candles, got {len(volumes)}."),
                 ),
             )
 

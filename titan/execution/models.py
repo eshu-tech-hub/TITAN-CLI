@@ -1,8 +1,9 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from titan.brokers.models import (
     BrokerType,
@@ -67,7 +68,7 @@ class OrderRoute:
     broker_type: BrokerType
     broker_order_id: str | None = None
     status: OrderState = OrderState.NEW
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -85,7 +86,7 @@ class OrderEvent:
         metadata: Additional event metadata.
     """
 
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     from_state: OrderState | None = None
     to_state: OrderState = OrderState.NEW
     reason: str = ""
@@ -108,8 +109,8 @@ class OrderAudit:
 
     order_id: str
     events: tuple[OrderEvent, ...] = field(default_factory=tuple)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     terminal: bool = False
 
 
@@ -180,7 +181,7 @@ class ExecutionReport:
     broker_order_id: str | None = None
     message: str = ""
     errors: tuple[str, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,7 +204,7 @@ class ExecutionResult:
     reports: tuple[ExecutionReport, ...] = field(default_factory=tuple)
     errors: tuple[str, ...] = field(default_factory=tuple)
     execution_time_ms: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)

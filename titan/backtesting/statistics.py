@@ -29,7 +29,7 @@ class StatisticsEngine:
             StatisticsError: If P&L is invalid.
         """
         self._pnls.append(pnl)
-        self._trade_results.append(pnl > Decimal("0"))
+        self._trade_results.append(pnl > Decimal(0))
 
     def record_trades(self, pnls: list[Decimal]) -> None:
         """Record multiple trade results at once.
@@ -51,8 +51,8 @@ class StatisticsEngine:
         if total_trades == 0:
             return BacktestStatistics()
 
-        winning_pnls = [p for p in self._pnls if p > Decimal("0")]
-        losing_pnls = [p for p in self._pnls if p < Decimal("0")]
+        winning_pnls = [p for p in self._pnls if p > Decimal(0)]
+        losing_pnls = [p for p in self._pnls if p < Decimal(0)]
 
         winning_trades = len(winning_pnls)
         losing_trades = len(losing_pnls)
@@ -60,26 +60,26 @@ class StatisticsEngine:
         win_rate = winning_trades / total_trades if total_trades > 0 else 0.0
         loss_rate = losing_trades / total_trades if total_trades > 0 else 0.0
 
-        gross_profit = sum(winning_pnls, Decimal("0"))
-        gross_loss = abs(sum(losing_pnls, Decimal("0")))
+        gross_profit = sum(winning_pnls, Decimal(0))
+        gross_loss = abs(sum(losing_pnls, Decimal(0)))
         profit_factor = (
-            float(gross_profit / gross_loss) if gross_loss > Decimal("0") else 0.0
+            float(gross_profit / gross_loss) if gross_loss > Decimal(0) else 0.0
         )
 
         net_pnl = gross_profit - gross_loss
         expectancy = (
-            net_pnl / Decimal(str(total_trades)) if total_trades > 0 else Decimal("0")
+            net_pnl / Decimal(str(total_trades)) if total_trades > 0 else Decimal(0)
         )
 
         average_gain = (
             gross_profit / Decimal(str(winning_trades))
             if winning_trades > 0
-            else Decimal("0")
+            else Decimal(0)
         )
         average_loss = (
             gross_loss / Decimal(str(losing_trades))
             if losing_trades > 0
-            else Decimal("0")
+            else Decimal(0)
         )
 
         max_consecutive_wins = self._max_consecutive(True)
@@ -88,7 +88,7 @@ class StatisticsEngine:
         max_drawdown = self._compute_max_drawdown()
 
         recovery_factor = (
-            float(net_pnl / max_drawdown) if max_drawdown > Decimal("0") else 0.0
+            float(net_pnl / max_drawdown) if max_drawdown > Decimal(0) else 0.0
         )
 
         return BacktestStatistics(
@@ -132,19 +132,17 @@ class StatisticsEngine:
         Uses a cumulative equity simulation from the recorded trades.
         """
         if not self._pnls:
-            return Decimal("0")
+            return Decimal(0)
 
-        cumulative = Decimal("0")
-        peak = Decimal("0")
-        max_drawdown = Decimal("0")
+        cumulative = Decimal(0)
+        peak = Decimal(0)
+        max_drawdown = Decimal(0)
 
         for pnl in self._pnls:
             cumulative += pnl
-            if cumulative > peak:
-                peak = cumulative
+            peak = max(peak, cumulative)
             drawdown = peak - cumulative
-            if drawdown > max_drawdown:
-                max_drawdown = drawdown
+            max_drawdown = max(max_drawdown, drawdown)
 
         return max_drawdown
 

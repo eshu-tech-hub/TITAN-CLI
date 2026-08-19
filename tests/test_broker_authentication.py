@@ -2,9 +2,9 @@
 Tests for Broker Authentication scenarios.
 """
 
-from titan.brokers.certification.runner import BrokerCertificationRunner
-from titan.brokers.certification.models import CertificationStatus
 from tests.mocks.mock_broker_full import MockBrokerFull
+from titan.brokers.certification.models import CertificationStatus
+from titan.brokers.certification.runner import BrokerCertificationRunner
 
 
 def test_authentication_stage():

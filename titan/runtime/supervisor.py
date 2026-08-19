@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from titan.core.logger import logger
 from titan.runtime.exceptions import RuntimeError
 from titan.runtime.heartbeat import HeartbeatRegistry
@@ -12,7 +10,7 @@ from titan.runtime.heartbeat import HeartbeatRegistry
 class RuntimeSupervisor:
     """Synchronous watchdog evaluated within the primary pipeline loop."""
 
-    def __init__(self, registry: Optional[HeartbeatRegistry] = None) -> None:
+    def __init__(self, registry: HeartbeatRegistry | None = None) -> None:
         # Default to a strict 30-second timeout for institutional operation
         self.registry = registry or HeartbeatRegistry(timeout_seconds=30.0)
 

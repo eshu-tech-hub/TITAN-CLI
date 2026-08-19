@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -23,7 +23,6 @@ from titan.brokers.models import (
     Quote,
     Trade,
 )
-
 from titan.paper.exceptions import PaperOrderError
 from titan.paper.fills import FillEngine
 from titan.paper.journal import TradeJournal
@@ -48,7 +47,7 @@ class PaperBroker(Broker):
 
     def __init__(
         self,
-        initial_cash: Decimal = Decimal("100000"),
+        initial_cash: Decimal = Decimal(100000),
         fill_engine: FillEngine | None = None,
         position_engine: PositionEngine | None = None,
         portfolio: PaperPortfolio | None = None,
@@ -116,7 +115,7 @@ class PaperBroker(Broker):
             low=price * Decimal("0.99"),
             close=price,
             volume=100000,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def quotes(self, symbols: list[str]) -> dict[str, Quote]:
@@ -159,7 +158,7 @@ class PaperBroker(Broker):
             exchange=Exchange.NSE,
             bids=tuple(bid_levels),
             asks=tuple(ask_levels),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def ltp(self, symbol: str) -> Decimal:
@@ -229,7 +228,7 @@ class PaperBroker(Broker):
             product=request.product,
             status=OrderStatus.OPEN,
             tag=request.tag,
-            placed_at=datetime.now(timezone.utc),
+            placed_at=datetime.now(UTC),
         )
 
         self.journal.record_order(paper_order)
@@ -285,7 +284,7 @@ class PaperBroker(Broker):
             pending_quantity=final_order.pending_quantity,
             average_price=self._compute_avg_price(fills),
             message="Order filled successfully",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def modify_order(self, request: ModifyOrderRequest) -> OrderResponse:

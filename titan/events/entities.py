@@ -9,6 +9,7 @@ Integrates with:
 """
 
 import re
+from typing import ClassVar
 
 from titan.events.models import DetectedEntity, EntityType, NewsArticle
 
@@ -304,7 +305,7 @@ class EntityAnalyzer:
         }
     )
 
-    ENTITY_MAP: list[tuple[frozenset[str], EntityType]] = [
+    ENTITY_MAP: ClassVar[list[tuple[frozenset[str], EntityType]]] = [
         (CENTRAL_BANKS, EntityType.CENTRAL_BANK),
         (INDICES, EntityType.INDEX),
         (COMPANIES, EntityType.COMPANY),

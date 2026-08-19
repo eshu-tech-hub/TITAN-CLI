@@ -27,6 +27,9 @@ from titan.cli.common import (
     logger,
     set_runtime_engine,
 )
+from titan.deployment.exceptions import DeploymentError
+from titan.monitoring.exceptions import MonitoringError
+from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 
 live_app = typer.Typer(help="Live trading subsystem management.")
 app = live_app
@@ -222,7 +225,7 @@ def status(
         from titan.cli.common import _runtime_engine
 
         engine = _runtime_engine
-    except Exception:
+    except ImportError:
         pass
 
     runtime_status = "stopped"
@@ -325,8 +328,8 @@ def _print_verbose_status(config: object, engine: object) -> None:
         table.add_row("Total Collections", str(mreport.total_collections))
         table.add_row("Failed", str(mreport.failed_collections))
         console.print(table)
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
 
 @app.command("start")
@@ -379,14 +382,14 @@ def _start_silent(config: TitanConfig) -> None:
         dm = get_deployment_manager()
         try:
             dm.start()
-        except Exception:
-            pass
+        except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+            logger.warning(f"Operation failed: {e}")
 
         monitoring = get_monitoring_manager()
         try:
             monitoring.start()
-        except Exception:
-            pass
+        except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+            logger.warning(f"Operation failed: {e}")
 
         console.print("[bold green]+[/bold green] Live trading started.")
     except Exception as e:
@@ -428,13 +431,13 @@ def _start_with_progress(config: TitanConfig) -> None:
 
             try:
                 get_deployment_manager().start()
-            except Exception:
-                pass
+            except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+                logger.warning(f"Operation failed: {e}")
 
             try:
                 get_monitoring_manager().start()
-            except Exception:
-                pass
+            except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+                logger.warning(f"Operation failed: {e}")
 
             try:
                 from titan.audit.manager import AuditManager
@@ -446,7 +449,7 @@ def _start_with_progress(config: TitanConfig) -> None:
                     severity=AuditSeverity.INFO,
                     action="titan_live_started",
                 )
-            except Exception:
+            except ImportError:
                 pass
 
             table = Table(show_header=False, box=None, padding=(0, 2))
@@ -498,18 +501,18 @@ def _stop_silent() -> None:
     if engine is not None:
         try:
             engine.stop()
-        except Exception:
-            pass
+        except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+            logger.warning(f"Operation failed: {e}")
 
     try:
         get_monitoring_manager().stop()
-    except Exception:
-        pass
+    except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+        logger.warning(f"Operation failed: {e}")
 
     try:
         get_deployment_manager().stop()
-    except Exception:
-        pass
+    except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+        logger.warning(f"Operation failed: {e}")
 
     try:
         from titan.audit.manager import AuditManager
@@ -521,7 +524,7 @@ def _stop_silent() -> None:
             severity=AuditSeverity.INFO,
             action="titan_live_stopped",
         )
-    except Exception:
+    except ImportError:
         pass
 
     set_runtime_engine(None)  # type: ignore[arg-type]
@@ -558,18 +561,18 @@ def _stop_with_progress() -> None:
         if engine is not None:
             try:
                 engine.stop()
-            except Exception:
-                pass
+            except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+                logger.warning(f"Operation failed: {e}")
 
         try:
             get_monitoring_manager().stop()
-        except Exception:
-            pass
+        except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+            logger.warning(f"Operation failed: {e}")
 
         try:
             get_deployment_manager().stop()
-        except Exception:
-            pass
+        except (RuntimeError, OSError, TitanRuntimeError, DeploymentError, MonitoringError) as e:
+            logger.warning(f"Operation failed: {e}")
 
         try:
             from titan.audit.manager import AuditManager
@@ -581,7 +584,7 @@ def _stop_with_progress() -> None:
                 severity=AuditSeverity.INFO,
                 action="titan_live_stopped",
             )
-        except Exception:
+        except ImportError:
             pass
 
         set_runtime_engine(None)  # type: ignore[arg-type]
@@ -976,8 +979,8 @@ def exposure(
                 "realised_pnl": _clean_decimal(funds.realised_pnl),
                 "unrealised_pnl": _clean_decimal(funds.unrealised_pnl),
             }
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
 
         try:
             margin = broker.margin()
@@ -989,8 +992,8 @@ def exposure(
                 "span_margin": _clean_decimal(margin.span_margin),
                 "exposure_margin": _clean_decimal(margin.exposure_margin),
             }
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
 
     if json_output:
         data = {
@@ -1067,8 +1070,8 @@ def health(
                 "warnings": list(report.warnings),
                 "errors": list(report.errors),
             }
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
 
     monitoring_health: dict[str, Any] = {}
     try:
@@ -1080,8 +1083,8 @@ def health(
             "failed_collections": mreport.failed_collections,
             "uptime_seconds": mreport.uptime_seconds,
         }
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     recovery_health: dict[str, Any] = {}
     try:
@@ -1093,8 +1096,8 @@ def health(
             "successful_attempts": rreport.successful_attempts,
             "failed_attempts": rreport.failed_attempts,
         }
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     alert_health: dict[str, Any] = {}
     try:
@@ -1105,8 +1108,8 @@ def health(
             "active_alerts": areport.active_alerts,
             "critical_alerts": areport.critical_alerts,
         }
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     if json_output:
         data = {
@@ -1198,8 +1201,8 @@ def health(
     if errors:
         console.print()
         console.print("[bold red]Errors:[/bold red]")
-        for e in errors:
-            console.print(f"  [red]![/red] {e}")
+        for err in errors:
+            console.print(f"  [red]![/red] {err}")
 
 
 # ── Report ──────────────────────────────────────────────────
@@ -1221,16 +1224,16 @@ def report(
     dep_report = None
     try:
         dep_report = get_deployment_manager().generate_report()
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     engine = _get_engine()
     rt_report = None
     if engine is not None:
         try:
             rt_report = engine.generate_report()
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
 
     broker = _get_broker()
     positions_data: list[dict[str, Any]] = []
@@ -1247,8 +1250,8 @@ def report(
                         "pnl": _clean_decimal(p.pnl),
                     }
                 )
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
         try:
             for o in broker.orders():
                 orders_data.append(
@@ -1260,8 +1263,8 @@ def report(
                         "quantity": o.quantity,
                     }
                 )
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
         try:
             funds = broker.funds()
             funds_data = {
@@ -1270,8 +1273,8 @@ def report(
                 "realised_pnl": _clean_decimal(funds.realised_pnl),
                 "unrealised_pnl": _clean_decimal(funds.unrealised_pnl),
             }
-        except Exception:
-            pass
+        except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+            logger.debug(f"Fetch failed: {e}")
 
     monitoring_data: dict[str, Any] = {}
     try:
@@ -1281,8 +1284,8 @@ def report(
             "total_collections": mreport.total_collections,
             "failed_collections": mreport.failed_collections,
         }
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     recovery_data: dict[str, Any] = {}
     try:
@@ -1291,8 +1294,8 @@ def report(
             "status": rreport.status.value if hasattr(rreport, "status") else "unknown",
             "total_attempts": rreport.total_attempts,
         }
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     audit_data: dict[str, Any] = {}
     try:
@@ -1304,7 +1307,7 @@ def report(
             "total_events": areport.total_events,
             "integrity_status": areport.integrity_status,
         }
-    except Exception:
+    except ImportError:
         pass
 
     report_data: dict[str, Any] = {
@@ -1468,7 +1471,7 @@ def _clean_decimal(val: Any) -> str | None:
         return None
     try:
         return str(val)
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         return None
 
 
@@ -1480,5 +1483,5 @@ def _clean_datetime(val: Any) -> str | None:
         if hasattr(val, "isoformat"):
             return str(val.isoformat())
         return str(val)
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         return None

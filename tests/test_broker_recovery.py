@@ -2,9 +2,9 @@
 Tests for Broker Recovery Certification scenarios.
 """
 
-from titan.brokers.certification.runner import BrokerCertificationRunner
-from titan.brokers.certification.models import CertificationStatus
 from tests.mocks.mock_broker_timeout import MockBrokerTimeout
+from titan.brokers.certification.models import CertificationStatus
+from titan.brokers.certification.runner import BrokerCertificationRunner
 
 
 def test_recovery_timeout():

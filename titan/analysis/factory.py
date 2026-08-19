@@ -1,4 +1,5 @@
-from typing import Type
+from typing import ClassVar
+
 from titan.analysis.base import Indicator
 from titan.analysis.indicators import EMA, RSI, SMA
 
@@ -8,7 +9,7 @@ class IndicatorFactory:
     Factory for creating indicator instances.
     """
 
-    _registry: dict[str, Type[Indicator]] = {
+    _registry: ClassVar[dict[str, type[Indicator]]] = {
         "SMA": SMA,
         "EMA": EMA,
         "RSI": RSI,

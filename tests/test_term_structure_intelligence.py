@@ -15,8 +15,8 @@ from titan.options.analytics import (
     MarketBias,
     TermStructureAnalysis,
     TermStructureAnalyzer,
-    TermStructureExplanation,
     TermStructureExpiry,
+    TermStructureExplanation,
     TermStructureShape,
     TermStructureSnapshot,
     TermStructureStrength,
@@ -934,7 +934,7 @@ def test_term_structure_has_no_forbidden_imports():
                 term not in imported_name.lower()
                 for imported_name in imported_names
                 for term in forbidden_terms
-            ), (f"Forbidden import found in {path}: " f"{imported_names}")
+            ), f"Forbidden import found in {path}: {imported_names}"
 
 
 # ---------------------------------------------------------------------------

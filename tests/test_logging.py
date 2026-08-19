@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -27,9 +27,9 @@ from titan.logging.models import (
     HandlerConfig,
     HandlerType,
     LogEntry,
-    LogLevel,
     LoggingConfig,
     LoggingReport,
+    LogLevel,
 )
 
 # ── LogLevel ──
@@ -68,7 +68,7 @@ class TestLogLevel:
 
 class TestLogEntry:
     def test_defaults(self) -> None:
-        ts = datetime.now(timezone.utc)
+        ts = datetime.now(UTC)
         entry = LogEntry(
             timestamp=ts,
             level=LogLevel.INFO,
@@ -87,7 +87,7 @@ class TestLogEntry:
 
     def test_frozen(self) -> None:
         entry = LogEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             level=LogLevel.INFO,
             module="m",
             component="c",
@@ -97,7 +97,7 @@ class TestLogEntry:
             entry.level = LogLevel.ERROR  # type: ignore[misc]
 
     def test_with_all_fields(self) -> None:
-        ts = datetime.now(timezone.utc)
+        ts = datetime.now(UTC)
         entry = LogEntry(
             timestamp=ts,
             level=LogLevel.ERROR,
@@ -234,7 +234,7 @@ class TestLoggingContext:
 class TestConsoleFormatter:
     def test_format_info(self) -> None:
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.INFO,
             module="test",
             component="comp",
@@ -248,7 +248,7 @@ class TestConsoleFormatter:
 
     def test_format_with_context(self) -> None:
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.WARNING,
             module="risk",
             component="risk_manager",
@@ -265,7 +265,7 @@ class TestConsoleFormatter:
 
     def test_format_with_exception(self) -> None:
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.ERROR,
             module="execution",
             component="executor",
@@ -280,7 +280,7 @@ class TestConsoleFormatter:
 class TestJSONFormatter:
     def test_format(self) -> None:
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.INFO,
             module="test",
             component="comp",
@@ -296,7 +296,7 @@ class TestJSONFormatter:
 
     def test_format_with_all_fields(self) -> None:
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.ERROR,
             module="execution",
             component="order_manager",
@@ -324,7 +324,7 @@ class TestJSONFormatter:
 class TestCompactFormatter:
     def test_format(self) -> None:
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.INFO,
             module="test",
             component="comp",
@@ -350,7 +350,7 @@ class TestConsoleHandler:
         )
         handler = ConsoleHandler(config)
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.INFO,
             module="test",
             component="comp",
@@ -367,7 +367,7 @@ class TestConsoleHandler:
         )
         handler = ConsoleHandler(config)
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.INFO,
             module="test",
             component="comp",
@@ -384,7 +384,7 @@ class TestConsoleHandler:
         )
         handler = ConsoleHandler(config)
         entry = LogEntry(
-            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 7, 8, 12, 0, 0, tzinfo=UTC),
             level=LogLevel.INFO,
             module="test",
             component="comp",
@@ -654,7 +654,7 @@ class TestModuleLevel:
         LoggerManager.reset_instance()
 
     def test_get_logger_convenience(self) -> None:
-        from titan.logging import get_logger, configure
+        from titan.logging import configure, get_logger
 
         config = LoggingConfig(
             level=LogLevel.DEBUG,

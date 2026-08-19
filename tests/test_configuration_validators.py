@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock, patch
 
 from titan.config.manager import ConfigManager
+from titan.config.validation_models import ValidationLevel
 from titan.config.validators import (
     ConfigurationValidator,
-    EnvironmentValidator,
     DirectoryValidator,
+    EnvironmentValidator,
 )
-from titan.config.validation_models import ValidationLevel
 
 
 def test_environment_validator_python_version():

@@ -1,8 +1,8 @@
 import threading
 
-from titan.runtime.runtime import RuntimeEngine
 from titan.paper.broker import PaperBroker
 from titan.runtime.local_transport import LocalTransport, LocalTransportServer
+from titan.runtime.runtime import RuntimeEngine
 from titan.runtime.service import RuntimeService
 
 

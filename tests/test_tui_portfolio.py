@@ -1,14 +1,14 @@
-from titan.tui.models import PortfolioScreenState
-from titan.tui.screens.portfolio import PortfolioDashboardScreen
-from titan.tui.layout import build_portfolio_state
 from titan.portfolio.models import (
-    PortfolioSnapshot,
-    ExposureAnalysis,
     AllocationAnalysis,
     DiversificationAnalysis,
     DrawdownAnalysis,
+    ExposureAnalysis,
     PortfolioPerformance,
+    PortfolioSnapshot,
 )
+from titan.tui.layout import build_portfolio_state
+from titan.tui.models import PortfolioScreenState
+from titan.tui.screens.portfolio import PortfolioDashboardScreen
 
 
 def test_portfolio_screen_state_defaults():

@@ -2,14 +2,14 @@
 Tests for Broker Adapter Certification (Capability & Interface).
 """
 
-from titan.brokers.certification.adapters import (
-    BrokerAdapterInspector,
-    BrokerInterfaceComplianceChecker,
-    BrokerFeatureDiscovery,
-)
+from tests.mocks.mock_broker_faulty import MockBrokerFaulty
 from tests.mocks.mock_broker_full import MockBrokerFull
 from tests.mocks.mock_broker_partial import MockBrokerPartial
-from tests.mocks.mock_broker_faulty import MockBrokerFaulty
+from titan.brokers.certification.adapters import (
+    BrokerAdapterInspector,
+    BrokerFeatureDiscovery,
+    BrokerInterfaceComplianceChecker,
+)
 
 
 def test_inspector():

@@ -10,10 +10,10 @@ from titan.core.evidence import (
     Score,
 )
 from titan.options.analytics import (
+    CharmExplanation,
     CharmExposureAnalysis,
     CharmExposureAnalyzer,
     CharmExposureInput,
-    CharmExplanation,
     CharmPressure,
     CharmPressureAnalyzer,
     CharmPressureLevel,

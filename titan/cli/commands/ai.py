@@ -1,6 +1,7 @@
 """CLI commands for AI Assistant Engine."""
 
 import json
+
 import typer
 from rich.console import Console
 from rich.panel import Panel

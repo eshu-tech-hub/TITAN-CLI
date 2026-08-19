@@ -1,9 +1,9 @@
 import csv
 import json
+from collections.abc import Sequence
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 from titan.portfolio.models import (
     AllocationAnalysis,
@@ -172,7 +172,7 @@ class PortfolioAnalytics:
         # Re-use PerformanceAnalyzer for max drawdown if available, or compute locally
         closed_entries = [e for e in entries if e.close_time is not None]
         closed_entries.sort(
-            key=lambda x: x.close_time or datetime.min.replace(tzinfo=timezone.utc)
+            key=lambda x: x.close_time or datetime.min.replace(tzinfo=UTC)
         )
 
         equity = starting_capital
@@ -181,11 +181,9 @@ class PortfolioAnalytics:
 
         for e in closed_entries:
             equity += e.net_pnl
-            if equity > peak:
-                peak = equity
+            peak = max(peak, equity)
             dd = peak - equity
-            if dd > max_dd:
-                max_dd = dd
+            max_dd = max(max_dd, dd)
 
         current_dd = peak - equity
         recovery = 0.0
@@ -258,7 +256,7 @@ class PortfolioAnalytics:
             writer.writerow(fields)
             writer.writerow(
                 [
-                    datetime.now(timezone.utc).isoformat(),
+                    datetime.now(UTC).isoformat(),
                     snapshot.total_capital,
                     snapshot.capital_used,
                     snapshot.total_pnl,
@@ -280,7 +278,7 @@ class PortfolioAnalytics:
     ) -> None:
         """Export complete analytical state to JSON."""
         data = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "snapshot": asdict(self.generate_snapshot(portfolio)),
             "exposure": asdict(self.analyze_exposure(portfolio)),
             "allocation": asdict(self.analyze_allocation(portfolio)),

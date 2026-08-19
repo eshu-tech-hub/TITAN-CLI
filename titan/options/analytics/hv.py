@@ -1,8 +1,8 @@
 from statistics import stdev
 
 from titan.options.analytics.models import (
-    HVTrend,
     HVStability,
+    HVTrend,
     VolatilitySnapshot,
 )
 

@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -18,16 +18,22 @@ from titan.brokers.models import (
     MarginInfo,
     MarketDepth,
     ModifyOrderRequest,
-    Order as BrokerOrder,
-    OrderRequest as BrokerOrderRequest,
     OrderResponse,
     OrderSide,
-    OrderStatus as BrokerOrderStatus,
     OrderType,
     Position,
     ProductType,
     Quote,
     Trade,
+)
+from titan.brokers.models import (
+    Order as BrokerOrder,
+)
+from titan.brokers.models import (
+    OrderRequest as BrokerOrderRequest,
+)
+from titan.brokers.models import (
+    OrderStatus as BrokerOrderStatus,
 )
 from titan.execution import (
     BrokerUnavailableError,
@@ -232,7 +238,7 @@ class TestOrderEvent:
         assert event.error is None
 
     def test_full_init(self) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         event = OrderEvent(
             timestamp=now,
             from_state=OrderState.NEW,

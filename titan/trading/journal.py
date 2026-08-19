@@ -1,11 +1,12 @@
 import csv
 import json
 import typing
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 
 class TradeLifecycleState(str, Enum):
@@ -62,7 +63,7 @@ class TradeJournalEntry:
         """Calculate holding time in seconds."""
         if not self.open_time:
             return 0.0
-        end_time = self.close_time or datetime.now(timezone.utc)
+        end_time = self.close_time or datetime.now(UTC)
         return (end_time - self.open_time).total_seconds()
 
 
@@ -107,7 +108,7 @@ class TradeRepository:
                 return e.open_time
             if e.lifecycle_events:
                 return e.lifecycle_events[0].timestamp
-            return datetime.min.replace(tzinfo=timezone.utc)
+            return datetime.min.replace(tzinfo=UTC)
 
         return max(self._entries, key=sort_key)
 
@@ -120,7 +121,7 @@ class TradeRepository:
             return e.open_time or (
                 e.lifecycle_events[0].timestamp
                 if e.lifecycle_events
-                else datetime.min.replace(tzinfo=timezone.utc)
+                else datetime.min.replace(tzinfo=UTC)
             )
 
         sorted_entries = sorted(self._entries, key=sort_key, reverse=True)
@@ -140,7 +141,7 @@ class TradeRepository:
             return e.open_time or (
                 e.lifecycle_events[0].timestamp
                 if e.lifecycle_events
-                else datetime.min.replace(tzinfo=timezone.utc)
+                else datetime.min.replace(tzinfo=UTC)
             )
 
         sorted_entries = sorted(self._entries, key=sort_key, reverse=True)
@@ -158,7 +159,7 @@ class TradeRepository:
             return e.open_time or (
                 e.lifecycle_events[0].timestamp
                 if e.lifecycle_events
-                else datetime.min.replace(tzinfo=timezone.utc)
+                else datetime.min.replace(tzinfo=UTC)
             )
 
         sorted_entries = sorted(self._entries, key=sort_key, reverse=True)
@@ -186,7 +187,7 @@ class TradeRepository:
             return e.open_time or (
                 e.lifecycle_events[0].timestamp
                 if e.lifecycle_events
-                else datetime.min.replace(tzinfo=timezone.utc)
+                else datetime.min.replace(tzinfo=UTC)
             )
 
         return sorted(results, key=sort_key, reverse=True)
@@ -238,7 +239,7 @@ class TradeRepository:
             return e.open_time or (
                 e.lifecycle_events[0].timestamp
                 if e.lifecycle_events
-                else datetime.min.replace(tzinfo=timezone.utc)
+                else datetime.min.replace(tzinfo=UTC)
             )
 
         return sorted(results, key=sort_key, reverse=True)
@@ -279,7 +280,7 @@ class TradeRepository:
                 return e.open_time or (
                     e.lifecycle_events[0].timestamp
                     if e.lifecycle_events
-                    else datetime.min.replace(tzinfo=timezone.utc)
+                    else datetime.min.replace(tzinfo=UTC)
                 )
 
             for entry in sorted(self._entries, key=sort_key):
@@ -322,7 +323,7 @@ class TradeRepository:
             return e.open_time or (
                 e.lifecycle_events[0].timestamp
                 if e.lifecycle_events
-                else datetime.min.replace(tzinfo=timezone.utc)
+                else datetime.min.replace(tzinfo=UTC)
             )
 
         data = [asdict(entry) for entry in sorted(self._entries, key=sort_key)]
@@ -348,7 +349,7 @@ class TradeJournal:
         **updates: Any,
     ) -> TradeJournalEntry:
         """Record a state transition for a trade, updating its journal entry."""
-        ts = timestamp or datetime.now(timezone.utc)
+        ts = timestamp or datetime.now(UTC)
         event = TradeLifecycleEvent(
             timestamp=ts,
             status=status,

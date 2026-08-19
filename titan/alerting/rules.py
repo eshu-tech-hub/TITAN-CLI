@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 
 from titan.alerting.exceptions import AlertingRuleError
@@ -95,7 +95,7 @@ class AlertRuleEngine:
                     reason=f"Source mismatch: expected {rule.source.value}, got {alert.source.value}",
                 )
 
-            now = datetime.now(timezone.utc).timestamp()
+            now = datetime.now(UTC).timestamp()
             last_time = self._cooldowns.get(rule.name, 0.0)
             if now - last_time < rule.cooldown_seconds:
                 return AlertRuleResult(
@@ -195,7 +195,7 @@ class AlertRuleEngine:
     ) -> AlertRuleResult | None:
         if value >= critical_threshold:
             alert = Alert(
-                alert_id=f"threshold:{name}:{datetime.now(timezone.utc).timestamp()}",
+                alert_id=f"threshold:{name}:{datetime.now(UTC).timestamp()}",
                 level=AlertLevel.CRITICAL,
                 source=source,
                 title=title,
@@ -206,7 +206,7 @@ class AlertRuleEngine:
 
         if value >= warning_threshold:
             alert = Alert(
-                alert_id=f"threshold:{name}:{datetime.now(timezone.utc).timestamp()}",
+                alert_id=f"threshold:{name}:{datetime.now(UTC).timestamp()}",
                 level=AlertLevel.WARNING,
                 source=source,
                 title=title,
@@ -234,7 +234,7 @@ class AlertRuleEngine:
 
         if old_state is not None:
             alert = Alert(
-                alert_id=f"state_change:{key}:{datetime.now(timezone.utc).timestamp()}",
+                alert_id=f"state_change:{key}:{datetime.now(UTC).timestamp()}",
                 level=AlertLevel.WARNING,
                 source=source,
                 title=title,
@@ -279,7 +279,7 @@ class AlertRuleEngine:
         return self.evaluate(alert_with_rule)
 
     def _check_rate_limit(self, rule_name: str) -> bool:
-        now = datetime.now(timezone.utc).timestamp()
+        now = datetime.now(UTC).timestamp()
         timestamps = self._rate_limits.get(rule_name, [])
         cutoff = now - 60.0
         timestamps = [t for t in timestamps if t > cutoff]

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Sequence
 
 from titan.audit.models import (
     AuditCategory,
@@ -133,6 +133,4 @@ class AuditQueryEngine:
             and event.sequence_number < query.sequence_from
         ):
             return False
-        if query.sequence_to is not None and event.sequence_number > query.sequence_to:
-            return False
-        return True
+        return not (query.sequence_to is not None and event.sequence_number > query.sequence_to)

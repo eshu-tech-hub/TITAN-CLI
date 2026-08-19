@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from titan.core.evidence import Evidence
 
@@ -249,7 +252,7 @@ class NewsAnalysis:
     explanation: NewsExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "NewsAnalysis":
+    def neutral_placeholder(cls) -> NewsAnalysis:
         return cls(
             confidence=0.0,
             warnings=("News intelligence data unavailable.",),
@@ -491,7 +494,7 @@ class EventAnalysis:
     explanation: EventExplanation | None = None
 
     @classmethod
-    def neutral_placeholder(cls) -> "EventAnalysis":
+    def neutral_placeholder(cls) -> EventAnalysis:
         return cls(
             confidence=0.0,
             warnings=("Event intelligence data unavailable.",),

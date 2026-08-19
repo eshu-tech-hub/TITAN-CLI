@@ -24,11 +24,12 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
+from titan.options.analytics.charm_pressure import CharmPressureAnalyzer
+from titan.options.analytics.charm_regime import CharmRegimeAnalyzer
 from titan.options.analytics.models import (
+    CharmExplanation,
     CharmExposureAnalysis,
     CharmExposureInput,
-    CharmExplanation,
     CharmPressure,
     CharmPressureLevel,
     CharmRegime,
@@ -41,8 +42,6 @@ from titan.options.analytics.models import (
     SurfaceIntelligenceAnalysis,
     VannaExposureAnalysis,
 )
-from titan.options.analytics.charm_pressure import CharmPressureAnalyzer
-from titan.options.analytics.charm_regime import CharmRegimeAnalyzer
 
 POSITIVE_CHARM_SCORE = 60.0
 NEGATIVE_CHARM_SCORE = 40.0
@@ -389,9 +388,7 @@ class CharmExposureAnalyzer:
                 "time decay alone."
             )
         else:
-            parts.append(
-                "Dealer delta decay cannot be assessed from " "available data."
-            )
+            parts.append("Dealer delta decay cannot be assessed from available data.")
 
         return " ".join(parts)
 
@@ -403,8 +400,7 @@ class CharmExposureAnalyzer:
 
         if time_sens < CONFIDENCE_LOW:
             parts.append(
-                "Time decay is unlikely to materially affect "
-                "dealer hedging pressure."
+                "Time decay is unlikely to materially affect dealer hedging pressure."
             )
         elif regime is CharmRegimeType.POSITIVE:
             parts.append(

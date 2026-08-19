@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Callable
 
 from titan.core.logger import logger
 from titan.runtime.models import RuntimeEvent, RuntimeEventType

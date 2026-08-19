@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
 
 from titan.validation.metrics import (
     ReliabilityMetrics,
@@ -15,7 +14,7 @@ class PerformanceReport:
     run_duration_seconds: float
     latencies: RuntimeLatencyMetrics
     resources: ResourceMetrics
-    recommendations: List[str]
+    recommendations: list[str]
 
     def to_markdown(self) -> str:
         return f"# TITAN Performance Baseline Report\nGenerated: {self.timestamp.isoformat()}\n..."
@@ -27,7 +26,7 @@ class BurnInReport:
     duration_hours: float
     faults_injected: int
     recoveries_successful: int
-    failures_observed: List[str]
+    failures_observed: list[str]
     final_assessment: str
 
     def to_markdown(self) -> str:
@@ -39,7 +38,7 @@ class StressReport:
     timestamp: datetime
     events_processed: int
     peak_throughput_eps: float
-    bottlenecks_detected: List[str]
+    bottlenecks_detected: list[str]
     final_assessment: str
 
     def to_markdown(self) -> str:

@@ -8,6 +8,8 @@ Integrates with:
   - Event Intelligence Engine
 """
 
+from typing import ClassVar
+
 from titan.events.models import (
     CorporateEvent,
     EconomicEvent,
@@ -27,7 +29,7 @@ class EventRiskAnalyzer:
 
     name = "EventRiskAnalyzer"
 
-    RISK_BY_IMPORTANCE: dict[EventImportance, EventRisk] = {
+    RISK_BY_IMPORTANCE: ClassVar[dict[EventImportance, EventRisk]] = {
         EventImportance.CRITICAL: EventRisk.EXTREME,
         EventImportance.HIGH: EventRisk.HIGH,
         EventImportance.MEDIUM: EventRisk.MODERATE,

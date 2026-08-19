@@ -20,7 +20,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.events.calendar import EconomicCalendarAnalyzer
 from titan.events.corporate import CorporateEventAnalyzer
 from titan.events.impact import ImpactAnalyzer
@@ -98,10 +97,10 @@ class EventIntelligenceAnalyzer:
         if not economic_events and not corporate_events:
             return self._empty_analysis("No events provided for analysis.")
 
-        eco_sorted, eco_importance, eco_conf, eco_reasons = self._calendar.analyze(
+        eco_sorted, eco_importance, eco_conf, _eco_reasons = self._calendar.analyze(
             economic_events
         )
-        corp_sorted, corp_importance, corp_conf, corp_reasons = self._corporate.analyze(
+        corp_sorted, corp_importance, corp_conf, _corp_reasons = self._corporate.analyze(
             corporate_events
         )
 
@@ -384,10 +383,10 @@ class EventIntelligenceAnalyzer:
         parts.append(f"{total} event(s) scheduled.")
 
         if economic:
-            eco_types = sorted(set(e.event_type.value for e in economic))
+            eco_types = sorted({e.event_type.value for e in economic})
             parts.append(f"Economic: {', '.join(eco_types)}.")
         if corporate:
-            corp_types = sorted(set(e.event_type.value for e in corporate))
+            corp_types = sorted({e.event_type.value for e in corporate})
             parts.append(f"Corporate: {', '.join(corp_types)}.")
 
         return " ".join(parts)
@@ -460,14 +459,14 @@ class EventIntelligenceAnalyzer:
 
         if high_risk:
             parts.append(
-                "Elevated event risk detected. " "Capital preservation is the priority."
+                "Elevated event risk detected. Capital preservation is the priority."
             )
         elif analysis.highest_importance in (
             EventImportance.CRITICAL,
             EventImportance.HIGH,
         ):
             parts.append(
-                "Important events pending. " "Monitor developments and adjust exposure."
+                "Important events pending. Monitor developments and adjust exposure."
             )
         else:
             parts.append(

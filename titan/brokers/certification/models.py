@@ -10,9 +10,8 @@ All classes must be:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 class CertificationSeverity(Enum):
@@ -40,7 +39,7 @@ class BrokerCertificationMetadata:
 
     broker_id: str
     certification_version: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     environment: str = "PAPER"
     framework_version: str = "1.0.0"
 
@@ -87,7 +86,7 @@ class BrokerValidationResult:
     description: str
     status: CertificationStatus
     details: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -100,7 +99,7 @@ class BrokerCertificationResult:
     execution_time_ms: float
     timestamp: datetime
     message: str = ""
-    error_details: Optional[str] = None
+    error_details: str | None = None
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -117,7 +116,7 @@ class BrokerCertificationSummary:
     passed_with_warnings: int
     score_percentage: float
     critical_failures: int
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,4 +136,4 @@ class BrokerCertificationReport:
     warnings: tuple[str, ...] = field(default_factory=tuple)
     known_limitations: tuple[str, ...] = field(default_factory=tuple)
     recommendations: tuple[str, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

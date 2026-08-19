@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import typer
-from rich.live import Live
 from rich.table import Table
 
 from titan.cli.common import (
@@ -22,6 +21,7 @@ from titan.cli.common import (
     get_config_manager,
     logger,
 )
+from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 
 paper_app = typer.Typer(help="Paper trading subsystem management.")
 app = paper_app
@@ -43,7 +43,7 @@ def _is_running() -> bool:
 
     try:
         return bool(LocalTransport().paper_status().get("running", False))
-    except Exception:
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError):
         return False
 
 
@@ -53,8 +53,8 @@ def _reset_paper_session() -> None:
     if _paper_broker is not None:
         try:
             _paper_broker.disconnect()
-        except Exception:
-            pass
+        except (RuntimeError, OSError) as e:
+            logger.warning(f"Operation failed: {e}")
     _paper_broker = None
     _paper_start_time = None
 
@@ -239,7 +239,7 @@ def _build_session_data() -> dict[str, Any]:
     try:
         transport = LocalTransport()
         return transport.paper_status()
-    except Exception:
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError):
         return {"running": False}
 
 
@@ -248,7 +248,7 @@ def _build_report_data() -> dict[str, Any]:
 
     try:
         data = LocalTransport().paper_status()
-    except Exception:
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError):
         return {"error": "No active paper session"}
 
     if not data.get("running"):

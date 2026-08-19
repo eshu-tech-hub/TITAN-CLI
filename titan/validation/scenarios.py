@@ -1,4 +1,3 @@
-from typing import List
 from titan.validation.fault_injection import FaultInjectionPoint
 
 
@@ -7,7 +6,7 @@ class ValidationScenarioRunner:
 
     def __init__(self, speed_multiplier: float = 1.0):
         self.speed_multiplier = speed_multiplier
-        self.active_faults: List[FaultInjectionPoint] = []
+        self.active_faults: list[FaultInjectionPoint] = []
 
     def inject_fault(self, fault: FaultInjectionPoint) -> None:
         self.active_faults.append(fault)

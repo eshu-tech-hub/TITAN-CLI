@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import csv
 import json
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from titan.backtesting.models import BacktestReport
 from titan.trading.journal import TradeJournalEntry
@@ -61,7 +62,7 @@ class StrategyEvaluationReport:
 
     strategies: tuple[StrategyMetrics, ...] = field(default_factory=tuple)
     overall_best_strategy: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
 

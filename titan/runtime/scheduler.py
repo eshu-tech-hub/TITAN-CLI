@@ -1,15 +1,18 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Event, Lock, Thread, current_thread
-from typing import Any, Callable
+from typing import Any
 from uuid import uuid4
-from titan.core.logger import logger
 
+from titan.core.logger import logger
 from titan.runtime.events import RuntimeEventBus
 from titan.runtime.exceptions import SchedulerError
 from titan.runtime.models import RuntimeEventType
 
 PipelineRunner = Callable[..., Any]
+
+
 @dataclass(slots=True)
 class PipelineScheduler:
     """Schedules pipeline execution on a periodic or event-driven basis.
@@ -68,7 +71,9 @@ class PipelineScheduler:
         if self._worker is not None and self._worker is not current_thread():
             self._worker.join(timeout=5.0)
             if self._worker.is_alive():
-                raise SchedulerError("Scheduler worker did not stop within five seconds.")
+                raise SchedulerError(
+                    "Scheduler worker did not stop within five seconds."
+                )
         self._worker = None
 
     @property
@@ -108,7 +113,7 @@ class PipelineScheduler:
         if not self._active or self._paused:
             return
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if self._last_execution_time is None:
             self._run_pipeline()
             return
@@ -155,7 +160,7 @@ class PipelineScheduler:
             try:
                 result = self.runner() if self.runner else None
                 self._execution_count += 1
-                self._last_execution_time = datetime.now(timezone.utc)
+                self._last_execution_time = datetime.now(UTC)
                 logger.info(f"Pipeline completed: {execution_id}")
 
                 if self.event_bus is not None:

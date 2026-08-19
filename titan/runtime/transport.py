@@ -21,32 +21,26 @@ class RuntimeTransport(abc.ABC):
     @abc.abstractmethod
     def start(self) -> None:
         """Start the runtime engine."""
-        pass
 
     @abc.abstractmethod
     def stop(self) -> None:
         """Stop the runtime engine."""
-        pass
 
     @abc.abstractmethod
     def restart(self) -> None:
         """Restart the runtime engine."""
-        pass
 
     @abc.abstractmethod
     def status(self) -> RuntimeReport:
         """Get the current status of the runtime engine."""
-        pass
 
     @abc.abstractmethod
     def enable_paper(self) -> None:
         """Enable paper trading mode."""
-        pass
 
     @abc.abstractmethod
     def disable_paper(self) -> None:
         """Disable paper trading mode."""
-        pass
 
 
 class InProcessTransport(RuntimeTransport):

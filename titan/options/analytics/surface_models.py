@@ -1,6 +1,7 @@
-from dataclasses import dataclass, field, asdict
+from collections.abc import Iterator, Mapping
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Iterator, Mapping, Self
+from typing import Any, Self
 
 from titan.options.analytics.models import VolatilitySnapshot
 

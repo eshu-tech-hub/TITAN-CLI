@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import time
-from dataclasses import asdict
 from typing import TYPE_CHECKING, Annotated
 
 import typer
@@ -89,8 +88,8 @@ def _format_uptime(seconds: float) -> str:
 def _get_transport():
     from titan.cli.common import _runtime_engine
     if _runtime_engine is not None:
-        from titan.runtime.transport import InProcessTransport
         from titan.runtime.service import RuntimeService
+        from titan.runtime.transport import InProcessTransport
         return InProcessTransport(RuntimeService(_runtime_engine))
     from titan.runtime.local_transport import LocalTransport
     return LocalTransport()
@@ -204,8 +203,8 @@ def _print_monitoring_summary() -> None:
         table.add_row("Failed", str(report.failed_collections))
         table.add_row("Uptime", f"{report.uptime_seconds:,.0f}s")
         console.print(table)
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
 
 def _print_recovery_summary() -> None:
@@ -224,8 +223,8 @@ def _print_recovery_summary() -> None:
         table.add_row("Successful", str(getattr(report, "successful_attempts", 0)))
         table.add_row("Failed", str(getattr(report, "failed_attempts", 0)))
         console.print(table)
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
 
 @app.command("start")
@@ -246,8 +245,8 @@ def start(
         transport_client.status()
         console.print("[yellow]~[/yellow] Runtime is already running.")
         return
-    except Exception:
-        pass
+    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError) as e:
+        logger.debug(f"Fetch failed: {e}")
 
     if detach:
         console.print("[dim]Starting runtime in detached mode...[/dim]")

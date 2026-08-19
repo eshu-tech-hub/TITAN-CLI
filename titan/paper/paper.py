@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -7,7 +7,6 @@ from titan.core.evidence.confidence import Confidence
 from titan.core.evidence.evidence import Evidence
 from titan.core.evidence.models import EvidenceCategory, EvidenceSignal
 from titan.core.evidence.score import Score
-
 from titan.paper.models import (
     PaperFill,
     PaperOrder,
@@ -45,7 +44,7 @@ class PaperTradingReport:
     )
     warnings: tuple[str, ...] = field(default_factory=tuple)
     errors: tuple[str, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,9 +89,9 @@ def generate_evidence(
     execution_count = report.portfolio_state.position_count
 
     signal: EvidenceSignal = EvidenceSignal.NEUTRAL
-    if total_pnl > Decimal("0"):
+    if total_pnl > Decimal(0):
         signal = EvidenceSignal.BULLISH
-    elif total_pnl < Decimal("0"):
+    elif total_pnl < Decimal(0):
         signal = EvidenceSignal.BEARISH
 
     score_value = min(
@@ -150,7 +149,7 @@ def generate_explanation(
     )
 
     ps = report.portfolio_state
-    portfolio = f"Cash: {ps.cash}, " f"Equity: {ps.equity}, " f"P&L: {ps.total_pnl}"
+    portfolio = f"Cash: {ps.cash}, Equity: {ps.equity}, P&L: {ps.total_pnl}"
 
     perf = report.performance
     performance_str = (

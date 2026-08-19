@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from textual.widget import Widget
 from textual.widgets import Static
@@ -11,7 +11,7 @@ from textual.widgets import Static
 class SidebarWidget(Widget):
     """Sidebar with section list, keyboard/mouse navigation, and active highlight."""
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS: ClassVar[str] = """
     SidebarWidget {
         width: 24;
         background: $surface;
@@ -49,7 +49,7 @@ class SidebarWidget(Widget):
     }
     """
 
-    SECTIONS = [
+    SECTIONS: ClassVar[list] = [
         ("Dashboard", "dashboard"),
         ("Runtime", "runtime"),
         ("Paper Trading", "paper"),

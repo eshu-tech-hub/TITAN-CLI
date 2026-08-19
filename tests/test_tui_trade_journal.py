@@ -1,11 +1,12 @@
 import pytest
+
 from titan.tui.models import (
+    TradeHistoryEntry,
     TradeJournalScreenState,
     TradeJournalSummaryInfo,
-    TradeHistoryEntry,
 )
 from titan.tui.screens.trade_journal import TradeJournalScreen
-from titan.tui.widgets.trade_journal import TradeSummaryWidget, TradeHistoryWidget
+from titan.tui.widgets.trade_journal import TradeHistoryWidget, TradeSummaryWidget
 
 
 class TestTradeJournalScreenState:

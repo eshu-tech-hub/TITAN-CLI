@@ -49,8 +49,7 @@ class SupportResistanceAnalyzer:
             return SupportResistanceStructure(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need at least 10 candles, "
-                    f"got {len(series)}.",
+                    f"Insufficient data: need at least 10 candles, got {len(series)}.",
                 ),
             )
 

@@ -37,8 +37,7 @@ class VolatilitySurface:
             raise TypeError(f"expiry must be datetime, got {type(expiry).__name__}.")
         if not isinstance(snapshot, VolatilitySnapshot):
             raise TypeError(
-                f"snapshot must be VolatilitySnapshot, "
-                f"got {type(snapshot).__name__}."
+                f"snapshot must be VolatilitySnapshot, got {type(snapshot).__name__}."
             )
         self._entries[expiry] = snapshot
 

@@ -4,16 +4,15 @@ End-to-End Paper Trading Certification Tests.
 
 import pytest
 
-from titan.paper.broker import PaperBroker
-from titan.brokers.models import OrderRequest, OrderSide, OrderType, Exchange
-
+from tests.helpers.reconciliation import ExecutionReconciliationValidator
 from tests.mocks.mock_fill_engines import (
     MockInstantFillEngine,
     MockPartialFillEngine,
     MockRejectFillEngine,
     MockTimeoutFillEngine,
 )
-from tests.helpers.reconciliation import ExecutionReconciliationValidator
+from titan.brokers.models import Exchange, OrderRequest, OrderSide, OrderType
+from titan.paper.broker import PaperBroker
 
 
 def test_pipeline_execution_instant():

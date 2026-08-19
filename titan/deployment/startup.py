@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-import time
 import signal
 import sys
-from typing import Any, Callable
+import time
+from collections.abc import Callable
+from typing import Any
 
+from titan.core.logger import logger
+from titan.core.readiness import ProductionReadinessReview
 from titan.deployment.models import (
     DeploymentEnvironment,
     StartupReport,
     StartupStep,
 )
-from titan.core.readiness import ProductionReadinessReview
 from titan.runtime.runtime import RuntimeEngine
-from titan.core.logger import logger
 
 
 class StartupManager:

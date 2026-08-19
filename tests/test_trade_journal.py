@@ -1,11 +1,13 @@
 import json
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
+
 from titan.trading.journal import (
     TradeJournal,
-    TradeRepository,
     TradeJournalEntry,
     TradeLifecycleState,
+    TradeRepository,
 )
 
 
@@ -40,8 +42,8 @@ def create_mock_entry(
         tags=("mock", "test"),
         decision_status="executed",
         execution_status=TradeLifecycleState.CLOSED,
-        open_time=datetime(2025, 1, 1, 10, 0, tzinfo=timezone.utc),
-        close_time=datetime(2025, 1, 1, 11, 0, tzinfo=timezone.utc),
+        open_time=datetime(2025, 1, 1, 10, 0, tzinfo=UTC),
+        close_time=datetime(2025, 1, 1, 11, 0, tzinfo=UTC),
         lifecycle_events=(),
     )
 
@@ -76,9 +78,7 @@ class TestTradeRepository:
         e2 = create_mock_entry("t2")
         import dataclasses
 
-        e2 = dataclasses.replace(
-            e2, open_time=datetime(2025, 1, 2, tzinfo=timezone.utc)
-        )
+        e2 = dataclasses.replace(e2, open_time=datetime(2025, 1, 2, tzinfo=UTC))
         repo.add(e1)
         repo.add(e2)
         assert repo.latest() == e2

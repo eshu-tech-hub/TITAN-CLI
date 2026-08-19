@@ -469,7 +469,7 @@ class TradeHistoryWidget(Widget):
 def _pnl_class(value: str) -> str:
     """Map a P&L string to a CSS class."""
     stripped = value.strip()
-    if stripped.startswith("-") or stripped.startswith("−"):
+    if stripped.startswith(("-", "−")):
         return "value-negative"
     if stripped.startswith("+"):
         return "value-positive"

@@ -9,9 +9,11 @@ from typing import Annotated
 
 import typer
 
+from titan.cli.commands.ai import app as ai_app
 from titan.cli.commands.alert import alert_app
 from titan.cli.commands.audit import audit_app
 from titan.cli.commands.backtest import backtest_app
+from titan.cli.commands.broker import broker_app
 from titan.cli.commands.config import config_app
 from titan.cli.commands.deployment import deployment_app
 from titan.cli.commands.doctor import doctor as _doctor
@@ -19,14 +21,12 @@ from titan.cli.commands.live import live_app
 from titan.cli.commands.logs import logs_app
 from titan.cli.commands.monitor import monitor_app
 from titan.cli.commands.paper import paper_app
+from titan.cli.commands.portfolio import app as portfolio_app
 from titan.cli.commands.recovery import recovery_app
 from titan.cli.commands.report import report_app
 from titan.cli.commands.runtime import runtime_app
 from titan.cli.commands.runtime import version as _version
 from titan.cli.commands.validate import app as validate_app
-from titan.cli.commands.broker import broker_app
-from titan.cli.commands.portfolio import app as portfolio_app
-from titan.cli.commands.ai import app as ai_app
 
 app = typer.Typer(
     name="titan",

@@ -14,8 +14,6 @@ from titan.decision.models import (
     InstrumentType,
     TradeDecision,
 )
-from titan.trading.models import TradeDirection
-
 from titan.portfolio import (
     CapitalAllocationAnalyzer,
     CorrelationAnalysis,
@@ -39,7 +37,11 @@ from titan.portfolio import (
 )
 from titan.risk.models import (
     CapitalAllocation as RiskCapitalAllocation,
+)
+from titan.risk.models import (
     DecisionContext as RiskDecisionContext,
+)
+from titan.risk.models import (
     ExposureAssessment,
     PositionSizing,
     RiskAnalysis,
@@ -50,6 +52,7 @@ from titan.risk.models import (
     StopLossPlan,
     TargetPlan,
 )
+from titan.trading.models import TradeDirection
 
 # ===========================================================================
 # Helpers — factory functions
@@ -380,7 +383,7 @@ class TestPortfolioExplanation:
 
 class TestPortfolioAnalysis:
     def test_default_construction(self) -> None:
-        snap = type("S", (), dict(utilization=0.0))()
+        snap = type("S", (), {"utilization": 0.0})()
         exp = PortfolioExposure()
         corr = CorrelationAnalysis()
         hedge = HedgingRecommendation()
@@ -406,13 +409,13 @@ class TestPortfolioAnalysis:
         snap = type(
             "S",
             (),
-            dict(
-                utilization=0.0,
-                capital_used=0.0,
-                available_capital=0.0,
-                total_pnl=0.0,
-                position_count=0,
-            ),
+            {
+                "utilization": 0.0,
+                "capital_used": 0.0,
+                "available_capital": 0.0,
+                "total_pnl": 0.0,
+                "position_count": 0,
+            },
         )()
         exp = PortfolioExposure()
         se = SectorExposure("Technology", 45000.0, 0.45, 3)
@@ -443,13 +446,13 @@ class TestSerialization:
         snap = type(
             "S",
             (),
-            dict(
-                utilization=0.0,
-                capital_used=0.0,
-                available_capital=0.0,
-                total_pnl=0.0,
-                position_count=0,
-            ),
+            {
+                "utilization": 0.0,
+                "capital_used": 0.0,
+                "available_capital": 0.0,
+                "total_pnl": 0.0,
+                "position_count": 0,
+            },
         )()
         exp = PortfolioExposure()
         corr = CorrelationAnalysis()
@@ -576,7 +579,7 @@ class TestExposureAnalyzer:
             ),
             total_capital=100000.0,
         )
-        exposure, sectors = analyzer.analyze(pf)
+        exposure, _sectors = analyzer.analyze(pf)
         assert exposure.net_delta is not None
         assert exposure.net_delta == 6.0 + 3.5
         assert exposure.net_gamma is not None
@@ -678,7 +681,7 @@ class TestCapitalAllocationAnalyzer:
         analyzer = CapitalAllocationAnalyzer()
         pf = make_portfolio()
         snap = PortfolioSnapshot(total_capital=100000.0, available_capital=90000.0)
-        remaining, max_new, efficiency, headroom = analyzer.analyze(pf, snap)
+        remaining, max_new, efficiency, _headroom = analyzer.analyze(pf, snap)
         assert remaining == 90000.0
         assert max_new == 15000.0
         assert efficiency == 0.0

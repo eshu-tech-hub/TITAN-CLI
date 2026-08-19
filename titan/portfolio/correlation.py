@@ -1,5 +1,4 @@
 from collections import defaultdict
-
 from dataclasses import dataclass
 
 from titan.portfolio.models import (
@@ -50,7 +49,7 @@ class CorrelationAnalyzer:
         duplicate_exposure = any(c > 1 for c in symbol_counts.values())
 
         highly_correlated_pairs = 0
-        for sector, syms in sector_positions.items():
+        for syms in sector_positions.values():
             if len(syms) > 1:
                 highly_correlated_pairs += len(syms) * (len(syms) - 1) // 2
 

@@ -4,9 +4,10 @@ NO SmartAPI objects may leave this layer.
 All broker responses are converted to TITAN domain models here.
 """
 
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 
 from titan.brokers.models import (
     AccountProfile,
@@ -183,7 +184,7 @@ def quote_from_smartapi(data: Mapping[str, Any]) -> Quote:
         symbol=_safe_str(data.get("symbol") or data.get("tradingsymbol")),
         exchange=to_exchange(_safe_str(data.get("exchange"))),
         last_price=_safe_decimal(data.get("ltp") or data.get("last_price"))
-        or Decimal("0"),
+        or Decimal(0),
         bid=_safe_decimal(data.get("bid")),
         ask=_safe_decimal(data.get("ask")),
         bid_quantity=_safe_int(data.get("bid_qty") or data.get("bidquantity")),
@@ -204,11 +205,11 @@ def candle_from_smartapi(data: Mapping[str, Any]) -> Candle:
     """Convert a SmartAPI candle response to a TITAN Candle."""
     return Candle(
         datetime=_safe_datetime(data.get("timestamp") or data.get("datetime"))
-        or datetime.now(timezone.utc),
-        open=_safe_decimal(data.get("open")) or Decimal("0"),
-        high=_safe_decimal(data.get("high")) or Decimal("0"),
-        low=_safe_decimal(data.get("low")) or Decimal("0"),
-        close=_safe_decimal(data.get("close")) or Decimal("0"),
+        or datetime.now(UTC),
+        open=_safe_decimal(data.get("open")) or Decimal(0),
+        high=_safe_decimal(data.get("high")) or Decimal(0),
+        low=_safe_decimal(data.get("low")) or Decimal(0),
+        close=_safe_decimal(data.get("close")) or Decimal(0),
         volume=_safe_int(data.get("volume") or data.get("volumetradedtoday")),
         oi=_safe_int(data.get("open_interest") or data.get("oi")),
     )
@@ -340,7 +341,7 @@ def trade_from_smartapi(data: Mapping[str, Any]) -> Trade:
         price=_safe_decimal(
             data.get("fillprice") or data.get("price") or data.get("tradeprice")
         )
-        or Decimal("0"),
+        or Decimal(0),
         product=to_product_type(
             _safe_str(data.get("producttype") or data.get("product"))
         ),
@@ -357,7 +358,7 @@ def market_depth_from_smartapi(data: Mapping[str, Any]) -> MarketDepth:
 
     bids = tuple(
         MarketDepthLevel(
-            price=_safe_decimal(b.get("price") or b.get("bidprice")) or Decimal("0"),
+            price=_safe_decimal(b.get("price") or b.get("bidprice")) or Decimal(0),
             quantity=_safe_int(b.get("quantity") or b.get("bidqty")),
             orders=_safe_int(b.get("orders") or b.get("numorders")),
         )
@@ -365,7 +366,7 @@ def market_depth_from_smartapi(data: Mapping[str, Any]) -> MarketDepth:
     )
     asks = tuple(
         MarketDepthLevel(
-            price=_safe_decimal(a.get("price") or a.get("askprice")) or Decimal("0"),
+            price=_safe_decimal(a.get("price") or a.get("askprice")) or Decimal(0),
             quantity=_safe_int(a.get("quantity") or a.get("askqty")),
             orders=_safe_int(a.get("orders") or a.get("numorders")),
         )

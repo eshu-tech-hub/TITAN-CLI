@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import UTC
 from typing import Any
 
 from titan.audit.exceptions import EventValidationError
@@ -84,14 +85,14 @@ def create_audit_event(
     timestamp to current UTC, and computes the event hash.
     """
     import uuid
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     if not event_id:
         event_id = str(uuid.uuid4())
 
     event = AuditEvent(
         event_id=event_id,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         sequence_number=sequence_number,
         source=source,
         category=category,

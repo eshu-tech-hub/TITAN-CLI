@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from titan.core.evidence import (
     Confidence,
@@ -9,8 +11,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from titan.decision.models import TradeDecision
@@ -177,7 +177,7 @@ class PortfolioEngine:
                         self._hedging.name,
                     ],
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
         except PortfolioInputError:
@@ -206,9 +206,9 @@ class PortfolioEngine:
 
     def _calculate_portfolio_score(
         self,
-        snapshot: "PortfolioSnapshot",
-        exposure: "PortfolioExposure",
-        correlation: "CorrelationAnalysis",
+        snapshot: PortfolioSnapshot,
+        exposure: PortfolioExposure,
+        correlation: CorrelationAnalysis,
     ) -> float:
         """Calculate portfolio health score (0 = best, 100 = worst)."""
         utilization_risk = snapshot.utilization * 40.0
@@ -234,10 +234,10 @@ class PortfolioEngine:
 
     def _generate_decision_context(
         self,
-        portfolio: "ExistingPortfolio",
-        snapshot: "PortfolioSnapshot",
+        portfolio: ExistingPortfolio,
+        snapshot: PortfolioSnapshot,
         score_val: float,
-        hedging: "HedgingRecommendation",
+        hedging: HedgingRecommendation,
         remaining_capital: float,
         max_new_allocation: float,
         concentration_headroom: float,
@@ -339,10 +339,10 @@ class PortfolioEngine:
 
     def _generate_explanation(
         self,
-        snapshot: "PortfolioSnapshot",
-        exposure: "PortfolioExposure",
-        correlation: "CorrelationAnalysis",
-        hedging: "HedgingRecommendation",
+        snapshot: PortfolioSnapshot,
+        exposure: PortfolioExposure,
+        correlation: CorrelationAnalysis,
+        hedging: HedgingRecommendation,
         decision_context: PortfolioDecisionContext,
         remaining_capital: float,
         capital_efficiency: float,
@@ -404,10 +404,10 @@ class PortfolioEngine:
 
     def _collect_warnings(
         self,
-        snapshot: "PortfolioSnapshot",
-        exposure: "PortfolioExposure",
-        correlation: "CorrelationAnalysis",
-        hedging: "HedgingRecommendation",
+        snapshot: PortfolioSnapshot,
+        exposure: PortfolioExposure,
+        correlation: CorrelationAnalysis,
+        hedging: HedgingRecommendation,
         trade_decision: TradeDecision,
     ) -> list[str]:
         warnings: list[str] = []

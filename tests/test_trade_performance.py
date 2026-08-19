@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
+
 from titan.trading.journal import TradeJournalEntry, TradeLifecycleState
 from titan.trading.performance import PerformanceAnalyzer
 
@@ -29,10 +31,8 @@ def create_mock_entry(
         tags=(),
         decision_status="executed",
         execution_status=TradeLifecycleState.CLOSED,
-        open_time=datetime(2025, 1, 1, 10, 0, tzinfo=timezone.utc),
-        close_time=datetime(
-            2025, 1, 1, 10 + close_offset_hours, 0, tzinfo=timezone.utc
-        ),
+        open_time=datetime(2025, 1, 1, 10, 0, tzinfo=UTC),
+        close_time=datetime(2025, 1, 1, 10 + close_offset_hours, 0, tzinfo=UTC),
         lifecycle_events=(),
     )
 

@@ -179,5 +179,5 @@ class EnvironmentManager:
         if key in mapping:
             return mapping[key]
         raise EnvironmentError(
-            f"Unknown profile: {profile!r}. " f"Valid: {list(mapping.keys())}"
+            f"Unknown profile: {profile!r}. Valid: {list(mapping.keys())}"
         )

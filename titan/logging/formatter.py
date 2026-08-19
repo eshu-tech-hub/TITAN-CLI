@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, ClassVar
 
 from titan.logging.models import LogEntry, LogLevel
 
@@ -20,7 +20,7 @@ class ConsoleFormatter(Formatter):
     Uses ANSI escape codes for log level coloring.
     """
 
-    _LEVEL_COLORS: dict[LogLevel, str] = {
+    _LEVEL_COLORS: ClassVar[dict[LogLevel, str]] = {
         LogLevel.TRACE: "\x1b[37m",  # white
         LogLevel.DEBUG: "\x1b[36m",  # cyan
         LogLevel.INFO: "\x1b[32m",  # green

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import tempfile
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -62,7 +62,7 @@ def _make_event(
     """Build an AuditEvent for testing without going through the factory."""
     event = AuditEvent(
         event_id=overrides.get("event_id", "evt-test-001"),
-        timestamp=datetime(2026, 7, 10, 12, 0, 0, tzinfo=timezone.utc),
+        timestamp=datetime(2026, 7, 10, 12, 0, 0, tzinfo=UTC),
         sequence_number=sequence_number,
         source=source,
         category=category,
@@ -299,7 +299,7 @@ class TestEventValidation:
     def test_empty_event_id(self) -> None:
         event = AuditEvent(
             event_id="",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             sequence_number=1,
             source=AuditSource.RUNTIME,
             category=AuditCategory.SYSTEM_START,
@@ -313,7 +313,7 @@ class TestEventValidation:
     def test_empty_action(self) -> None:
         event = AuditEvent(
             event_id="evt-001",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             sequence_number=1,
             source=AuditSource.RUNTIME,
             category=AuditCategory.SYSTEM_START,
@@ -327,7 +327,7 @@ class TestEventValidation:
     def test_negative_sequence(self) -> None:
         event = AuditEvent(
             event_id="evt-001",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             sequence_number=-1,
             source=AuditSource.RUNTIME,
             category=AuditCategory.SYSTEM_START,
@@ -717,9 +717,9 @@ class TestAuditQueryEngine:
         assert len(result) == 1
 
     def test_query_time_range(self) -> None:
-        t1 = datetime(2026, 7, 10, 10, 0, 0, tzinfo=timezone.utc)
-        t2 = datetime(2026, 7, 10, 11, 0, 0, tzinfo=timezone.utc)
-        t3 = datetime(2026, 7, 10, 12, 0, 0, tzinfo=timezone.utc)
+        t1 = datetime(2026, 7, 10, 10, 0, 0, tzinfo=UTC)
+        t2 = datetime(2026, 7, 10, 11, 0, 0, tzinfo=UTC)
+        t3 = datetime(2026, 7, 10, 12, 0, 0, tzinfo=UTC)
         e1 = AuditEvent(
             event_id="e1",
             timestamp=t1,

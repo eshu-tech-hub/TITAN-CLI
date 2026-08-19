@@ -52,7 +52,7 @@ class BrokerConfig:
     pin: str = ""
     totp_secret: str = ""
     access_token: str = ""
-    paper_initial_cash: Decimal = Decimal("100000")
+    paper_initial_cash: Decimal = Decimal(100000)
     connection_timeout_seconds: float = 30.0
     max_retries: int = 3
 
@@ -75,9 +75,9 @@ class RuntimeConfig:
 
 @dataclass(frozen=True, slots=True)
 class RiskConfig:
-    max_position_size: Decimal = Decimal("100000")
+    max_position_size: Decimal = Decimal(100000)
     max_drawdown_percent: Decimal = Decimal("20.0")
-    max_daily_loss: Decimal = Decimal("50000")
+    max_daily_loss: Decimal = Decimal(50000)
     max_leverage: Decimal = Decimal("1.0")
     margin_call_threshold_percent: Decimal = Decimal("50.0")
     stop_loss_percent: Decimal = Decimal("5.0")
@@ -92,7 +92,7 @@ class ExecutionConfig:
     retry_delay_seconds: float = 5.0
     order_timeout_seconds: float = 30.0
     default_slippage_percent: Decimal = Decimal("0.1")
-    default_commission_flat: Decimal = Decimal("10")
+    default_commission_flat: Decimal = Decimal(10)
     default_commission_percent: Decimal = Decimal("0.01")
 
 

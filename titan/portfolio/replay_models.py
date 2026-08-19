@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from titan.portfolio.models import (
-    PortfolioSnapshot,
     DrawdownAnalysis,
     PortfolioPerformance,
+    PortfolioSnapshot,
 )
 from titan.trading.journal import TradeLifecycleEvent
 

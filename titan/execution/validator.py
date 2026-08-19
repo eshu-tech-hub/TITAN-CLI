@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Callable
 
 from titan.brokers.broker import Broker
 from titan.brokers.models import FundsInfo

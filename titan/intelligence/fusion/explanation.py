@@ -2,7 +2,6 @@ from typing import Final
 
 from titan.core.evidence.evidence import Evidence
 from titan.core.evidence.models import EvidenceCategory
-
 from titan.intelligence.fusion.models import (
     EvidenceConflict,
     IntelligenceFusion,

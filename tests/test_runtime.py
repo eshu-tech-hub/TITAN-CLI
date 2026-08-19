@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -17,7 +17,6 @@ from titan.runtime.exceptions import (
     SubscriptionError,
 )
 from titan.runtime.health import HealthCheck
-from titan.runtime.supervisor import RuntimeSupervisor
 from titan.runtime.models import (
     ComponentHealth,
     HealthStatus,
@@ -32,6 +31,7 @@ from titan.runtime.runtime import RuntimeEngine
 from titan.runtime.scheduler import PipelineScheduler
 from titan.runtime.stream import MarketStream
 from titan.runtime.subscriptions import SubscriptionManager
+from titan.runtime.supervisor import RuntimeSupervisor
 
 # ── Mock Stream Data Source ──────────────────────────────────────
 
@@ -98,7 +98,7 @@ def make_quote(symbol: str = "TEST") -> Quote:
         last_price=Decimal("100.0"),
         bid=Decimal("99.5"),
         ask=Decimal("100.5"),
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
     )
 
 

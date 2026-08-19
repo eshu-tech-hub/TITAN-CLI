@@ -14,7 +14,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.dealer_bias import DealerBiasAnalyzer
 from titan.options.analytics.dealer_inventory import DealerInventoryAnalyzer
 from titan.options.analytics.models import (
@@ -359,7 +358,7 @@ class DealerPositioningAnalyzer:
             )
         else:
             parts.append(
-                "Dealer gamma positioning cannot be estimated from " "available data."
+                "Dealer gamma positioning cannot be estimated from available data."
             )
 
         if inventory.reasons:
@@ -394,7 +393,7 @@ class DealerPositioningAnalyzer:
             )
         else:
             parts.append(
-                "Dealer directional bias cannot be determined from " "available data."
+                "Dealer directional bias cannot be determined from available data."
             )
 
         if bias.reasons:
@@ -539,7 +538,7 @@ class DealerPositioningAnalyzer:
 
         if not parts:
             parts.append(
-                "No material risk factors identified from " "dealer positioning data."
+                "No material risk factors identified from dealer positioning data."
             )
 
         return " ".join(parts)

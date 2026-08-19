@@ -21,7 +21,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.gamma_walls import GammaWallsAnalyzer
 from titan.options.analytics.models import (
     DealerPositioningAnalysis,
@@ -556,8 +555,7 @@ class GammaExposureAnalyzer:
         zgl = analysis.zero_gamma_level
         if zgl is not None and zgl.strike is not None:
             parts.append(
-                f"Net gamma exposure crosses zero at approximately "
-                f"{zgl.strike:.2f}."
+                f"Net gamma exposure crosses zero at approximately {zgl.strike:.2f}."
             )
             if zgl.distance_percent is not None:
                 direction = "above" if zgl.distance_percent > 0 else "below"
@@ -641,9 +639,7 @@ class GammaExposureAnalyzer:
                 "to materially influence near-term price action."
             )
         else:
-            parts.append(
-                "Pinning probability cannot be assessed from " "available data."
-            )
+            parts.append("Pinning probability cannot be assessed from available data.")
 
         return " ".join(parts)
 

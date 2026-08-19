@@ -7,7 +7,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.butterfly import ButterflyAnalyzer
 from titan.options.analytics.models import (
     ButterflyResult,
@@ -477,8 +476,7 @@ class SkewAnalyzer:
             )
         else:
             parts.append(
-                "Skew direction unknown. Risk assessment is limited "
-                "by available data."
+                "Skew direction unknown. Risk assessment is limited by available data."
             )
 
         if analysis.strength is SkewStrength.HIGH:

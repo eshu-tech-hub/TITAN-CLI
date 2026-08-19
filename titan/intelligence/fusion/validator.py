@@ -2,7 +2,6 @@ from collections.abc import Sequence
 
 from titan.core.evidence.evidence import Evidence
 from titan.core.evidence.models import EvidenceCategory
-
 from titan.intelligence.fusion.exceptions import FusionValidationError
 from titan.intelligence.fusion.models import EvidenceWeight
 

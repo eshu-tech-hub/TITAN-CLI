@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -59,7 +59,7 @@ def make_subsystem_health(
     return SubsystemHealth(
         subsystem=subsystem,
         status=status,
-        last_check=datetime.now(timezone.utc),
+        last_check=datetime.now(UTC),
     )
 
 
@@ -254,7 +254,7 @@ class TestMetricsRegistry:
         reg = MetricsRegistry()
         reg.record(make_metric(name="cpu", value=50.0))
         reg.record(make_metric(name="cpu", value=75.0))
-        result = reg.range("cpu", datetime(1970, 1, 1, tzinfo=timezone.utc))
+        result = reg.range("cpu", datetime(1970, 1, 1, tzinfo=UTC))
         assert len(result) == 2
 
     def test_clear(self) -> None:

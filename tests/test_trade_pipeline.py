@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,9 +9,11 @@ from titan.market.models import Candle
 from titan.market.series import MarketDataSeries
 from titan.pipeline import (
     PipelineAbortedError,
+    PipelineContext,
     PipelineError,
     PipelineExecutionError,
     PipelineFatalError,
+    PipelineHooks,
     PipelineRecoverableError,
     PipelineReport,
     PipelineStage,
@@ -20,8 +22,6 @@ from titan.pipeline import (
     PipelineValidationError,
     StageTiming,
     TradePipeline,
-    PipelineHooks,
-    PipelineContext,
 )
 from titan.portfolio.models import ExistingPortfolio
 from titan.risk.models import (
@@ -37,9 +37,9 @@ from titan.risk.models import (
     TargetPlan,
 )
 from titan.trading.models import (
+    ScoreBand,
     TradeQualification,
     TradeScore,
-    ScoreBand,
     TradeStatus,
 )
 
@@ -50,7 +50,7 @@ from titan.trading.models import (
 
 def make_series(prices: list[float]) -> MarketDataSeries:
     candles = [
-        Candle(timestamp=datetime.utcnow(), open=p, high=p, low=p, close=p, volume=100)
+        Candle(timestamp=datetime.now(UTC), open=p, high=p, low=p, close=p, volume=100)
         for p in prices
     ]
     return MarketDataSeries(candles)

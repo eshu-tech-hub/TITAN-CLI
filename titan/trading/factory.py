@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Tuple
+from datetime import UTC, datetime
+from typing import Any
 
 from titan.trading.journal import TradeJournalEntry, TradeLifecycleState
 
@@ -14,7 +14,7 @@ class TradeJournalFactory:
     @staticmethod
     def from_pipeline_report(
         report: Any, runtime_session_id: str
-    ) -> list[Tuple[TradeJournalEntry, str]]:
+    ) -> list[tuple[TradeJournalEntry, str]]:
         """
         Create initial TradeJournal entries from a pipeline execution report.
 
@@ -46,7 +46,7 @@ class TradeJournalFactory:
                 tags=(),
                 decision_status="executed",
                 execution_status=TradeLifecycleState.SUBMITTED,
-                open_time=datetime.now(timezone.utc),
+                open_time=datetime.now(UTC),
                 close_time=None,
                 lifecycle_events=(),
             )

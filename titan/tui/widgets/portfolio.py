@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Static
 from textual.reactive import reactive
+from textual.widgets import Static
 
 from titan.portfolio.models import (
     AllocationAnalysis,

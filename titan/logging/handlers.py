@@ -5,6 +5,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from threading import Lock
+
 from titan.logging.exceptions import HandlerRegistrationError
 from titan.logging.formatter import (
     CompactFormatter,

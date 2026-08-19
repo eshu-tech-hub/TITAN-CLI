@@ -45,9 +45,9 @@ class PerformanceEngine:
         for order in orders:
             if order.fills and order.status.value == "filled":
                 pnl = self._compute_order_pnl(order)
-                if pnl > Decimal("0"):
+                if pnl > Decimal(0):
                     winning_pnl.append(pnl)
-                elif pnl < Decimal("0"):
+                elif pnl < Decimal(0):
                     losing_pnl.append(pnl)
 
         winning_trades = len(winning_pnl)
@@ -56,26 +56,26 @@ class PerformanceEngine:
         win_rate = winning_trades / total_trades if total_trades > 0 else 0.0
         loss_rate = losing_trades / total_trades if total_trades > 0 else 0.0
 
-        gross_profit = sum(winning_pnl, Decimal("0"))
-        gross_loss = abs(sum(losing_pnl, Decimal("0")))
+        gross_profit = sum(winning_pnl, Decimal(0))
+        gross_loss = abs(sum(losing_pnl, Decimal(0)))
         profit_factor = (
-            float(gross_profit / gross_loss) if gross_loss > Decimal("0") else 0.0
+            float(gross_profit / gross_loss) if gross_loss > Decimal(0) else 0.0
         )
 
         net_pnl = gross_profit - gross_loss
         expectancy = (
-            net_pnl / Decimal(str(total_trades)) if total_trades > 0 else Decimal("0")
+            net_pnl / Decimal(str(total_trades)) if total_trades > 0 else Decimal(0)
         )
 
         avg_winner = (
             gross_profit / Decimal(str(winning_trades))
             if winning_trades > 0
-            else Decimal("0")
+            else Decimal(0)
         )
         avg_loser = (
             gross_loss / Decimal(str(losing_trades))
             if losing_trades > 0
-            else Decimal("0")
+            else Decimal(0)
         )
 
         avg_holding_time = self._compute_avg_holding_time(orders)
@@ -98,8 +98,8 @@ class PerformanceEngine:
 
     def _compute_order_pnl(self, order: PaperOrder) -> Decimal:
         """Compute P&L for a completed order."""
-        total_buy_value = Decimal("0")
-        total_sell_value = Decimal("0")
+        total_buy_value = Decimal(0)
+        total_sell_value = Decimal(0)
         buy_qty = 0
         sell_qty = 0
 
@@ -113,7 +113,7 @@ class PerformanceEngine:
                 sell_qty += fill.quantity
 
         if buy_qty == 0 or sell_qty == 0:
-            return Decimal("0")
+            return Decimal(0)
 
         avg_buy = total_buy_value / Decimal(str(buy_qty))
         avg_sell = total_sell_value / Decimal(str(sell_qty))

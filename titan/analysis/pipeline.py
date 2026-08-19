@@ -25,12 +25,12 @@ class IndicatorPipeline:
         timeframe: str,
         data: MarketDataSeries,
     ) -> AnalysisReport:
-        from datetime import datetime
+        from datetime import UTC, datetime
 
         report = AnalysisReport(
             symbol=symbol,
             timeframe=timeframe,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
         for indicator in self._indicators:

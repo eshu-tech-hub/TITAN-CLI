@@ -7,7 +7,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.hv import HVAnalyzer
 from titan.options.analytics.iv import IVAnalyzer
 from titan.options.analytics.iv_percentile import IVPercentileAnalyzer
@@ -63,8 +62,8 @@ class VolatilityAnalyzer:
 
         iv_level, iv_trend, iv_conf = self._iv.analyze(snapshot)
         current_hv, hv_trend, hv_stability, hv_conf = self._hv.analyze(snapshot)
-        rank_level, rank_value, rank_conf = self._iv_rank.analyze(snapshot)
-        pctl_level, pctl_value, pctl_conf = self._iv_percentile.analyze(snapshot)
+        rank_level, rank_value, _rank_conf = self._iv_rank.analyze(snapshot)
+        _pctl_level, pctl_value, _pctl_conf = self._iv_percentile.analyze(snapshot)
         regime, buying_bias, selling_bias, regime_conf = self._regime.analyze(
             snapshot, iv_trend
         )
@@ -335,9 +334,7 @@ class VolatilityAnalyzer:
     def _risk_section(self, analysis: VolatilityAnalysis) -> str:
         warnings = analysis.warnings
         if not warnings:
-            return (
-                "No volatility-related risk warnings. " "Data completeness is adequate."
-            )
+            return "No volatility-related risk warnings. Data completeness is adequate."
 
         return "Volatility risk warnings:\n" + "\n".join(f"  - {w}" for w in warnings)
 

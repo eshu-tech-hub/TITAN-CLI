@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -111,7 +111,7 @@ class RecoveryRequest:
     failure_reason: str
     metadata: Mapping[str, Any] = field(default_factory=dict)
     retry_policy: RetryPolicy | None = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     request_id: str = ""
 
 
@@ -119,7 +119,7 @@ class RecoveryRequest:
 class RecoveryAttempt:
     attempt_number: int
     strategy: RecoveryStrategy
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     status: RecoveryStatus = RecoveryStatus.PENDING
     error: str = ""
@@ -140,7 +140,7 @@ class RecoveryReport:
     failure_reason: str = ""
     error: str = ""
     attempts: tuple[RecoveryAttempt, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -150,7 +150,7 @@ class Checkpoint:
     component: ComponentType
     state_data: Mapping[str, Any]
     version: str = "1.0.0"
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -162,7 +162,7 @@ class RuntimeStateSnapshot:
     portfolio_snapshot: Mapping[str, Any] = field(default_factory=dict)
     runtime_config: Mapping[str, Any] = field(default_factory=dict)
     monitoring_status: Mapping[str, Any] = field(default_factory=dict)
-    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    captured_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -196,4 +196,4 @@ class RecoveryHistoryEntry:
     status: RecoveryStatus
     total_attempts: int
     failure_reason: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

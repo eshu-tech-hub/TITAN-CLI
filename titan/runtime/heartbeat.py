@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Dict, List
+from datetime import UTC, datetime
 
 
 class HeartbeatRegistry:
@@ -11,11 +10,11 @@ class HeartbeatRegistry:
 
     def __init__(self, timeout_seconds: float = 30.0) -> None:
         self.timeout_seconds = timeout_seconds
-        self._beats: Dict[str, datetime] = {}
+        self._beats: dict[str, datetime] = {}
 
     def register(self, component: str) -> None:
         """Register a component for heartbeat tracking."""
-        self._beats[component] = datetime.now(timezone.utc)
+        self._beats[component] = datetime.now(UTC)
 
     def touch(self, component: str) -> None:
         """Update the last active timestamp for a registered component."""
@@ -23,11 +22,11 @@ class HeartbeatRegistry:
         if component not in self._beats:
             self.register(component)
         else:
-            self._beats[component] = datetime.now(timezone.utc)
+            self._beats[component] = datetime.now(UTC)
 
-    def get_dead_components(self) -> List[str]:
+    def get_dead_components(self) -> list[str]:
         """Identify components that have not checked in within the timeout window."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         dead = []
         for comp, last_beat in self._beats.items():
             if (now - last_beat).total_seconds() > self.timeout_seconds:

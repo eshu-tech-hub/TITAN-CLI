@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import VerticalScroll
 from textual.screen import Screen
@@ -32,7 +32,7 @@ class RuntimeScreen(Screen):
     Data is read-only from all managers.
     """
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS: ClassVar[str] = """
     RuntimeScreen {
         layout: vertical;
         padding: 1 2;
@@ -55,7 +55,7 @@ class RuntimeScreen(Screen):
     }
     """
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("q", "quit", "Quit"),
         ("r", "refresh", "Refresh"),
         ("escape", "back", "Back"),
@@ -126,7 +126,7 @@ class RuntimeScreen(Screen):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#refresh-indicator", Static)
-            now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+            now = datetime.now(UTC).strftime("%H:%M:%S")
             indicator.update(f"Last refresh: {now}")
         except Exception:
             pass

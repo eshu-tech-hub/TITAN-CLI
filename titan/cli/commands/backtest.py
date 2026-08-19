@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Annotated, Any
@@ -129,7 +129,7 @@ def _load_csv_dataset(
             try:
                 timestamp = datetime.fromisoformat(row["timestamp"])
                 if timestamp.tzinfo is None:
-                    timestamp = timestamp.replace(tzinfo=timezone.utc)
+                    timestamp = timestamp.replace(tzinfo=UTC)
                 bar = HistoricalBar(
                     timestamp=timestamp,
                     open=Decimal(row["open"]),
@@ -241,7 +241,7 @@ def _print_backtest_status(data: dict[str, Any] | None) -> None:
     table.add_row("Engine Status", status_str)
 
     if running and _backtest_start_time is not None:
-        elapsed = (datetime.now(timezone.utc) - _backtest_start_time).total_seconds()
+        elapsed = (datetime.now(UTC) - _backtest_start_time).total_seconds()
         table.add_row("Elapsed", _format_duration(elapsed))
 
     if data is not None:
@@ -394,7 +394,7 @@ def _run_silent(
     global _backtest_running, _backtest_start_time
 
     _backtest_running = True
-    _backtest_start_time = datetime.now(timezone.utc)
+    _backtest_start_time = datetime.now(UTC)
 
     try:
         console.print(f"[cyan]>[/cyan] Loading dataset from {csv_path}...")
@@ -441,7 +441,7 @@ def _run_with_progress(
     global _backtest_running, _backtest_start_time
 
     _backtest_running = True
-    _backtest_start_time = datetime.now(timezone.utc)
+    _backtest_start_time = datetime.now(UTC)
 
     steps = [
         "Loading dataset",
@@ -613,8 +613,8 @@ def evaluate(
 ):
     """Evaluate historical strategy performance and regime breakdown."""
     try:
-        from titan.cli.common import get_runtime_engine
         from titan.backtesting.evaluation import StrategyEvaluator
+        from titan.cli.common import get_runtime_engine
 
         # Extract historical entries from the central repository
         engine = get_runtime_engine()

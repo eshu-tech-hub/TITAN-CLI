@@ -1,13 +1,12 @@
-from titan.events.models import EventRisk, EventImportance
+from titan.events.models import EventImportance, EventRisk
 from titan.options.analytics.models import (
     DealerSide,
     ExecutionGrade,
     GammaRegime,
-    IVRankLevel,
     IVHVRelation,
+    IVRankLevel,
     VolatilityRegime,
 )
-
 from titan.risk.exceptions import RiskEngineError
 from titan.risk.models import (
     ExposureAssessment,

@@ -3,7 +3,6 @@ Helper for validating end-to-end execution reconciliation.
 """
 
 from titan.paper.broker import PaperBroker
-from typing import List
 
 
 class ExecutionReconciliationValidator:
@@ -15,7 +14,7 @@ class ExecutionReconciliationValidator:
         self.position_engine = broker.position_engine
         self.portfolio = broker.portfolio
 
-    def validate_all(self) -> List[str]:
+    def validate_all(self) -> list[str]:
         """Runs all reconciliation checks and returns a list of failure reasons (empty if pass)."""
         errors = []
         errors.extend(self.validate_orders_vs_journal())
@@ -24,7 +23,7 @@ class ExecutionReconciliationValidator:
         errors.extend(self.validate_journal_integrity())
         return errors
 
-    def validate_orders_vs_journal(self) -> List[str]:
+    def validate_orders_vs_journal(self) -> list[str]:
         """Broker orders == Trade Journal"""
         errors = []
         broker_orders = self.broker.orders()
@@ -46,7 +45,7 @@ class ExecutionReconciliationValidator:
 
         return errors
 
-    def validate_journal_vs_positions(self) -> List[str]:
+    def validate_journal_vs_positions(self) -> list[str]:
         """Trade Journal == Positions"""
         errors = []
         # Calculate expected net quantity from journal fills
@@ -62,16 +61,16 @@ class ExecutionReconciliationValidator:
 
         return errors
 
-    def validate_positions_vs_portfolio(self) -> List[str]:
+    def validate_positions_vs_portfolio(self) -> list[str]:
         """Positions == Portfolio"""
         errors = []
         try:
             self.portfolio.compute_state(self.position_engine.open_positions())
         except Exception as e:
-            errors.append(f"Portfolio computation failed with positions: {str(e)}")
+            errors.append(f"Portfolio computation failed with positions: {e!s}")
         return errors
 
-    def validate_journal_integrity(self) -> List[str]:
+    def validate_journal_integrity(self) -> list[str]:
         """No missing journal entries, No duplicate UUIDs, Lifecycle ordering"""
         errors = []
         orders = self.journal.all_orders()

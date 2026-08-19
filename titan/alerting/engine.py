@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -172,7 +172,7 @@ class AlertEngine:
     ) -> Alert:
         with self._lock:
             self._alert_id_counter += 1
-            alert_id = f"alert:{self._alert_id_counter}:{datetime.now(timezone.utc).timestamp()}"
+            alert_id = f"alert:{self._alert_id_counter}:{datetime.now(UTC).timestamp()}"
 
         return Alert(
             alert_id=alert_id,

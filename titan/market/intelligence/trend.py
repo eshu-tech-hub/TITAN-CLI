@@ -55,8 +55,8 @@ class TrendAnalyzer:
                 strength=0.0,
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need {long_period} candles, "
-                    f"got {len(series)}.",
+                    (f"Insufficient data: need {long_period} candles, "
+                    f"got {len(series)}."),
                 ),
             )
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -293,35 +294,35 @@ class TestFormatRelativeTime:
         assert _format_relative_time(None) == "Never"
 
     def test_just_now(self) -> None:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
 
-        dt = datetime.now(timezone.utc) - timedelta(microseconds=1)
+        dt = datetime.now(UTC) - timedelta(microseconds=1)
         assert _format_relative_time(dt) == "Just now"
 
     def test_recent(self) -> None:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
 
-        dt = datetime.now(timezone.utc) - timedelta(seconds=0.5)
+        dt = datetime.now(UTC) - timedelta(seconds=0.5)
         assert _format_relative_time(dt) == "< 1 sec ago"
 
     def test_seconds_ago(self) -> None:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
 
-        dt = datetime.now(timezone.utc) - timedelta(seconds=30)
+        dt = datetime.now(UTC) - timedelta(seconds=30)
         result = _format_relative_time(dt)
         assert "sec ago" in result
 
     def test_minutes_ago(self) -> None:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
 
-        dt = datetime.now(timezone.utc) - timedelta(minutes=5)
+        dt = datetime.now(UTC) - timedelta(minutes=5)
         result = _format_relative_time(dt)
         assert "min ago" in result
 
     def test_hours_ago(self) -> None:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
 
-        dt = datetime.now(timezone.utc) - timedelta(hours=3)
+        dt = datetime.now(UTC) - timedelta(hours=3)
         result = _format_relative_time(dt)
         assert "hr ago" in result
 
@@ -682,13 +683,13 @@ def _make_mock_engine(
 
 class TestBuildRuntimeState:
     @patch("titan.cli.common.get_runtime_engine")
-    @patch("titan.cli.common.get_recovery_manager", side_effect=Exception)
+    @patch("titan.cli.common.get_recovery_manager", side_effect=RuntimeError)
     def test_with_engine(self, mock_rec: MagicMock, mock_eng: MagicMock) -> None:
         mock_eng.return_value = _make_mock_engine()
         state = build_runtime_state()
         assert state.engine.status == "RUNNING"
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_without_engine(self, mock_eng: MagicMock) -> None:
         state = build_runtime_state()
         assert state.engine.status == "Unknown"
@@ -720,7 +721,7 @@ class TestReadRuntimeEngine:
         assert info.is_running is False
         assert info.scheduler_active is False
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_eng: MagicMock) -> None:
         info = _read_runtime_engine()
         assert info.status == "Unknown"
@@ -751,7 +752,7 @@ class TestReadRuntimeStream:
         info = _read_runtime_stream()
         assert info.tick_rate == "N/A"
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_eng: MagicMock) -> None:
         info = _read_runtime_stream()
         assert info.connected is False
@@ -760,11 +761,11 @@ class TestReadRuntimeStream:
 class TestReadRuntimePipeline:
     @patch("titan.cli.common.get_runtime_engine")
     def test_with_executions(self, mock_eng: MagicMock) -> None:
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
 
         mock_eng.return_value = _make_mock_engine(
             pipeline_executions=1248,
-            last_pipeline_time=datetime.now(timezone.utc) - timedelta(seconds=2),
+            last_pipeline_time=datetime.now(UTC) - timedelta(seconds=2),
         )
         info = _read_runtime_pipeline()
         assert info.executions == 1248
@@ -782,7 +783,7 @@ class TestReadRuntimePipeline:
         info = _read_runtime_pipeline()
         assert info.avg_runtime == "N/A"
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_eng: MagicMock) -> None:
         info = _read_runtime_pipeline()
         assert info.executions == 0
@@ -820,7 +821,7 @@ class TestReadRuntimeEventBus:
         assert info.subscribers == 0
         assert info.published == 0
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_eng: MagicMock) -> None:
         info = _read_runtime_event_bus()
         assert info.subscribers == 0
@@ -850,7 +851,7 @@ class TestReadRuntimeComponents:
         comps = _read_runtime_components()
         assert comps == ()
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_eng: MagicMock) -> None:
         comps = _read_runtime_components()
         assert comps == ()
@@ -858,7 +859,7 @@ class TestReadRuntimeComponents:
 
 class TestReadRuntimeEvents:
     @patch("titan.cli.common.get_runtime_engine")
-    @patch("titan.cli.common.get_recovery_manager", side_effect=Exception)
+    @patch("titan.cli.common.get_recovery_manager", side_effect=RuntimeError)
     def test_with_warnings_and_errors(
         self, mock_rec: MagicMock, mock_eng: MagicMock
     ) -> None:
@@ -871,14 +872,14 @@ class TestReadRuntimeEvents:
         assert events[1].level == "error"
 
     @patch("titan.cli.common.get_runtime_engine")
-    @patch("titan.cli.common.get_recovery_manager", side_effect=Exception)
+    @patch("titan.cli.common.get_recovery_manager", side_effect=RuntimeError)
     def test_empty_events(self, mock_rec: MagicMock, mock_eng: MagicMock) -> None:
         mock_eng.return_value = _make_mock_engine(warnings=(), errors=())
         events = _read_runtime_events()
         assert events == ()
 
-    @patch("titan.cli.common.get_runtime_engine", side_effect=Exception)
-    @patch("titan.cli.common.get_recovery_manager", side_effect=Exception)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    @patch("titan.cli.common.get_recovery_manager", side_effect=RuntimeError)
     def test_all_exceptions(self, mock_rec: MagicMock, mock_eng: MagicMock) -> None:
         events = _read_runtime_events()
         assert events == ()
@@ -921,8 +922,9 @@ class TestRuntimeAsync:
     async def test_runtime_title_shown(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.runtime import RuntimeScreen
             from textual.widgets import Static
+
+            from titan.tui.screens.runtime import RuntimeScreen
 
             screen = RuntimeScreen()
             app.push_screen(screen)
@@ -934,8 +936,9 @@ class TestRuntimeAsync:
     async def test_runtime_refresh_indicator(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.runtime import RuntimeScreen
             from textual.widgets import Static
+
+            from titan.tui.screens.runtime import RuntimeScreen
 
             screen = RuntimeScreen()
             app.push_screen(screen)
@@ -947,8 +950,9 @@ class TestRuntimeAsync:
     async def test_runtime_manual_refresh(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.runtime import RuntimeScreen
             from textual.widgets import Static
+
+            from titan.tui.screens.runtime import RuntimeScreen
 
             screen = RuntimeScreen()
             app.push_screen(screen)
@@ -961,8 +965,8 @@ class TestRuntimeAsync:
     async def test_runtime_escape_back(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.runtime import RuntimeScreen
             from titan.tui.screens.dashboard import DashboardScreen
+            from titan.tui.screens.runtime import RuntimeScreen
 
             screen = RuntimeScreen()
             app.push_screen(screen)
@@ -984,8 +988,8 @@ class TestRuntimeAsync:
     async def test_f1_navigates_to_dashboard(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.runtime import RuntimeScreen
             from titan.tui.screens.dashboard import DashboardScreen
+            from titan.tui.screens.runtime import RuntimeScreen
 
             app.push_screen(RuntimeScreen())
             await pilot.pause()

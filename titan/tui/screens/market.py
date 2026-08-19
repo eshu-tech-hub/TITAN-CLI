@@ -1,6 +1,7 @@
 """Market Intelligence dashboard screen."""
 
 import asyncio
+from typing import ClassVar
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -24,7 +25,7 @@ from titan.tui.widgets.market import (
 class MarketScreen(Screen):
     """Market Intelligence Screen."""
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("r", "refresh_data", "Refresh"),
         Binding("escape", "app.pop_screen", "Back"),
         Binding("up", "scroll_up", "Scroll Up", show=False),

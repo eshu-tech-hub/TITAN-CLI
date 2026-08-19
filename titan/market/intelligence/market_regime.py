@@ -22,7 +22,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.market.intelligence.models import (
     BreadthAnalysis,
     DecisionContext,
@@ -542,8 +541,7 @@ class MarketRegimeAnalyzer:
                 "confirm the current price move."
             )
         return (
-            "Institutional Confirmation: No strong confirmation "
-            "from volume or breadth."
+            "Institutional Confirmation: No strong confirmation from volume or breadth."
         )
 
     def _strategy_section(self, analysis: MarketRegimeAnalysis) -> str:
@@ -560,25 +558,21 @@ class MarketRegimeAnalyzer:
             MarketRegime.TRENDING_BULLISH,
             MarketRegime.EXPANSION,
         ):
-            parts.append(
-                "Environment favours long positions with " "trend confirmation."
-            )
+            parts.append("Environment favours long positions with trend confirmation.")
         elif analysis.market_regime in (
             MarketRegime.TRENDING_BEARISH,
             MarketRegime.BREAKDOWN,
         ):
-            parts.append(
-                "Environment favours short positions with " "trend confirmation."
-            )
+            parts.append("Environment favours short positions with trend confirmation.")
         elif analysis.market_regime is MarketRegime.RANGING:
             parts.append(
-                "Environment favours range-bound approaches. " "Avoid trend following."
+                "Environment favours range-bound approaches. Avoid trend following."
             )
         elif analysis.market_regime is MarketRegime.MIXED:
-            parts.append("Conflicting signals. Reduced position sizing " "advised.")
+            parts.append("Conflicting signals. Reduced position sizing advised.")
         else:
             parts.append(
-                "Risk environment is unclear. " "Prioritise capital preservation."
+                "Risk environment is unclear. Prioritise capital preservation."
             )
 
         return " ".join(parts)
@@ -591,14 +585,14 @@ class MarketRegimeAnalyzer:
         analysis = MarketRegimeAnalysis.neutral_placeholder()
         object.__setattr__(analysis, "warnings", (reason,))
         explanation = MarketRegimeExplanation(
-            overall_regime="Regime assessment unavailable: " "insufficient data.",
-            trend_assessment="Trend assessment unavailable: " "insufficient data.",
+            overall_regime="Regime assessment unavailable: insufficient data.",
+            trend_assessment="Trend assessment unavailable: insufficient data.",
             participation_assessment="Participation assessment "
             "unavailable: insufficient data.",
             institutional_confirmation="Institutional confirmation "
             "unavailable: insufficient data.",
-            preferred_strategy="Strategy assessment unavailable: " "insufficient data.",
-            risk_assessment="Risk Assessment: Market regime " "data is unavailable.",
+            preferred_strategy="Strategy assessment unavailable: insufficient data.",
+            risk_assessment="Risk Assessment: Market regime data is unavailable.",
         )
         object.__setattr__(analysis, "explanation", explanation)
         return analysis

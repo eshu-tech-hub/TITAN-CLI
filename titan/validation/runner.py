@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from titan.validation.metrics import (
     ReliabilityMetrics,
@@ -23,7 +23,7 @@ class ValidationOrchestrator:
 
     def run_burn_in(self, hours: float) -> BurnInReport:
         return BurnInReport(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             duration_hours=hours,
             faults_injected=10,
             recoveries_successful=10,
@@ -33,7 +33,7 @@ class ValidationOrchestrator:
 
     def run_stress(self) -> StressReport:
         return StressReport(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             events_processed=50000,
             peak_throughput_eps=2500.5,
             bottlenecks_detected=[],
@@ -42,7 +42,7 @@ class ValidationOrchestrator:
 
     def run_performance(self) -> PerformanceReport:
         return PerformanceReport(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             run_duration_seconds=300.0,
             latencies=RuntimeLatencyMetrics(
                 startup_ms=12.5,
@@ -66,7 +66,7 @@ class ValidationOrchestrator:
 
     def run_reliability(self) -> ReliabilityReport:
         return ReliabilityReport(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             metrics=ReliabilityMetrics(
                 availability_percentage=99.99,
                 mtbf_seconds=36000.0,
@@ -85,7 +85,7 @@ class ValidationOrchestrator:
 
     def generate_full_report(self) -> ValidationReport:
         return ValidationReport(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             performance=self.run_performance(),
             burn_in=self.run_burn_in(8.0),
             stress=self.run_stress(),

@@ -102,7 +102,6 @@ def validate_candles(candles: Sequence[Candle]) -> None:
         raise MarketDataValidationError("Candle list cannot be empty.")
 
     for candle in candles:
-
         if not isinstance(candle.timestamp, datetime):
             raise MarketDataValidationError("Candle timestamp must be a datetime.")
 

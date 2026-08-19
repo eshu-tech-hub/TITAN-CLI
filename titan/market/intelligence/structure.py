@@ -20,7 +20,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.market.intelligence.models import (
     BreakType,
     MarketStructureAnalysis,
@@ -467,9 +466,7 @@ class MarketStructureAnalyzer:
                 "and a new trend may be emerging."
             )
         else:
-            parts.append(
-                "Market structure cannot be determined from " "available data."
-            )
+            parts.append("Market structure cannot be determined from available data.")
 
         return " ".join(parts)
 

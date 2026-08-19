@@ -36,8 +36,8 @@ class CalendarAnalyzer:
         if len(valid) < MIN_EXPIRIES_FOR_CURVE:
             return CalendarResult(
                 warnings=(
-                    "Insufficient expiries with valid IV data "
-                    f"({len(valid)} available, {MIN_EXPIRIES_FOR_CURVE}+ required).",
+                    ("Insufficient expiries with valid IV data "
+                    f"({len(valid)} available, {MIN_EXPIRIES_FOR_CURVE}+ required)."),
                 ),
             )
 

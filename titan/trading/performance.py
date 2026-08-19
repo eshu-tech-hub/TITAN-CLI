@@ -1,7 +1,7 @@
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
-from typing import Mapping, Sequence
+from datetime import UTC, date, datetime
 
 from titan.trading.journal import TradeJournalEntry
 
@@ -56,7 +56,7 @@ class PerformanceAnalyzer:
         # Sort entries by closing time to accurately calculate drawdown and consecutive metrics
         closed_entries = [e for e in entries if e.close_time is not None]
         closed_entries.sort(
-            key=lambda x: x.close_time or datetime.min.replace(tzinfo=timezone.utc)
+            key=lambda x: x.close_time or datetime.min.replace(tzinfo=UTC)
         )
 
         overall = self._analyze_segment(closed_entries)
@@ -95,11 +95,9 @@ class PerformanceAnalyzer:
         cumulative_pnl = 0.0
         for e in closed_entries:
             cumulative_pnl += e.net_pnl
-            if cumulative_pnl > peak:
-                peak = cumulative_pnl
+            peak = max(peak, cumulative_pnl)
             drawdown = peak - cumulative_pnl
-            if drawdown > max_drawdown:
-                max_drawdown = drawdown
+            max_drawdown = max(max_drawdown, drawdown)
 
         return TradePerformance(
             overall=overall,

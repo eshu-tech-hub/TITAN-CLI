@@ -1,7 +1,9 @@
+from __future__ import annotations
+
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from typing import Iterator
 
 from titan.backtesting.exceptions import DatasetValidationError
 from titan.backtesting.models import (
@@ -49,13 +51,13 @@ class HistoricalDataset:
             raise DatasetValidationError("Dataset must contain at least one bar.")
 
         for i, bar in enumerate(self.bars):
-            if bar.open < Decimal("0") or bar.high < Decimal("0"):
+            if bar.open < Decimal(0) or bar.high < Decimal(0):
                 raise DatasetValidationError(f"Negative price at bar index {i}: {bar}")
-            if bar.low < Decimal("0") or bar.close < Decimal("0"):
+            if bar.low < Decimal(0) or bar.close < Decimal(0):
                 raise DatasetValidationError(f"Negative price at bar index {i}: {bar}")
             if bar.high < bar.low:
                 raise DatasetValidationError(f"High < Low at bar index {i}: {bar}")
-            if bar.open < Decimal("0") or bar.close < Decimal("0"):
+            if bar.open < Decimal(0) or bar.close < Decimal(0):
                 raise DatasetValidationError(f"Negative price at bar index {i}: {bar}")
             if bar.volume < 0:
                 raise DatasetValidationError(f"Negative volume at bar index {i}: {bar}")
@@ -121,7 +123,7 @@ class HistoricalDataset:
         symbol: str,
         exchange: Exchange,
         candles: list[Candle],
-    ) -> "HistoricalDataset":
+    ) -> HistoricalDataset:
         """Create a dataset from broker-layer Candle objects.
 
         Args:
@@ -169,7 +171,7 @@ class HistoricalDataset:
             for b in self.bars
         ]
 
-    def resample(self, interval_minutes: int) -> "HistoricalDataset":
+    def resample(self, interval_minutes: int) -> HistoricalDataset:
         """Resample bars to a larger timeframe (future-ready).
 
         Args:

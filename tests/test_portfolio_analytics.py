@@ -1,6 +1,7 @@
 import json
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, timezone
 
 from titan.portfolio.analytics import PortfolioAnalytics
 from titan.portfolio.models import (
@@ -41,7 +42,7 @@ def analytics_engine():
 
 @pytest.fixture
 def sample_trades():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return [
         TradeJournalEntry(
             trade_id=f"t{i}",
@@ -111,7 +112,7 @@ class TestPortfolioAnalytics:
         portfolio = ExistingPortfolio(
             total_capital=10000,
             positions=tuple(
-                OpenPosition(f"SYM{j}", "Eq", "Long", 1, 10, 10, 100, 0, f"Sec{j%3}")
+                OpenPosition(f"SYM{j}", "Eq", "Long", 1, 10, 10, 100, 0, f"Sec{j % 3}")
                 for j in range(i)
             ),
         )
@@ -152,8 +153,8 @@ class TestPortfolioAnalytics:
                 tags=(),
                 decision_status="",
                 execution_status=TradeLifecycleState.CLOSED,
-                open_time=datetime.now(timezone.utc),
-                close_time=datetime.now(timezone.utc),
+                open_time=datetime.now(UTC),
+                close_time=datetime.now(UTC),
             )
             for j in range(i)
         ]

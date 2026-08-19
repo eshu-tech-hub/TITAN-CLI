@@ -1,8 +1,9 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from titan.deployment.startup import ProductionBootstrapper
+import pytest
+
 from titan.core.exceptions import ConfigurationError
+from titan.deployment.startup import ProductionBootstrapper
 
 
 def test_bootstrapper_success():

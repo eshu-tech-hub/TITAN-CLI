@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from titan.core.evidence import (
     Confidence,
@@ -8,11 +8,11 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.risk.allocation import CapitalAllocationEngine
 from titan.risk.exceptions import RiskEngineError, RiskInputError, RiskValidationError
 from titan.risk.exposure import ExposureEngine
 from titan.risk.models import (
+    RISK_PROFILE_MAP,
     CapitalAllocation,
     DecisionContext,
     ExposureAssessment,
@@ -26,7 +26,6 @@ from titan.risk.models import (
     RiskProfileConfig,
     RiskScore,
     RiskScoreBand,
-    RISK_PROFILE_MAP,
     StopLossPlan,
     TargetPlan,
 )
@@ -185,7 +184,7 @@ class RiskEngine:
                         self._exposure.name,
                     ],
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
         except (RiskInputError, RiskValidationError):

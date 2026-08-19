@@ -1,11 +1,10 @@
 from titan.options.analytics.models import GammaRegime
-
 from titan.risk.exceptions import RiskEngineError
 from titan.risk.models import (
+    RISK_PROFILE_MAP,
     RiskInput,
     RiskProfile,
     RiskProfileConfig,
-    RISK_PROFILE_MAP,
     StopLossPlan,
 )
 

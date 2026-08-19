@@ -7,10 +7,12 @@ Dashboard is the default screen.
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.app import App
+
+from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 
 if TYPE_CHECKING:
     from titan.tui.models import AIScreenState, StrategyEvalScreenState
@@ -64,28 +66,20 @@ if TYPE_CHECKING:
         AuditEntry,
         AuditScreenState,
         AuditSummaryInfo,
-        DecisionScreenState,
-        DecisionSummaryInfo,
-        DecisionEvidenceInfo,
-        DecisionRiskInfo,
-        DecisionQualificationInfo,
-        DecisionReasonEntry,
-        DecisionTimelineEntry,
-        DecisionJournalEntry,
         BackupInfo,
         BackupStatusInfo,
         CheckpointInfo,
         CircuitBreakerInfo,
         ConfigurationInfo,
         ConfigurationScreenState,
-        LiveScreenState,
-        MarketScreenState,
-        MarketStatusInfo,
-        MonitoringScreenState,
-        PaperScreenState,
-        ReplayScreenState,
-        RuntimeScreenState,
-        TradeJournalScreenState,
+        DecisionEvidenceInfo,
+        DecisionJournalEntry,
+        DecisionQualificationInfo,
+        DecisionReasonEntry,
+        DecisionRiskInfo,
+        DecisionScreenState,
+        DecisionSummaryInfo,
+        DecisionTimelineEntry,
         DeploymentHistoryEntry,
         DeploymentInfo,
         EnvironmentInfo,
@@ -95,16 +89,21 @@ if TYPE_CHECKING:
         LogEntry,
         LogSummaryInfo,
         MarketEventEntry,
+        MarketScreenState,
+        MarketStatusInfo,
         MonitoringEventEntry,
+        MonitoringScreenState,
         OpenInterestSummaryInfo,
         OptionChainSummaryInfo,
         RecoveryHistoryEntry,
         RecoveryStatusInfo,
         RegimeInfo,
+        ReplayScreenState,
         ResourceMetricsInfo,
         ServiceStatusEntry,
         SystemHealthInfo,
         TelemetryInfo,
+        TradeJournalScreenState,
         VersionInfo,
         VolatilityInfo,
     )
@@ -126,7 +125,7 @@ class TITANApp(App):
     TITLE = "TITAN"
     SUB_TITLE = "Trading Intelligence & Tactical Analysis Network"
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("up", "focus_previous", "Focus Up"),
         ("down", "focus_next", "Focus Down"),
         ("enter", "select", "Select"),
@@ -217,12 +216,11 @@ class TITANApp(App):
 
     def action_select(self) -> None:
         """Select/focused widget action (placeholder for future pages)."""
-        pass
 
 
 def build_portfolio_state() -> PortfolioScreenState:
     """Build PortfolioScreenState with a fallback if managers are missing."""
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
     return PortfolioScreenState(last_refresh=now)
 
 
@@ -238,9 +236,9 @@ def build_dashboard_state() -> DashboardState:
     health = _read_health()
     system = _read_system()
 
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return DashboardState(
         runtime=runtime,
@@ -266,7 +264,7 @@ def _read_runtime() -> RuntimeInfo:
             broker_status=report.broker.connection,
             stream_status=report.market.stream_status,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return RuntimeInfo()
 
 
@@ -288,7 +286,7 @@ def _read_market() -> MarketInfo:
                 else "Never"
             ),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return MarketInfo()
 
 
@@ -299,7 +297,7 @@ def _read_trading() -> TradingInfo:
         engine = get_runtime_engine()
         live_status = "Running" if engine.is_running else "Stopped"
         return TradingInfo(live_status=live_status)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return TradingInfo()
 
 
@@ -312,7 +310,7 @@ def _read_health() -> HealthInfo:
         monitoring_status = (
             str(mon_report.system_health) if mon_report.system_health else "Unknown"
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         monitoring_status = "Unknown"
 
     try:
@@ -322,7 +320,7 @@ def _read_health() -> HealthInfo:
         al_report = al.generate_report()
         critical = al_report.critical_alerts
         total = al_report.total_alerts
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         critical = 0
         total = 0
 
@@ -337,7 +335,7 @@ def _read_health() -> HealthInfo:
             else str(rm_report.status)
         )
         recovery_attempts = rm_report.total_attempts
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         recovery_status = "Idle"
         recovery_attempts = 0
 
@@ -363,7 +361,7 @@ def _read_system() -> SystemInfo:
             uptime=_format_uptime(report.uptime_seconds),
             python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return SystemInfo(
             python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         )
@@ -381,7 +379,7 @@ def _format_relative_time(dt: datetime | None) -> str:
     """Format a datetime as a relative time string."""
     if dt is None:
         return "Never"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     delta = (now - dt).total_seconds()
     if delta <= 0.1:
         return "Just now"
@@ -408,7 +406,7 @@ def build_runtime_state() -> RuntimeScreenState:
     components = _read_runtime_components()
     events = _read_runtime_events()
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return RuntimeScreenState(
         engine=engine_info,
@@ -433,7 +431,7 @@ def _read_runtime_engine() -> RuntimeEngineInfo:
             is_running=engine.is_running,
             scheduler_active=report.scheduler.active,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return RuntimeEngineInfo()
 
 
@@ -448,7 +446,7 @@ def _read_runtime_stream() -> RuntimeStreamInfo:
             symbols_tracked=report.market.active_subscriptions,
             tick_rate="N/A",
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return RuntimeStreamInfo()
 
 
@@ -463,7 +461,7 @@ def _read_runtime_pipeline() -> RuntimePipelineInfo:
             avg_runtime="N/A",
             last_run=_format_relative_time(report.scheduler.last_pipeline_time),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return RuntimePipelineInfo()
 
 
@@ -481,7 +479,7 @@ def _read_runtime_event_bus() -> RuntimeEventBusInfo:
             published=0,
             subscribers=total_subscribers,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return RuntimeEventBusInfo()
 
 
@@ -498,7 +496,7 @@ def _read_runtime_components() -> tuple[RuntimeComponentInfo, ...]:
             )
             for comp in report.health.component_health
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
@@ -517,7 +515,7 @@ def _read_runtime_events() -> tuple[RuntimeEventEntry, ...]:
             entries.append(
                 RuntimeEventEntry(level="error", source="runtime", message=error)
             )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         pass
     try:
         from titan.cli.common import get_recovery_manager
@@ -536,7 +534,7 @@ def _read_runtime_events() -> tuple[RuntimeEventEntry, ...]:
                     ),
                 )
             )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         pass
     return tuple(entries[-20:])
 
@@ -557,7 +555,7 @@ def build_paper_state() -> PaperScreenState:
     orders = _read_paper_orders()
     trades = _read_paper_trades()
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return PaperScreenState(
         session=session,
@@ -581,14 +579,14 @@ def _read_paper_session() -> PaperSessionInfo:
         uptime = 0.0
         started_str = "--:--"
         if _paper_start_time is not None:
-            uptime = (datetime.now(timezone.utc) - _paper_start_time).total_seconds()
+            uptime = (datetime.now(UTC) - _paper_start_time).total_seconds()
             started_str = _paper_start_time.strftime("%H:%M")
         return PaperSessionInfo(
             status="Running",
             started=started_str,
             duration=_format_uptime(uptime),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return PaperSessionInfo()
 
 
@@ -608,7 +606,7 @@ def _read_paper_accounts() -> PaperAccountInfo:
             payin=_format_inr(funds.payin),
             payout=_format_inr(funds.payout),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return PaperAccountInfo()
 
 
@@ -632,7 +630,7 @@ def _read_paper_portfolio() -> PaperPortfolioInfo:
             unrealized_pnl=_format_pnl(unrealized),
             realized_pnl=_format_pnl(realized),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return PaperPortfolioInfo()
 
 
@@ -654,7 +652,7 @@ def _read_paper_performance() -> PaperPerformanceInfo:
             expectancy=f"{'+' if exp_val >= 0 else ''}{exp_val:.2f}R",
             max_drawdown=f"{float(perf.max_drawdown) * 100:.1f}%",
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return PaperPerformanceInfo()
 
 
@@ -676,7 +674,7 @@ def _read_paper_positions() -> tuple[PaperPositionEntry, ...]:
             )
             for p in open_pos
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
@@ -708,7 +706,7 @@ def _read_paper_trades() -> tuple[PaperTradeEntry, ...]:
                 )
             )
         return tuple(entries)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
@@ -749,43 +747,43 @@ def _read_paper_orders() -> tuple[PaperOrderEntry, ...]:
                 )
             )
         return tuple(active)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
+from decimal import Decimal, InvalidOperation
 
-def _format_inr(value: object) -> str:
-    """Format a numeric value as INR string."""
-    from decimal import Decimal
 
+def _format_inr(value: Any) -> str:
+    """Safely format numeric values to INR currency string."""
     if value is None:
         return "₹0"
     try:
-        d = Decimal(str(value))
-    except Exception:
+        dec_val = Decimal(str(value))
+        if dec_val < 0:
+            return f"-₹{abs(dec_val):,.0f}"
+        return f"₹{dec_val:,.0f}"
+    except (InvalidOperation, ValueError, TypeError, AttributeError):
         return "₹0"
-    if d < 0:
-        return f"-₹{abs(d):,.0f}"
-    return f"₹{d:,.0f}"
 
 
-def _format_pnl(value: object) -> str:
-    """Format a P&L value as a signed INR string."""
-    from decimal import Decimal
-
-    try:
-        d = Decimal(str(value))
-    except Exception:
+def _format_pnl(value: Any) -> str:
+    """Safely format PnL values with + / - signs."""
+    if value is None:
         return "+₹0"
-    if d < 0:
-        return f"-₹{abs(d):,.0f}"
-    return f"+₹{abs(d):,.0f}"
+    try:
+        dec_val = Decimal(str(value))
+        if dec_val < 0:
+            return f"-₹{abs(dec_val):,.0f}"
+        return f"+₹{abs(dec_val):,.0f}"
+    except (InvalidOperation, ValueError, TypeError, AttributeError):
+        return "+₹0"
 
 
 def _format_pct(value: object) -> str:
     """Format a float as a percentage string."""
     try:
         return f"{float(str(value)) * 100:.0f}%"
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return "0%"
 
 
@@ -793,7 +791,7 @@ def _format_float(value: object, decimals: int = 2) -> str:
     """Format a float with fixed decimals."""
     try:
         return f"{float(str(value)):.{decimals}f}"
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return "0"
 
 
@@ -806,7 +804,7 @@ def _format_volume(value: object) -> str:
         if v >= 1_000:
             return f"{v / 1_000:.1f}K"
         return f"{v:.0f}"
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return "0"
 
 
@@ -826,7 +824,7 @@ def build_live_state() -> LiveScreenState:
     orders = _read_live_orders()
     executions = _read_recent_executions()
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return LiveScreenState(
         live_status=live_status,
@@ -854,7 +852,7 @@ def _read_live_status() -> LiveStatusInfo:
             stream_connected=report.market.stream_status.lower() == "connected",
             pipeline_executions=report.scheduler.pipeline_executions,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return LiveStatusInfo()
 
 
@@ -874,7 +872,7 @@ def _read_broker_status() -> BrokerStatusInfo:
             exchange="",
             account_id="",
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return BrokerStatusInfo()
 
 
@@ -893,7 +891,7 @@ def _read_live_account() -> AccountInfo:
             payin=_format_inr(funds.payin),
             payout=_format_inr(funds.payout),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return AccountInfo()
 
 
@@ -917,7 +915,7 @@ def _read_live_exposure() -> ExposureInfo:
             net_exposure=_format_inr(net),
             unrealized_pnl=_format_pnl(total_pnl),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ExposureInfo()
 
 
@@ -949,7 +947,7 @@ def _read_live_positions() -> tuple[LivePositionEntry, ...]:
             )
             for p in positions
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
@@ -989,7 +987,7 @@ def _read_live_orders() -> tuple[LiveOrderEntry, ...]:
                 )
             )
         return tuple(active)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
@@ -1018,14 +1016,14 @@ def _read_recent_executions() -> tuple[ExecutionEntry, ...]:
                 )
             )
         return tuple(entries)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
 # ─── Monitoring & Alerting state builder ─────────────────────────────
 
 
-def build_monitoring_state() -> "MonitoringScreenState":
+def build_monitoring_state() -> MonitoringScreenState:
     """Build MonitoringScreenState by reading monitoring, alerting, and recovery managers.
 
     All manager access is try/except guarded for resilience.
@@ -1041,7 +1039,7 @@ def build_monitoring_state() -> "MonitoringScreenState":
     recovery_status = _read_monitoring_recovery_status()
     monitoring_events = _read_monitoring_events()
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return MonitoringScreenState(
         system_health=system_health,
@@ -1056,7 +1054,7 @@ def build_monitoring_state() -> "MonitoringScreenState":
     )
 
 
-def _read_monitoring_system_health() -> "SystemHealthInfo":
+def _read_monitoring_system_health() -> SystemHealthInfo:
     from titan.tui.models import SubsystemHealthEntry, SystemHealthInfo
 
     try:
@@ -1082,11 +1080,11 @@ def _read_monitoring_system_health() -> "SystemHealthInfo":
             offline_count=health.offline_count,
             subsystems=subsystems,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return SystemHealthInfo()
 
 
-def _read_monitoring_telemetry() -> "TelemetryInfo":
+def _read_monitoring_telemetry() -> TelemetryInfo:
     from titan.tui.models import TelemetryInfo
 
     try:
@@ -1101,11 +1099,11 @@ def _read_monitoring_telemetry() -> "TelemetryInfo":
             total_collections=status.total_collections,
             uptime=_format_uptime(status.uptime_seconds),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return TelemetryInfo()
 
 
-def _read_monitoring_resource_metrics() -> "ResourceMetricsInfo":
+def _read_monitoring_resource_metrics() -> ResourceMetricsInfo:
     from titan.tui.models import ResourceMetricEntry, ResourceMetricsInfo
 
     try:
@@ -1123,11 +1121,11 @@ def _read_monitoring_resource_metrics() -> "ResourceMetricsInfo":
             for summary in status.metric_summaries
         )
         return ResourceMetricsInfo(metrics=metrics)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ResourceMetricsInfo()
 
 
-def _read_monitoring_alert_summary() -> "AlertSummaryInfo":
+def _read_monitoring_alert_summary() -> AlertSummaryInfo:
     from titan.tui.models import AlertSummaryInfo
 
     try:
@@ -1143,11 +1141,11 @@ def _read_monitoring_alert_summary() -> "AlertSummaryInfo":
             resolved=report.resolved_alerts,
             escalated=report.escalated_alerts,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return AlertSummaryInfo()
 
 
-def _read_monitoring_active_alerts() -> "tuple[AlertEntry, ...]":
+def _read_monitoring_active_alerts() -> tuple[AlertEntry, ...]:
     from titan.tui.models import AlertEntry
 
     try:
@@ -1167,11 +1165,11 @@ def _read_monitoring_active_alerts() -> "tuple[AlertEntry, ...]":
             )
             for alert in alerts[-20:]
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_monitoring_alert_history() -> "tuple[AlertHistoryEntry, ...]":
+def _read_monitoring_alert_history() -> tuple[AlertHistoryEntry, ...]:
     from titan.tui.models import AlertHistoryEntry
 
     try:
@@ -1204,11 +1202,11 @@ def _read_monitoring_alert_history() -> "tuple[AlertHistoryEntry, ...]":
                 )
             )
         return tuple(result)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_monitoring_recovery_status() -> "RecoveryStatusInfo":
+def _read_monitoring_recovery_status() -> RecoveryStatusInfo:
     from titan.tui.models import RecoveryStatusInfo
 
     try:
@@ -1242,11 +1240,11 @@ def _read_monitoring_recovery_status() -> "RecoveryStatusInfo":
             last_strategy=last_strategy,
             recovered_components=recovered,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return RecoveryStatusInfo()
 
 
-def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
+def _read_monitoring_events() -> tuple[MonitoringEventEntry, ...]:
     from titan.tui.models import MonitoringEventEntry
 
     entries: list[MonitoringEventEntry] = []
@@ -1261,7 +1259,7 @@ def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
                     level="warning",
                     source="monitoring",
                     message=warning,
-                    timestamp_str=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    timestamp_str=datetime.now(UTC).strftime("%H:%M:%S"),
                 )
             )
         for rec in report.recommendations:
@@ -1270,10 +1268,10 @@ def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
                     level="info",
                     source="monitoring",
                     message=rec,
-                    timestamp_str=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    timestamp_str=datetime.now(UTC).strftime("%H:%M:%S"),
                 )
             )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         pass
     try:
         from titan.cli.common import get_recovery_manager
@@ -1297,7 +1295,7 @@ def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
                     ),
                 )
             )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         pass
     try:
         from titan.cli.common import get_alert_manager
@@ -1310,10 +1308,10 @@ def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
                     level="warning",
                     source="alerting",
                     message=w,
-                    timestamp_str=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                    timestamp_str=datetime.now(UTC).strftime("%H:%M:%S"),
                 )
             )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         pass
     return tuple(entries[-30:])
 
@@ -1321,7 +1319,7 @@ def _read_monitoring_events() -> "tuple[MonitoringEventEntry, ...]":
 # ─── Audit, Logs & Recovery state builder ─────────────────────────
 
 
-def build_audit_state() -> "AuditScreenState":
+def build_audit_state() -> AuditScreenState:
     """Build AuditScreenState by reading audit, logging, and recovery managers.
 
     All manager access is try/except guarded for resilience.
@@ -1337,7 +1335,7 @@ def build_audit_state() -> "AuditScreenState":
     checkpoints = _read_checkpoints()
     backup_status = _read_backup_status()
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return AuditScreenState(
         audit_summary=audit_summary,
@@ -1352,7 +1350,7 @@ def build_audit_state() -> "AuditScreenState":
     )
 
 
-def _read_audit_summary() -> "AuditSummaryInfo":
+def _read_audit_summary() -> AuditSummaryInfo:
     from titan.tui.models import AuditSummaryInfo
 
     try:
@@ -1381,11 +1379,11 @@ def _read_audit_summary() -> "AuditSummaryInfo":
             first_event_time=first,
             last_event_time=last,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return AuditSummaryInfo()
 
 
-def _read_recent_audit() -> "tuple[AuditEntry, ...]":
+def _read_recent_audit() -> tuple[AuditEntry, ...]:
     from titan.tui.models import AuditEntry
 
     try:
@@ -1427,11 +1425,11 @@ def _read_recent_audit() -> "tuple[AuditEntry, ...]":
                 )
             )
         return tuple(entries)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_log_summary() -> "LogSummaryInfo":
+def _read_log_summary() -> LogSummaryInfo:
     from titan.tui.models import LogSummaryInfo
 
     try:
@@ -1452,11 +1450,11 @@ def _read_log_summary() -> "LogSummaryInfo":
             warning_count=len(report.warnings),
             error_count=len(report.errors),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return LogSummaryInfo()
 
 
-def _read_recent_logs() -> "tuple[LogEntry, ...]":
+def _read_recent_logs() -> tuple[LogEntry, ...]:
     from titan.tui.models import LogEntry
 
     try:
@@ -1488,11 +1486,11 @@ def _read_recent_logs() -> "tuple[LogEntry, ...]":
                 )
             )
         return tuple(entries[-20:])
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_recovery_history_entries() -> "tuple[RecoveryHistoryEntry, ...]":
+def _read_recovery_history_entries() -> tuple[RecoveryHistoryEntry, ...]:
     from titan.tui.models import RecoveryHistoryEntry
 
     try:
@@ -1526,11 +1524,11 @@ def _read_recovery_history_entries() -> "tuple[RecoveryHistoryEntry, ...]":
                 )
             )
         return tuple(entries)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_circuit_breakers() -> "tuple[CircuitBreakerInfo, ...]":
+def _read_circuit_breakers() -> tuple[CircuitBreakerInfo, ...]:
     from titan.tui.models import CircuitBreakerInfo
 
     try:
@@ -1553,11 +1551,11 @@ def _read_circuit_breakers() -> "tuple[CircuitBreakerInfo, ...]":
                 )
             )
         return tuple(result)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_checkpoints() -> "tuple[CheckpointInfo, ...]":
+def _read_checkpoints() -> tuple[CheckpointInfo, ...]:
     from titan.tui.models import CheckpointInfo
 
     try:
@@ -1584,11 +1582,11 @@ def _read_checkpoints() -> "tuple[CheckpointInfo, ...]":
                 )
             )
         return tuple(result)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_backup_status() -> "BackupStatusInfo":
+def _read_backup_status() -> BackupStatusInfo:
     from titan.tui.models import BackupStatusInfo
 
     try:
@@ -1624,14 +1622,14 @@ def _read_backup_status() -> "BackupStatusInfo":
             storage_type=storage_type,
             storage_path=storage_path,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return BackupStatusInfo()
 
 
 # ─── Configuration & Deployment state builder ─────────────────────
 
 
-def build_configuration_state() -> "ConfigurationScreenState":
+def build_configuration_state() -> ConfigurationScreenState:
     """Build ConfigurationScreenState by reading configuration and deployment managers."""
     from titan.tui.models import ConfigurationScreenState
 
@@ -1643,7 +1641,7 @@ def build_configuration_state() -> "ConfigurationScreenState":
     backup = _read_backup()
     history = _read_deployment_history()
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     return ConfigurationScreenState(
         configuration=configuration,
@@ -1657,7 +1655,7 @@ def build_configuration_state() -> "ConfigurationScreenState":
     )
 
 
-def _read_configuration() -> "ConfigurationInfo":
+def _read_configuration() -> ConfigurationInfo:
     from titan.tui.models import ConfigurationInfo
 
     try:
@@ -1678,11 +1676,11 @@ def _read_configuration() -> "ConfigurationInfo":
             pipeline_interval=pipeline_interval,
             validation_status=report.validation_status,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ConfigurationInfo()
 
 
-def _read_environment() -> "EnvironmentInfo":
+def _read_environment() -> EnvironmentInfo:
     from titan.tui.models import EnvironmentInfo
 
     try:
@@ -1706,11 +1704,11 @@ def _read_environment() -> "EnvironmentInfo":
             secrets_available=report.secrets_available,
             validation_status=validation_status,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return EnvironmentInfo()
 
 
-def _read_deployment() -> "DeploymentInfo":
+def _read_deployment() -> DeploymentInfo:
     from titan.tui.models import DeploymentInfo
 
     try:
@@ -1743,11 +1741,11 @@ def _read_deployment() -> "DeploymentInfo":
             health_status=health_val,
             startup_duration=startup_duration,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return DeploymentInfo()
 
 
-def _read_services() -> "tuple[ServiceStatusEntry, ...]":
+def _read_services() -> tuple[ServiceStatusEntry, ...]:
     from titan.tui.models import ServiceStatusEntry
 
     try:
@@ -1768,11 +1766,11 @@ def _read_services() -> "tuple[ServiceStatusEntry, ...]":
             )
             for sub in health.subsystems
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_versions() -> "VersionInfo":
+def _read_versions() -> VersionInfo:
     from titan.tui.models import VersionInfo
 
     try:
@@ -1787,18 +1785,18 @@ def _read_versions() -> "VersionInfo":
             git_branch=ver.git_branch,
             python_version=ver.python_version,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return VersionInfo()
 
 
-def _read_backup() -> "BackupInfo":
+def _read_backup() -> BackupInfo:
     from titan.tui.models import BackupInfo
 
     # The deployment manager does not maintain backup history natively.
     return BackupInfo()
 
 
-def _read_deployment_history() -> "tuple[DeploymentHistoryEntry, ...]":
+def _read_deployment_history() -> tuple[DeploymentHistoryEntry, ...]:
     # The deployment manager does not maintain history of deployments natively.
     return ()
 
@@ -1806,10 +1804,11 @@ def _read_deployment_history() -> "tuple[DeploymentHistoryEntry, ...]":
 # ─── MARKET INTELLIGENCE STATE BUILDERS ──────────────────────────────────────
 
 
-def build_market_state() -> "MarketScreenState":
+def build_market_state() -> MarketScreenState:
     """Build MarketScreenState by querying runtime engine and cached intelligence."""
-    from titan.tui.models import MarketScreenState
     from datetime import datetime
+
+    from titan.tui.models import MarketScreenState
 
     return MarketScreenState(
         market_status=_read_market_status(),
@@ -1825,9 +1824,9 @@ def build_market_state() -> "MarketScreenState":
     )
 
 
-def _read_market_status() -> "MarketStatusInfo":
-    from titan.tui.models import MarketStatusInfo
+def _read_market_status() -> MarketStatusInfo:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import MarketStatusInfo
 
     try:
         engine = get_runtime_engine()
@@ -1851,11 +1850,11 @@ def _read_market_status() -> "MarketStatusInfo":
                 else ""
             ),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return MarketStatusInfo()
 
 
-def _read_regime() -> "RegimeInfo":
+def _read_regime() -> RegimeInfo:
     from titan.tui.models import RegimeInfo
 
     # The intelligence engines do not currently expose a persistent cache property
@@ -1863,43 +1862,43 @@ def _read_regime() -> "RegimeInfo":
     return RegimeInfo()
 
 
-def _read_volatility() -> "VolatilityInfo":
+def _read_volatility() -> VolatilityInfo:
     from titan.tui.models import VolatilityInfo
 
     return VolatilityInfo()
 
 
-def _read_liquidity() -> "LiquidityInfo":
+def _read_liquidity() -> LiquidityInfo:
     from titan.tui.models import LiquidityInfo
 
     return LiquidityInfo()
 
 
-def _read_option_chain() -> "OptionChainSummaryInfo":
+def _read_option_chain() -> OptionChainSummaryInfo:
     from titan.tui.models import OptionChainSummaryInfo
 
     return OptionChainSummaryInfo()
 
 
-def _read_open_interest() -> "OpenInterestSummaryInfo":
+def _read_open_interest() -> OpenInterestSummaryInfo:
     from titan.tui.models import OpenInterestSummaryInfo
 
     return OpenInterestSummaryInfo()
 
 
-def _read_greeks() -> "GreeksSummaryInfo":
+def _read_greeks() -> GreeksSummaryInfo:
     from titan.tui.models import GreeksSummaryInfo
 
     return GreeksSummaryInfo()
 
 
-def _read_evidence() -> "EvidenceSummaryInfo":
+def _read_evidence() -> EvidenceSummaryInfo:
     from titan.tui.models import EvidenceSummaryInfo
 
     return EvidenceSummaryInfo()
 
 
-def _read_market_events() -> "tuple[MarketEventEntry, ...]":
+def _read_market_events() -> tuple[MarketEventEntry, ...]:
     # Persistent market event history is not natively stored.
     return ()
 
@@ -1907,9 +1906,10 @@ def _read_market_events() -> "tuple[MarketEventEntry, ...]":
 # ─── DECISION JOURNAL STATE BUILDERS ─────────────────────────────────────────
 
 
-def build_decision_state() -> "DecisionScreenState":
-    from titan.tui.models import DecisionScreenState
+def build_decision_state() -> DecisionScreenState:
     from datetime import datetime
+
+    from titan.tui.models import DecisionScreenState
 
     return DecisionScreenState(
         summary=_read_decision_summary(),
@@ -1923,9 +1923,9 @@ def build_decision_state() -> "DecisionScreenState":
     )
 
 
-def _read_decision_summary() -> "DecisionSummaryInfo":
-    from titan.tui.models import DecisionSummaryInfo
+def _read_decision_summary() -> DecisionSummaryInfo:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import DecisionSummaryInfo
 
     try:
         engine = get_runtime_engine()
@@ -1944,13 +1944,13 @@ def _read_decision_summary() -> "DecisionSummaryInfo":
             institutional_grade=entry.institutional_grade,
             timestamp_str=entry.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return DecisionSummaryInfo()
 
 
-def _read_decision_evidence() -> "DecisionEvidenceInfo":
-    from titan.tui.models import DecisionEvidenceInfo
+def _read_decision_evidence() -> DecisionEvidenceInfo:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import DecisionEvidenceInfo
 
     try:
         engine = get_runtime_engine()
@@ -1967,13 +1967,13 @@ def _read_decision_evidence() -> "DecisionEvidenceInfo":
             weight=ev.weight,
             reasons=ev.reasons,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return DecisionEvidenceInfo()
 
 
-def _read_decision_risk() -> "DecisionRiskInfo":
-    from titan.tui.models import DecisionRiskInfo
+def _read_decision_risk() -> DecisionRiskInfo:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import DecisionRiskInfo
 
     try:
         engine = get_runtime_engine()
@@ -1983,13 +1983,13 @@ def _read_decision_risk() -> "DecisionRiskInfo":
         return DecisionRiskInfo(
             risk_summary=entries[0].risk_summary or "No risk data available."
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return DecisionRiskInfo()
 
 
-def _read_decision_qualification() -> "DecisionQualificationInfo":
-    from titan.tui.models import DecisionQualificationInfo
+def _read_decision_qualification() -> DecisionQualificationInfo:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import DecisionQualificationInfo
 
     try:
         engine = get_runtime_engine()
@@ -2000,13 +2000,13 @@ def _read_decision_qualification() -> "DecisionQualificationInfo":
             explanation_summary=entries[0].explanation_summary
             or "No explanation available."
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return DecisionQualificationInfo()
 
 
-def _read_decision_reasons() -> "tuple[DecisionReasonEntry, ...]":
-    from titan.tui.models import DecisionReasonEntry
+def _read_decision_reasons() -> tuple[DecisionReasonEntry, ...]:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import DecisionReasonEntry
 
     try:
         engine = get_runtime_engine()
@@ -2021,18 +2021,18 @@ def _read_decision_reasons() -> "tuple[DecisionReasonEntry, ...]":
             )
             for r in entries[0].reasons
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
-def _read_decision_timeline() -> "tuple[DecisionTimelineEntry, ...]":
+def _read_decision_timeline() -> tuple[DecisionTimelineEntry, ...]:
     # Timeline is a placeholder unless we explicitly track pipeline stages per decision.
     return ()
 
 
-def _read_decision_history() -> "tuple[DecisionJournalEntry, ...]":
-    from titan.tui.models import DecisionJournalEntry
+def _read_decision_history() -> tuple[DecisionJournalEntry, ...]:
     from titan.cli.common import get_runtime_engine
+    from titan.tui.models import DecisionJournalEntry
 
     try:
         engine = get_runtime_engine()
@@ -2046,21 +2046,21 @@ def _read_decision_history() -> "tuple[DecisionJournalEntry, ...]":
             )
             for e in entries
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return ()
 
 
 # ─── DECISION REPLAY STATE BUILDERS ──────────────────────────────────────────
 
 
-def build_trade_journal_state() -> "TradeJournalScreenState":
+def build_trade_journal_state() -> TradeJournalScreenState:
     """Read TradeJournal data to build TradeJournalScreenState."""
+    from titan.cli.common import get_runtime_engine
     from titan.tui.models import (
         TradeHistoryEntry,
         TradeJournalScreenState,
         TradeJournalSummaryInfo,
     )
-    from titan.cli.common import get_runtime_engine
 
     try:
         engine = get_runtime_engine()
@@ -2101,25 +2101,26 @@ def build_trade_journal_state() -> "TradeJournalScreenState":
         return TradeJournalScreenState(
             summary=summary,
             history=history,
-            last_refresh=datetime.now(timezone.utc).strftime("%H:%M:%S"),
+            last_refresh=datetime.now(UTC).strftime("%H:%M:%S"),
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return TradeJournalScreenState()
 
 
-def build_replay_state(entry_id: str | None = None) -> "ReplayScreenState":
+def build_replay_state(entry_id: str | None = None) -> ReplayScreenState:
+    from datetime import datetime
+
+    from titan.cli.common import get_runtime_engine
     from titan.tui.models import (
-        ReplayScreenState,
-        ReplaySummaryInfo,
         ReplayEvidenceInfo,
-        ReplayRiskInfo,
+        ReplayMetadataInfo,
         ReplayQualificationInfo,
         ReplayReasonEntry,
+        ReplayRiskInfo,
+        ReplayScreenState,
+        ReplaySummaryInfo,
         ReplayTimelineEntry,
-        ReplayMetadataInfo,
     )
-    from titan.cli.common import get_runtime_engine
-    from datetime import datetime
 
     engine = get_runtime_engine()
 
@@ -2226,18 +2227,19 @@ def build_replay_state(entry_id: str | None = None) -> "ReplayScreenState":
 # ─── Strategy Evaluation state builder ──────────────────────────────
 
 
-def build_strategy_eval_state() -> "StrategyEvalScreenState":
+def build_strategy_eval_state() -> StrategyEvalScreenState:
     """Build StrategyEvalScreenState by reading the historical journal (read-only)."""
+    from datetime import datetime
+
+    from titan.backtesting.evaluation import StrategyEvaluator
+    from titan.cli.common import get_runtime_engine
     from titan.tui.models import (
+        RegimePerformanceEntry,
         StrategyEvalScreenState,
         StrategyScorecardInfo,
-        RegimePerformanceEntry,
     )
-    from titan.cli.common import get_runtime_engine
-    from titan.backtesting.evaluation import StrategyEvaluator
-    from datetime import datetime, timezone
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     try:
         engine = get_runtime_engine()
@@ -2277,16 +2279,17 @@ def build_strategy_eval_state() -> "StrategyEvalScreenState":
             scorecards=tuple(scorecards),
             last_refresh=now,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return StrategyEvalScreenState(last_refresh=now)
 
 
 # ─── AI Assistant State Builder ─────────────────────────────────────
 
 
-def build_ai_state(provider_name: str = "mock") -> "AIScreenState":
+def build_ai_state(provider_name: str = "mock") -> AIScreenState:
     """Build AIScreenState by delegating to the AIAssistantEngine (read-only)."""
-    from datetime import datetime, timezone
+    from datetime import datetime
+
     from titan.ai.engine import AIAssistantEngine
     from titan.ai.providers.gemini import GeminiAIProvider, MockAIProvider
     from titan.backtesting.evaluation import StrategyEvaluator
@@ -2295,7 +2298,7 @@ def build_ai_state(provider_name: str = "mock") -> "AIScreenState":
     from titan.portfolio.models import ExistingPortfolio, OpenPosition
     from titan.tui.models import AIExplanationInfo, AIScreenState
 
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    now = datetime.now(UTC).strftime("%H:%M:%S")
 
     provider = (
         MockAIProvider() if provider_name.lower() == "mock" else GeminiAIProvider()
@@ -2358,5 +2361,5 @@ def build_ai_state(provider_name: str = "mock") -> "AIScreenState":
             strategy_explanation=strat_info,
             last_refresh=now,
         )
-    except Exception:
+    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
         return AIScreenState(last_refresh=now)

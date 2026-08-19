@@ -6,6 +6,8 @@ No business logic — pure data transfer objects.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from titan.portfolio.models import (
     AllocationAnalysis,
     DiversificationAnalysis,
@@ -14,8 +16,6 @@ from titan.portfolio.models import (
     PortfolioPerformance,
     PortfolioSnapshot,
 )
-
-from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True, slots=True)

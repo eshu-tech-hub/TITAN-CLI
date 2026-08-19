@@ -1,5 +1,4 @@
 from titan.core.evidence import EvidenceSignal
-
 from titan.options.analytics.models import (
     MarketBias,
     SurfaceConsistency,
@@ -86,8 +85,8 @@ class SurfaceConsistencyAnalyzer:
             )
             return (
                 SurfaceConsistencyLevel.INCONSISTENT,
-                f"Conflicting signals: {bullish_count} bullish vs {bearish_count} bearish "
-                f"({neutral_count} neutral).",
+                (f"Conflicting signals: {bullish_count} bullish vs {bearish_count} bearish "
+                f"({neutral_count} neutral)."),
                 tuple(conflicts),
             )
 

@@ -8,8 +8,8 @@ from titan.brokers.certification.models import (
 )
 from titan.brokers.certification.validator import (
     CapabilityValidator,
-    InterfaceValidator,
     CertificationEngine,
+    InterfaceValidator,
 )
 
 

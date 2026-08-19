@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from titan.portfolio.analytics import PortfolioAnalytics
 from titan.portfolio.models import ExistingPortfolio, OpenPosition
@@ -42,7 +42,7 @@ class PortfolioReplayService:
 
         for entry in sorted(
             all_entries,
-            key=lambda x: x.open_time or datetime.min.replace(tzinfo=timezone.utc),
+            key=lambda x: x.open_time or datetime.min.replace(tzinfo=UTC),
         ):
             if not entry.open_time or entry.open_time > target_time:
                 continue

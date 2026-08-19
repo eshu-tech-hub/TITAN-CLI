@@ -47,8 +47,8 @@ class MarketParticipationAnalyzer:
             return MarketParticipation(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need at least {MIN_SYMBOLS} "
-                    f"symbols, got {snapshot.total_symbols}.",
+                    (f"Insufficient data: need at least {MIN_SYMBOLS} "
+                    f"symbols, got {snapshot.total_symbols}."),
                 ),
             )
 
@@ -142,12 +142,11 @@ class MarketParticipationAnalyzer:
 
         if internal_strength:
             reasons.append(
-                "Internal strength detected — broad participation "
-                "with advancing bias."
+                "Internal strength detected — broad participation with advancing bias."
             )
         elif internal_weakness:
             reasons.append(
-                "Internal weakness detected — narrow or skewed " "participation."
+                "Internal weakness detected — narrow or skewed participation."
             )
 
         if divergence:

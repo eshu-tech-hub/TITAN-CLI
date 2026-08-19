@@ -7,7 +7,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.models import (
     MarketBias,
     SkewAnalysis,

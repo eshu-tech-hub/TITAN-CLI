@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -30,15 +30,15 @@ def make_snapshot(
 
 
 def expiry_30() -> datetime:
-    return datetime(2026, 7, 31, tzinfo=timezone.utc)
+    return datetime(2026, 7, 31, tzinfo=UTC)
 
 
 def expiry_60() -> datetime:
-    return datetime(2026, 8, 31, tzinfo=timezone.utc)
+    return datetime(2026, 8, 31, tzinfo=UTC)
 
 
 def expiry_90() -> datetime:
-    return datetime(2026, 9, 30, tzinfo=timezone.utc)
+    return datetime(2026, 9, 30, tzinfo=UTC)
 
 
 def make_surface(
@@ -46,7 +46,7 @@ def make_surface(
 ) -> VolatilitySurfaceSnapshot:
     entries: list[tuple[datetime, VolatilitySnapshot]] = []
     for day, iv, hv in expiry_days:
-        d = datetime(2026, 1, 1, tzinfo=timezone.utc).replace(day=min(day, 28))
+        d = datetime(2026, 1, 1, tzinfo=UTC).replace(day=min(day, 28))
         d = d.replace(month=1 + (day // 28))
         entries.append(
             (d, make_snapshot(implied_volatility=iv, historical_volatility=hv))
@@ -203,7 +203,7 @@ class TestVolatilitySurfaceSnapshot:
         b = VolatilitySurfaceSnapshot(entries=((e1, s1), (e2, s2)))
 
         assert a == b
-        assert not (a != b)
+        assert a == b
 
     def test_equality_different_entries(self) -> None:
         e1, e2 = expiry_30(), expiry_60()
@@ -351,7 +351,7 @@ class TestVolatilitySurfaceSnapshotSerialization:
         restored = VolatilitySurfaceSnapshot.from_dict(data)
 
         assert len(restored) == 1
-        assert restored[datetime(2026, 7, 31, tzinfo=timezone.utc)] is not None
+        assert restored[datetime(2026, 7, 31, tzinfo=UTC)] is not None
 
     def test_equality_after_serialization_with_metadata(self) -> None:
         e1, e2 = expiry_30(), expiry_60()

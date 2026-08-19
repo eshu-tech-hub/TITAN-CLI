@@ -2,7 +2,8 @@
 Adapters and inspectors for broker capabilities and interfaces.
 """
 
-from typing import Any, List
+from typing import Any
+
 from titan.brokers.certification.models import BrokerCapability
 from titan.brokers.certification.validator import InterfaceValidator
 
@@ -40,7 +41,7 @@ class BrokerFeatureDiscovery:
     """Dynamically identifies capabilities supported by a broker."""
 
     @staticmethod
-    def discover_capabilities(broker: Any) -> List[BrokerCapability]:
+    def discover_capabilities(broker: Any) -> list[BrokerCapability]:
         """Inspects the broker and builds a list of its supported capabilities."""
         inspector = BrokerAdapterInspector(broker)
         capabilities = []

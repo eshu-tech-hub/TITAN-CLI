@@ -7,6 +7,7 @@ from titan.risk.exceptions import (
 )
 from titan.risk.exposure import ExposureEngine
 from titan.risk.models import (
+    RISK_PROFILE_MAP,
     CapitalAllocation,
     DecisionContext,
     ExposureAssessment,
@@ -21,7 +22,6 @@ from titan.risk.models import (
     RiskProfileConfig,
     RiskScore,
     RiskScoreBand,
-    RISK_PROFILE_MAP,
     StopLossPlan,
     TargetPlan,
 )
@@ -31,6 +31,7 @@ from titan.risk.stoploss import StopLossEngine
 from titan.risk.targets import TargetEngine
 
 __all__ = [
+    "RISK_PROFILE_MAP",
     "CapitalAllocation",
     "CapitalAllocationEngine",
     "DecisionContext",
@@ -52,7 +53,6 @@ __all__ = [
     "RiskProfileConfig",
     "RiskScore",
     "RiskScoreBand",
-    "RISK_PROFILE_MAP",
     "RiskValidationError",
     "StopLossEngine",
     "StopLossPlan",

@@ -1,5 +1,6 @@
-from datetime import datetime, timezone
-from typing import Any, Mapping
+from collections.abc import Mapping
+from datetime import UTC, datetime
+from typing import Any
 
 from titan.core.evidence import (
     Confidence,
@@ -8,7 +9,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.trading.confirmation import ConfirmationEngine
 from titan.trading.exceptions import (
     TradeQualificationEngineError,
@@ -152,7 +152,7 @@ class TradeQualificationEngine:
             explanation=explanation,
             warnings=self._collect_warnings(inputs),
             metadata=self._build_metadata(inputs),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def _evaluate_directions(
@@ -288,7 +288,7 @@ class TradeQualificationEngine:
             evidence=None,
             warnings=self._collect_warnings(inputs),
             metadata=self._build_metadata(inputs),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def _to_evidence(
@@ -370,8 +370,7 @@ class TradeQualificationEngine:
     @staticmethod
     def _overall_section(status: TradeStatus, confirmed: int, total: int) -> str:
         return (
-            f"Trade Qualification: {status.value}. "
-            f"Confirmations: {confirmed}/{total}."
+            f"Trade Qualification: {status.value}. Confirmations: {confirmed}/{total}."
         )
 
     @staticmethod
@@ -418,7 +417,7 @@ class TradeQualificationEngine:
                 "Institutional Alignment: Signals from market, dealer, "
                 "and fusion engines are aligned."
             )
-        return "Institutional Alignment: Limited institutional alignment " "detected."
+        return "Institutional Alignment: Limited institutional alignment detected."
 
     @staticmethod
     def _final_section(status: TradeStatus) -> str:
@@ -496,6 +495,6 @@ class TradeQualificationEngine:
 
 
 # Re-export for convenience
-from titan.trading.exceptions import (  # noqa: E402, F401
+from titan.trading.exceptions import (
     TradeQualificationError,
 )

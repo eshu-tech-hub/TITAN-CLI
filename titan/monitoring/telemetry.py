@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -97,7 +97,7 @@ class TelemetryManager:
                 health=system_health,
                 failed_collections=self._failed_collections,
                 total_collections=self._total_collections,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
             self._snapshots.append(snapshot)
@@ -128,7 +128,7 @@ class TelemetryManager:
             health=system_health,
             failed_collections=self._failed_collections,
             total_collections=self._total_collections,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def reset(self) -> None:

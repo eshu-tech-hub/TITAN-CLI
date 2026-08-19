@@ -1,5 +1,5 @@
-from titan.validation.runner import ValidationOrchestrator
 from titan.validation.reports import BurnInReport, ValidationReport
+from titan.validation.runner import ValidationOrchestrator
 
 
 def test_runner_burn_in_report_generation():

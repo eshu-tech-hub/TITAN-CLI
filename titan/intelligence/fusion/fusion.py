@@ -5,7 +5,6 @@ from titan.core.evidence.evidence import Evidence
 from titan.core.evidence.exceptions import EvidenceValidationError
 from titan.core.evidence.models import EvidenceCategory, EvidenceSignal
 from titan.core.evidence.score import Score
-
 from titan.intelligence.fusion.exceptions import (
     FusionEngineError,
     FusionValidationError,

@@ -1,4 +1,4 @@
-from titan.validation.fault_injection import FaultScenario, FaultInjectionPoint
+from titan.validation.fault_injection import FaultInjectionPoint, FaultScenario
 
 
 def test_fault_scenario_enum_contains_expected_values():

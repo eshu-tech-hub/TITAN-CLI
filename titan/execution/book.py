@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Sequence
 
 from titan.execution.exceptions import OrderNotFoundError
 from titan.execution.models import OrderState

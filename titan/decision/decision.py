@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 from titan.decision.exceptions import DecisionEngineError, DecisionInputError
 from titan.decision.models import DecisionInput, TradeDecision
@@ -95,7 +94,7 @@ class DecisionEngine:
                         self._selector.name,
                     ],
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
         except DecisionInputError:

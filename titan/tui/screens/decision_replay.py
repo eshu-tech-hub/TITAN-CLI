@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
@@ -31,7 +31,7 @@ class DecisionReplayScreen(Screen):
     Does not auto-refresh. State is updated on navigation.
     """
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS: ClassVar[str] = """
     DecisionReplayScreen {
         layout: vertical;
         padding: 1 2;
@@ -66,7 +66,7 @@ class DecisionReplayScreen(Screen):
     }
     """
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("q", "quit", "Quit"),
         ("escape", "back", "Back"),
         ("r", "refresh", "Refresh"),
@@ -163,7 +163,7 @@ class DecisionReplayScreen(Screen):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#replay-indicator", Static)
-            now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+            now = datetime.now(UTC).strftime("%H:%M:%S")
             indicator.update(f"Replay loaded at: {now}")
         except Exception:
             pass

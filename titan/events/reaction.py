@@ -150,7 +150,8 @@ class MarketReactionAnalyzer:
 
         if len(sentiments) > 1:
             dominant_reaction = max(
-                reaction_counts, key=reaction_counts.get  # type: ignore[arg-type]
+                reaction_counts,
+                key=reaction_counts.get,  # type: ignore[arg-type]
             )
             dominant_count = reaction_counts[dominant_reaction]
             total = sum(reaction_counts.values())
@@ -163,7 +164,8 @@ class MarketReactionAnalyzer:
                 )
         else:
             dominant_reaction = max(
-                reaction_counts, key=reaction_counts.get  # type: ignore[arg-type]
+                reaction_counts,
+                key=reaction_counts.get,  # type: ignore[arg-type]
             )
 
         return MarketReactionResult(

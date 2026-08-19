@@ -3,7 +3,6 @@ from titan.options.analytics.models import (
     DealerBiasLevel,
     MarketBias,
 )
-
 from titan.trading.models import (
     ConfirmationResult,
     ConfirmationSource,
@@ -215,9 +214,12 @@ class ConfirmationEngine:
         score = 75.0 if aligned else 25.0
 
         # Adjust for extreme OI positioning
-        if chain.bullish_score > 70.0 and direction == TradeDirection.LONG:
-            score += 10.0
-        elif chain.bearish_score > 70.0 and direction == TradeDirection.SHORT:
+        if (
+            chain.bullish_score > 70.0
+            and direction == TradeDirection.LONG
+            or chain.bearish_score > 70.0
+            and direction == TradeDirection.SHORT
+        ):
             score += 10.0
 
         final_score = max(0.0, min(100.0, score))

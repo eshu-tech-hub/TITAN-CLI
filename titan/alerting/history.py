@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 
 from titan.alerting.exceptions import AlertingHistoryError
@@ -61,7 +61,7 @@ class AlertHistory:
                 message=old_alert.message,
                 timestamp=old_alert.timestamp,
                 status=AlertStatus.ACKNOWLEDGED,
-                acknowledged_at=datetime.now(timezone.utc),
+                acknowledged_at=datetime.now(UTC),
                 acknowledged_by=acknowledged_by,
                 resolved_at=old_alert.resolved_at,
                 resolved_by=old_alert.resolved_by,
@@ -94,7 +94,7 @@ class AlertHistory:
                 status=AlertStatus.RESOLVED,
                 acknowledged_at=old_alert.acknowledged_at,
                 acknowledged_by=old_alert.acknowledged_by,
-                resolved_at=datetime.now(timezone.utc),
+                resolved_at=datetime.now(UTC),
                 resolved_by=resolved_by,
                 escalated_at=old_alert.escalated_at,
                 escalation_count=old_alert.escalation_count,
@@ -189,7 +189,7 @@ class AlertHistory:
                 alerts_by_source=by_source,
                 alerts_by_level=by_level,
                 warnings=tuple(warnings_list),
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
     def reset(self) -> None:

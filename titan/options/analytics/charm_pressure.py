@@ -83,10 +83,10 @@ class CharmPressureAnalyzer:
         score = 0.0
         factors = 0
 
-        if regime.regime_type is CharmRegimeType.POSITIVE:
-            score += 0.5
-            factors += 1
-        elif regime.regime_type is CharmRegimeType.NEGATIVE:
+        if (
+            regime.regime_type is CharmRegimeType.POSITIVE
+            or regime.regime_type is CharmRegimeType.NEGATIVE
+        ):
             score += 0.5
             factors += 1
         elif regime.regime_type is CharmRegimeType.BALANCED:

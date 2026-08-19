@@ -1,8 +1,14 @@
+from typing import ClassVar
+
 from titan.brokers.broker import Broker
 from titan.brokers.exceptions import ConnectionError as BrokerConnectionError
 from titan.brokers.models import (
     BrokerType,
+)
+from titan.brokers.models import (
     OrderRequest as BrokerOrderRequest,
+)
+from titan.brokers.models import (
     OrderStatus as BrokerOrderStatus,
 )
 from titan.execution.exceptions import BrokerUnavailableError, RouteNotFoundError
@@ -23,7 +29,7 @@ class OrderRouter:
     """
 
     # Mapping of broker OrderStatus values to TITAN OrderState values.
-    _STATUS_MAP: dict[BrokerOrderStatus, OrderState] = {
+    _STATUS_MAP: ClassVar[dict[BrokerOrderStatus, OrderState]] = {
         BrokerOrderStatus.PENDING: OrderState.SUBMITTED,
         BrokerOrderStatus.OPEN: OrderState.ACKNOWLEDGED,
         BrokerOrderStatus.PARTIALLY_FILLED: OrderState.PARTIALLY_FILLED,

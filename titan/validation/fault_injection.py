@@ -1,6 +1,7 @@
-from enum import Enum, auto
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Any, Optional
+from enum import Enum, auto
+from typing import Any
 
 
 class FaultScenario(Enum):
@@ -26,4 +27,4 @@ class FaultInjectionPoint:
     target_component: str
     trigger_condition: Callable[[Any], bool]
     fault_action: Callable[[Any], None]
-    recovery_validation: Optional[Callable[[Any], bool]] = None
+    recovery_validation: Callable[[Any], bool] | None = None

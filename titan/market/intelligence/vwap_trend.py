@@ -52,8 +52,8 @@ class VWAPTrendAnalyzer:
             return VWAPTrend(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient data: need {TREND_LOOKBACK} candles, "
-                    f"got {len(vwap_values)}.",
+                    (f"Insufficient data: need {TREND_LOOKBACK} candles, "
+                    f"got {len(vwap_values)}."),
                 ),
             )
 

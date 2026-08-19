@@ -1,23 +1,22 @@
 from __future__ import annotations
 
+import os
+import sys
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
-import os
-import sys
-
-from titan.config.validation_models import (
-    ValidationIssue,
-    ValidationReport,
-    ValidationSeverity,
-)
-from titan.core.config import get_settings
 
 from titan.config.models import (
     BrokerProvider,
     EnvironmentProfile,
     LogLevel,
 )
+from titan.config.validation_models import (
+    ValidationIssue,
+    ValidationReport,
+    ValidationSeverity,
+)
+from titan.core.config import get_settings
 
 
 def validate(raw: dict[str, Any]) -> tuple[list[str], list[str]]:

@@ -41,8 +41,8 @@ from titan.brokers import (
     ProductType,
     Quote,
     Trade,
-    Validity,
     ValidationError,
+    Validity,
 )
 
 # ===========================================================================

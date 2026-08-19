@@ -1,7 +1,6 @@
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
 
 from titan.backtesting.evaluation import (
     RegimePerformance,
@@ -37,8 +36,8 @@ def make_sample_entry(
         tags=(regime_tag,),
         decision_status="APPROVED",
         execution_status=TradeLifecycleState.CLOSED,
-        open_time=datetime.now(timezone.utc),
-        close_time=datetime.now(timezone.utc),
+        open_time=datetime.now(UTC),
+        close_time=datetime.now(UTC),
     )
 
 

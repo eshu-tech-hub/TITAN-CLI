@@ -4,10 +4,10 @@ Tests for Broker Certification Reports.
 
 from titan.brokers.certification.models import (
     BrokerCapability,
-    BrokerCertificationScenario,
     BrokerCertificationResult,
-    CertificationStatus,
+    BrokerCertificationScenario,
     CertificationSeverity,
+    CertificationStatus,
 )
 from titan.brokers.certification.report import (
     BrokerCapabilityMatrixBuilder,
@@ -45,7 +45,7 @@ def test_report_builder_summary_calculation():
 
     import datetime
 
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     builder.add_scenario_result(
         BrokerCertificationResult(

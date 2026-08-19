@@ -1,11 +1,11 @@
 from titan.risk.exceptions import RiskEngineError
 from titan.risk.models import (
+    RISK_PROFILE_MAP,
     CapitalAllocation,
     PositionInfo,
     RiskInput,
     RiskProfile,
     RiskProfileConfig,
-    RISK_PROFILE_MAP,
 )
 
 

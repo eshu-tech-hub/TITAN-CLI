@@ -1,5 +1,5 @@
-from collections.abc import Sequence
-from typing import Any, Callable, cast
+from collections.abc import Callable, Sequence
+from typing import Any, cast
 
 from titan.core.evidence import (
     Confidence,

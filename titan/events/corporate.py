@@ -9,7 +9,7 @@ Integrates with:
   - Event Risk Analyzer
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from titan.events.models import CorporateEvent, EventImportance
 
@@ -100,7 +100,7 @@ class CorporateEventAnalyzer:
 
         highest = sorted_events[0].importance
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         upcoming = sum(1 for e in sorted_events if e.timestamp > now)
         total = len(sorted_events)
         confidence = min(1.0, total / 5) * min(1.0, upcoming / max(1, total))

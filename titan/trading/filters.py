@@ -1,6 +1,5 @@
 from titan.events.models import EventRisk
 from titan.options.analytics.models import ExecutionGrade
-
 from titan.trading.models import (
     FilterCategory,
     FilterResult,

@@ -1,26 +1,26 @@
 """Tests for the Decision Journal subsystem."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
+from titan.core.evidence import (
+    Confidence,
+    Evidence,
+    EvidenceCategory,
+    EvidenceSignal,
+    Score,
+)
 from titan.decision.journal import (
     DecisionJournal,
     DecisionJournalEntry,
     DecisionRepository,
 )
 from titan.decision.models import (
-    TradeDecision,
     DecisionAction,
-    InstrumentType,
     DecisionExplanation,
+    InstrumentType,
+    TradeDecision,
 )
 from titan.trading.models import TradeDirection
-from titan.core.evidence import (
-    Evidence,
-    EvidenceCategory,
-    EvidenceSignal,
-    Score,
-    Confidence,
-)
 
 
 class TestDecisionRepository:
@@ -29,7 +29,7 @@ class TestDecisionRepository:
 
         entry1 = DecisionJournalEntry(
             id="1",
-            timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=UTC),
             symbol="TCS",
             decision="buy",
             trade_direction="long",
@@ -51,7 +51,7 @@ class TestDecisionRepository:
 
         entry2 = DecisionJournalEntry(
             id="2",
-            timestamp=datetime(2026, 1, 1, 10, 5, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, 10, 5, tzinfo=UTC),
             symbol="INFY",
             decision="sell",
             trade_direction="short",
@@ -83,7 +83,7 @@ class TestDecisionRepository:
         repo = DecisionRepository()
         entry = DecisionJournalEntry(
             id="1",
-            timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=UTC),
             symbol="TCS",
             decision="buy",
             trade_direction="long",
@@ -111,7 +111,7 @@ class TestDecisionRepository:
         repo = DecisionRepository()
         entry = DecisionJournalEntry(
             id="1",
-            timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=UTC),
             symbol="TCS",
             decision="buy",
             trade_direction="long",

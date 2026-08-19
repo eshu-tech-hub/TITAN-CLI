@@ -5,12 +5,13 @@
 # Remove:  python windows\titan_service.py remove
 
 import os
-import sys
 import subprocess
-import win32serviceutil
-import win32service
-import win32event
+import sys
+
 import servicemanager
+import win32event
+import win32service
+import win32serviceutil
 
 
 class TitanService(win32serviceutil.ServiceFramework):

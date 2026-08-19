@@ -5,9 +5,9 @@ from __future__ import annotations
 import subprocess
 import sys
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
 from titan.runtime.local_transport import DEFAULT_PORT, LocalTransport

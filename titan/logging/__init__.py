@@ -19,9 +19,9 @@ from titan.logging.models import (
     HandlerConfig,
     HandlerType,
     LogEntry,
-    LogLevel,
     LoggingConfig,
     LoggingReport,
+    LogLevel,
 )
 
 __all__ = [
@@ -40,11 +40,11 @@ __all__ = [
     "LoggerNotFoundError",
     "LoggingConfig",
     "LoggingConfigurationError",
+    "LoggingContext",
     "LoggingError",
     "LoggingReport",
     "StructuredLogger",
     "configure",
     "generate_report",
     "get_logger",
-    "LoggingContext",
 ]

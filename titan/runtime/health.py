@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from titan.runtime.exceptions import HealthError
 from titan.runtime.models import ComponentHealth, HealthStatus
@@ -196,11 +196,11 @@ class HealthCheck:
             component_name=component_name,
             status=status,
             status_changed_at=(
-                datetime.now(timezone.utc)
+                datetime.now(UTC)
                 if existing.status != status
                 else existing.status_changed_at
             ),
-            last_update=datetime.now(timezone.utc),
+            last_update=datetime.now(UTC),
             latency_ms=latency_ms,
             error=error,
             metadata=metadata or {},

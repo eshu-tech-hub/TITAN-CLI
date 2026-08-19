@@ -1,8 +1,9 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from time import perf_counter
-from typing import Any, Mapping
+from typing import Any
 from uuid import uuid4
 
 from titan.backtesting.clock import SimulationClock
@@ -51,7 +52,7 @@ class BacktestEngine:
     statistics: StatisticsEngine = field(default_factory=StatisticsEngine)
     metrics_engine: MetricsEngine = field(default_factory=MetricsEngine)
     risk_profile: str = "MODERATE"
-    total_capital: Decimal = Decimal("1000000")
+    total_capital: Decimal = Decimal(1000000)
     collect_pipeline_reports: bool = True
 
     _pipeline_reports: list[Mapping[str, Any]] = field(default_factory=list, init=False)
@@ -94,7 +95,7 @@ class BacktestEngine:
         if not self.broker.is_connected():
             self.broker.connect()
 
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         start_wall = perf_counter()
 
         backtest_bar = self.replay.start()
@@ -107,7 +108,7 @@ class BacktestEngine:
             self._process_bar(bar)
 
         end_wall = perf_counter()
-        self._end_time = datetime.now(timezone.utc)
+        self._end_time = datetime.now(UTC)
         duration_seconds = end_wall - start_wall
 
         state = self.broker.portfolio.compute_state(
@@ -117,8 +118,8 @@ class BacktestEngine:
         total_pnl = final_equity - self.total_capital
         total_return = (
             total_pnl / self.total_capital
-            if self.total_capital > Decimal("0")
-            else Decimal("0")
+            if self.total_capital > Decimal(0)
+            else Decimal(0)
         )
 
         statistics = self.statistics.compute()
@@ -167,8 +168,7 @@ class BacktestEngine:
             )
         except Exception as e:
             self._errors.append(
-                f"Bar {self._bars_processed} ({bar.bar.timestamp}): "
-                f"Pipeline error: {e}"
+                f"Bar {self._bars_processed} ({bar.bar.timestamp}): Pipeline error: {e}"
             )
             report = None
 
@@ -197,9 +197,7 @@ class BacktestEngine:
             default=self.total_capital,
         )
         current_equity = state.equity
-        drawdown = (
-            (peak - current_equity) / peak if peak > Decimal("0") else Decimal("0")
-        )
+        drawdown = (peak - current_equity) / peak if peak > Decimal(0) else Decimal(0)
 
         equity_point = EquityPoint(
             timestamp=bar.bar.timestamp,

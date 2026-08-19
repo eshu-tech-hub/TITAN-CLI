@@ -45,8 +45,8 @@ class SectorBreadthAnalyzer:
             return SectorBreadth(
                 confidence=0.0,
                 reasons=(
-                    f"Insufficient sector data: need at least "
-                    f"{MIN_SECTORS} sectors, got {len(sectors)}.",
+                    (f"Insufficient sector data: need at least "
+                    f"{MIN_SECTORS} sectors, got {len(sectors)}."),
                 ),
             )
 
@@ -128,7 +128,7 @@ class SectorBreadthAnalyzer:
         reasons: list[str] = []
 
         reasons.append(
-            f"{advancing} sector(s) advancing, {declining} sector(s) " f"declining."
+            f"{advancing} sector(s) advancing, {declining} sector(s) declining."
         )
 
         if leading:

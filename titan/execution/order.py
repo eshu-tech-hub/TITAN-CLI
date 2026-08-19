@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 
 from titan.brokers.models import (
     Exchange,
@@ -75,8 +78,8 @@ class Order:
     events: tuple[OrderEvent, ...] = field(default_factory=tuple)
     trade_decision_id: str = ""
     request_id: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     @property
@@ -110,7 +113,7 @@ class Order:
         pending_quantity: int | None = None,
         average_price: Decimal | None = None,
         route: OrderRoute | None = None,
-    ) -> "Order":
+    ) -> Order:
         """Create a new Order instance with an updated state.
 
         This is the immutable equivalent of a state mutation. The

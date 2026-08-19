@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -78,7 +78,7 @@ class Alert:
     source: AlertSource
     title: str
     message: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: AlertStatus = AlertStatus.NEW
     acknowledged_at: datetime | None = None
     acknowledged_by: str = ""
@@ -126,7 +126,7 @@ class ChannelConfig:
 @dataclass(frozen=True, slots=True)
 class NotificationAttempt:
     channel: ChannelType
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     result: NotificationResult = NotificationResult.SUCCESS
     error: str = ""
     retry_count: int = 0
@@ -137,7 +137,7 @@ class AlertHistoryEntry:
     alert: Alert
     notifications: tuple[NotificationAttempt, ...] = field(default_factory=tuple)
     rule_results: tuple[AlertRuleResult, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,4 +152,4 @@ class AlertReport:
     alerts_by_source: Mapping[str, int] = field(default_factory=dict)
     alerts_by_level: Mapping[str, int] = field(default_factory=dict)
     warnings: tuple[str, ...] = field(default_factory=tuple)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

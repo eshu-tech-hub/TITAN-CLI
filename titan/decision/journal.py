@@ -1,8 +1,9 @@
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-import uuid
-from typing import Any, Sequence, Mapping
 import typing
+import uuid
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 from titan.decision.models import TradeDecision
 
@@ -62,7 +63,14 @@ class DecisionRepository:
 
     def get_latest(self, count: int = 100) -> list[DecisionJournalEntry]:
         """Get the latest N entries, ordered by timestamp descending."""
-        return [e for _, e in sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True)[:count]]
+        return [
+            e
+            for _, e in sorted(
+                enumerate(self._entries),
+                key=lambda t: (t[1].timestamp, t[0]),
+                reverse=True,
+            )[:count]
+        ]
 
     def get_by_symbol(self, symbol: str) -> list[DecisionJournalEntry]:
         """Get all entries for a specific symbol."""
@@ -83,7 +91,7 @@ class DecisionRepository:
         """Get the most recent entry."""
         if not self._entries:
             return None
-        return sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True)[0][1]
+        return max(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]))[1]
 
     def previous(self, current_id: str) -> DecisionJournalEntry | None:
         """Get the entry immediately preceding the given ID chronologically."""
@@ -111,7 +119,14 @@ class DecisionRepository:
         self, page: int = 1, page_size: int = 100
     ) -> Sequence[DecisionJournalEntry]:
         """List entries with pagination, newest first."""
-        sorted_entries = [e for _, e in sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True)]
+        sorted_entries = [
+            e
+            for _, e in sorted(
+                enumerate(self._entries),
+                key=lambda t: (t[1].timestamp, t[0]),
+                reverse=True,
+            )
+        ]
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
         return sorted_entries[start_idx:end_idx]
@@ -120,7 +135,9 @@ class DecisionRepository:
         """Simple text search across explanation and reasons, newest first."""
         query = query.lower()
         results = []
-        for _, entry in sorted(enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True):
+        for _, entry in sorted(
+            enumerate(self._entries), key=lambda t: (t[1].timestamp, t[0]), reverse=True
+        ):
             if (
                 query in entry.explanation_summary.lower()
                 or query in entry.risk_summary.lower()
@@ -164,7 +181,12 @@ class DecisionRepository:
             if confidence_min is not None and entry.confidence < confidence_min:
                 continue
             results.append(entry)
-        return [e for _, e in sorted(enumerate(results), key=lambda t: (t[1].timestamp, t[0]), reverse=True)]
+        return [
+            e
+            for _, e in sorted(
+                enumerate(results), key=lambda t: (t[1].timestamp, t[0]), reverse=True
+            )
+        ]
 
     def count(self) -> int:
         """Total number of entries in the journal."""
@@ -232,7 +254,7 @@ class DecisionJournal:
 
         entry = DecisionJournalEntry(
             id=str(uuid.uuid4()),
-            timestamp=decision.timestamp or datetime.now(timezone.utc),
+            timestamp=decision.timestamp or datetime.now(UTC),
             symbol=decision.symbol,
             decision=decision.decision.value,
             trade_direction=decision.trade_direction.value,

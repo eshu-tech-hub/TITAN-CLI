@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 import typer
 from rich.table import Table
 
 from titan.cli.common import console, get_monitoring_manager, logger
+from titan.monitoring.exceptions import MonitoringError
 
 monitor_app = typer.Typer(help="Monitoring subsystem management.")
 app = monitor_app
@@ -99,7 +100,7 @@ def start(
         manager = get_monitoring_manager()
         manager.start()
         _monitor_running = True
-        _monitor_start_time = datetime.now(timezone.utc)
+        _monitor_start_time = datetime.now(UTC)
         console.print("[bold green]+[/bold green] Monitoring subsystem started.")
     except Exception as e:
         console.print(f"[bold red]![/bold red] Failed to start monitoring: {e}")
@@ -129,8 +130,8 @@ def stop(
     try:
         manager = get_monitoring_manager()
         manager.stop()
-    except Exception:
-        pass
+    except (RuntimeError, OSError, MonitoringError) as e:
+        logger.warning(f"Operation failed: {e}")
 
     _monitor_running = False
     _monitor_start_time = None
@@ -214,7 +215,7 @@ def status(
     table.add_row("Status", running_str)
 
     if _monitor_start_time is not None and _is_running():
-        elapsed = (datetime.now(timezone.utc) - _monitor_start_time).total_seconds()
+        elapsed = (datetime.now(UTC) - _monitor_start_time).total_seconds()
         table.add_row("Session Uptime", _format_duration(elapsed))
 
     table.add_row("Total Uptime", _format_duration(report.uptime_seconds))

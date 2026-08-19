@@ -7,7 +7,6 @@ from titan.core.evidence import (
     EvidenceSignal,
     Score,
 )
-
 from titan.options.analytics.backwardation import BackwardationAnalyzer
 from titan.options.analytics.calendar import CalendarAnalyzer
 from titan.options.analytics.contango import ContangoAnalyzer
@@ -19,8 +18,8 @@ from titan.options.analytics.models import (
     TermStructureAnalysis,
     TermStructureExplanation,
     TermStructureShape,
-    TermStructureStrength,
     TermStructureSnapshot,
+    TermStructureStrength,
 )
 
 NEUTRAL_SCORE = 50.0
@@ -365,7 +364,7 @@ class TermStructureAnalyzer:
             )
         if calendar.curve_slope is not None:
             parts.append(
-                f"Average slope per expiry step is " f"{calendar.curve_slope:+.4f}."
+                f"Average slope per expiry step is {calendar.curve_slope:+.4f}."
             )
         if calendar.event_premium is not None:
             parts.append(

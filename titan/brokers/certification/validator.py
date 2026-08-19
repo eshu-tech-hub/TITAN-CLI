@@ -5,12 +5,12 @@ Validators do NOT perform actual live operations or connect to brokers.
 They inspect capabilities, interfaces, and expected behaviors.
 """
 
-from typing import List, Any
+from typing import Any
 
 from titan.brokers.certification.models import (
+    BrokerCapability,
     BrokerValidationResult,
     CertificationStatus,
-    BrokerCapability,
 )
 from titan.brokers.certification.scenarios import ALL_SCENARIOS
 
@@ -18,7 +18,7 @@ from titan.brokers.certification.scenarios import ALL_SCENARIOS
 class CapabilityValidator:
     """Validates if a broker correctly defines its capabilities."""
 
-    def validate(self, capabilities: List[BrokerCapability]) -> BrokerValidationResult:
+    def validate(self, capabilities: list[BrokerCapability]) -> BrokerValidationResult:
         """Validates capability definitions."""
         if not capabilities:
             return BrokerValidationResult(
@@ -92,8 +92,8 @@ class ScenarioValidator:
     """Validates scenario applicability for a given broker."""
 
     def validate(
-        self, capabilities: List[BrokerCapability]
-    ) -> List[BrokerValidationResult]:
+        self, capabilities: list[BrokerCapability]
+    ) -> list[BrokerValidationResult]:
         """Maps capabilities to scenarios and determines if they should be run."""
         results = []
         # This is a static validation ensuring the scenarios match declared capabilities
@@ -161,8 +161,8 @@ class CertificationEngine:
         self.compliance_validator = ComplianceValidator()
 
     def run_validations(
-        self, broker_instance: Any, capabilities: List[BrokerCapability]
-    ) -> List[BrokerValidationResult]:
+        self, broker_instance: Any, capabilities: list[BrokerCapability]
+    ) -> list[BrokerValidationResult]:
         """Runs all passive validators against the broker."""
         results = []
 

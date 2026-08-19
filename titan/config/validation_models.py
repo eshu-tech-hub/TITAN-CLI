@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
 
 
 class ValidationLevel(str, Enum):
@@ -16,8 +15,8 @@ class ValidationResult:
     level: ValidationLevel
     category: str
     message: str
-    component: Optional[str] = None
-    resolution: Optional[str] = None
+    component: str | None = None
+    resolution: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,15 +27,15 @@ class ConfigurationReport:
     results: tuple[ValidationResult, ...] = field(default_factory=tuple)
 
     @property
-    def blocking_errors(self) -> List[ValidationResult]:
+    def blocking_errors(self) -> list[ValidationResult]:
         return [r for r in self.results if r.level == ValidationLevel.ERROR]
 
     @property
-    def warnings(self) -> List[ValidationResult]:
+    def warnings(self) -> list[ValidationResult]:
         return [r for r in self.results if r.level == ValidationLevel.WARNING]
 
     @property
-    def recommendations(self) -> List[ValidationResult]:
+    def recommendations(self) -> list[ValidationResult]:
         return [r for r in self.results if r.level == ValidationLevel.INFO]
 
 

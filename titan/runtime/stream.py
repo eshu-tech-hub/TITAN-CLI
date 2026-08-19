@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from queue import Empty, Queue
 from threading import Event, Thread
-from typing import Callable, Protocol
+from typing import Protocol
 
 from titan.brokers.models import ConnectionStatus, Exchange, Quote
 from titan.core.logger import logger
@@ -99,7 +100,9 @@ class MarketStream:
         if self._thread is not None:
             self._thread.join(timeout=5.0)
             if self._thread.is_alive():
-                raise StreamError("Market stream worker did not stop within five seconds.")
+                raise StreamError(
+                    "Market stream worker did not stop within five seconds."
+                )
             self._thread = None
 
     @property
@@ -190,7 +193,7 @@ class MarketStream:
 
     def _process_quote(self, quote: Quote) -> None:
         """Process a single quote."""
-        self._last_quote_time = datetime.now(timezone.utc)
+        self._last_quote_time = datetime.now(UTC)
         self._quote_count += 1
 
         if self._on_quote is not None:

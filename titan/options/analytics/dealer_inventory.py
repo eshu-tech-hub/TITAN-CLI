@@ -11,8 +11,8 @@ from titan.options.analytics.models import (
     DealerSide,
     GreeksAnalysis,
     OptionChainAnalysis,
-    SurfaceIntelligenceAnalysis,
     SurfaceHealthLevel,
+    SurfaceIntelligenceAnalysis,
 )
 
 INVENTORY_CONFIDENCE_LOW = 0.15

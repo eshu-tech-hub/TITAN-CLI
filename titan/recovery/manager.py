@@ -1,9 +1,9 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
-from typing import Any
 from time import monotonic
+from typing import Any
 
 from titan.recovery.checkpoint import CheckpointManager
 from titan.recovery.circuit_breaker import CircuitBreaker, CircuitBreakerConfig
@@ -14,13 +14,13 @@ from titan.recovery.health_recovery import HealthRecovery
 from titan.recovery.models import (
     ComponentType,
     RecoveryAttempt,
+    RecoveryHistoryEntry,
+    RecoveryLevel,
     RecoveryReport,
     RecoveryRequest,
     RecoveryStatus,
     RecoveryStrategy,
-    RecoveryLevel,
     RetryPolicy,
-    RecoveryHistoryEntry,
 )
 from titan.recovery.reconnect import BrokerReconnector
 from titan.recovery.retry import RetryEngine
@@ -39,9 +39,7 @@ class RecoveryManager:
     )
     _reconnect: BrokerReconnector = field(default_factory=BrokerReconnector)
     _recovery_history: list[RecoveryReport] = field(default_factory=list, init=False)
-    _start_time: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc), init=False
-    )
+    _start_time: datetime = field(default_factory=lambda: datetime.now(UTC), init=False)
     _lock: Lock = field(default_factory=Lock, init=False)
 
     # Escalating Recovery Support
@@ -365,7 +363,7 @@ class RecoveryManager:
             self._circuit_breakers.clear()
             self._reconnect.reset()
             self._recovery_history.clear()
-            self._start_time = datetime.now(timezone.utc)
+            self._start_time = datetime.now(UTC)
             self._failures.clear()
             self._escalation_history.clear()
 
@@ -375,6 +373,7 @@ class RecoveryManager:
         Increments the failure count for the specified component.
         """
         import uuid
+
         from titan.core.logger import logger
 
         with self._lock:

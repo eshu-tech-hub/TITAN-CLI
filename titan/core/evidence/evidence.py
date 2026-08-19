@@ -1,6 +1,7 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Mapping
+from typing import Any
 
 from titan.core.evidence.confidence import Confidence
 from titan.core.evidence.exceptions import EvidenceValidationError

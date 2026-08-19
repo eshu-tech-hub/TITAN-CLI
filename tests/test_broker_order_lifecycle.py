@@ -2,10 +2,10 @@
 Tests for Broker Order Lifecycle Certification scenarios.
 """
 
-from titan.brokers.certification.runner import BrokerCertificationRunner
-from titan.brokers.certification.models import CertificationStatus
 from tests.mocks.mock_broker_full import MockBrokerFull
 from tests.mocks.mock_broker_rejecting import MockBrokerRejecting
+from titan.brokers.certification.models import CertificationStatus
+from titan.brokers.certification.runner import BrokerCertificationRunner
 
 
 def test_order_lifecycle_full():

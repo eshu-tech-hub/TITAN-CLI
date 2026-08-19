@@ -1,6 +1,6 @@
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from titan.execution.book import OrderBook
 from titan.execution.exceptions import (
@@ -235,7 +235,7 @@ class ExecutionEngine:
         state_machine: OrderStateMachine | None = None,
     ) -> Order:
         order_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         return Order(
             order_id=order_id,
