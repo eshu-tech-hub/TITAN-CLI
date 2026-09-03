@@ -3,10 +3,13 @@
 Provides the unified institutional desktop layout with:
 - Persistent header bar
 - Sidebar navigation
-- Central content area (screens)
+- Central content area (ContentSwitcher of mounted views)
 - Persistent status bar
 - Central refresh timer
 - Screen router for navigation
+
+Views are mounted inside the ContentSwitcher; navigation switches
+``ContentSwitcher.current`` via the router. No Screen push/pop.
 """
 
 from __future__ import annotations
@@ -14,17 +17,19 @@ from __future__ import annotations
 import socket
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from textual.app import App
-from textual.containers import Horizontal, Vertical
-from textual.screen import Screen
+from textual.app import App, ComposeResult
+from textual.containers import Horizontal
+from textual.widgets import ContentSwitcher
 
 from titan.tui.router import ScreenRouter
 from titan.tui.widgets.header import HeaderWidget
-from titan.tui.widgets.sidebar import SidebarWidget
+from titan.tui.widgets.sidebar import SidebarSelected, SidebarWidget
 from titan.tui.widgets.status_bar import StatusBarWidget
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from textual.widget import Widget
 
 REFRESH_INTERVAL = 1.0
 
@@ -36,14 +41,20 @@ SCREEN_CSS = """
     width: 1fr;
     height: 1fr;
 }
+#app-content > * {
+    width: 1fr;
+    height: 1fr;
+}
 """
 
 
 class ShellApp(App):
     """TITAN institutional desktop application shell.
 
-    Composes header, sidebar, content area, and status bar.
-    Navigation is handled by ScreenRouter. Refresh is central.
+    Composes header, sidebar, content switcher, and status bar.
+    Navigation is handled by ScreenRouter; the sidebar updates
+    ``ContentSwitcher.current`` instead of pushing screens.
+    Refresh is central.
     """
 
     TITLE = "TITAN OS"
@@ -77,12 +88,48 @@ class ShellApp(App):
         self._header: HeaderWidget | None = None
         self._sidebar: SidebarWidget | None = None
         self._status_bar: StatusBarWidget | None = None
-        self._content_container: Vertical | None = None
+        self._content_switcher: ContentSwitcher | None = None
+        self._views: dict[str, Widget] = {}
+        self._register_default_screens()
+
+    def _register_default_screens(self) -> None:
+        """Register the built-in screens so navigation works out of the box."""
+        from titan.tui.screens import (
+            AuditScreen,
+            ConfigurationScreen,
+            DashboardScreen,
+            HelpScreen,
+            LiveScreen,
+            MarketScreen,
+            MonitoringScreen,
+            PaperScreen,
+            RuntimeScreen,
+        )
+        from titan.tui.screens.decision import DecisionScreen
+        from titan.tui.screens.decision_replay import DecisionReplayScreen
+        from titan.tui.screens.trade_journal import TradeJournalScreen
+
+        factories: dict[str, Callable[..., Any]] = {
+            "dashboard": DashboardScreen,
+            "runtime": RuntimeScreen,
+            "paper": PaperScreen,
+            "live_trading": LiveScreen,
+            "monitoring": MonitoringScreen,
+            "config": ConfigurationScreen,
+            "market": MarketScreen,
+            "decision": DecisionScreen,
+            "decision_replay": DecisionReplayScreen,
+            "trade_journal": TradeJournalScreen,
+            "audit": AuditScreen,
+            "help": HelpScreen,
+        }
+        for name, factory in factories.items():
+            self.register_screen(name, factory)
 
     def register_screen(
         self,
         name: str,
-        factory: Callable[..., Screen],
+        factory: Callable[..., Any],
         *,
         is_default: bool = False,
     ) -> None:
@@ -96,7 +143,7 @@ class ShellApp(App):
     def _get_hostname(self) -> str:
         try:
             return socket.gethostname()
-        except Exception:
+        except Exception:  # noqa: BLE001
             return ""
 
     def _get_version(self) -> str:
@@ -104,17 +151,29 @@ class ShellApp(App):
             from titan.core import __version__ as ver  # type: ignore[attr-defined]
 
             return str(ver)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return "1.0.0"
 
-    def compose(self):  # type: ignore[override]
+    def _mount_views(self) -> None:
+        """Create one view per registered screen and stash it by name."""
+        self._views.clear()
+        for name in self._router.screen_names:
+            view = self._router.create(name)
+            view.id = f"view-{name}"
+            self._views[name] = view
+
+    def compose(self) -> ComposeResult:
         self._header = HeaderWidget(id="app-header")
         self._sidebar = SidebarWidget(id="app-sidebar")
         self._status_bar = StatusBarWidget(id="app-status")
         with Horizontal(id="app-body"):
             yield self._sidebar
-            with Vertical(id="app-content"):
-                yield from ()
+            self._content_switcher = ContentSwitcher(
+                id="app-content", initial="view-dashboard"
+            )
+            with self._content_switcher:
+                self._mount_views()
+                yield from self._views.values()
         yield self._header
         yield self._status_bar
 
@@ -126,7 +185,7 @@ class ShellApp(App):
         self._header.update_data(
             version=self._get_version(),
             hostname=self._get_hostname(),
-            profile="default",
+            profile="development",
         )
         self._sidebar.set_active("dashboard")
         self._status_bar.update_data(
@@ -137,7 +196,25 @@ class ShellApp(App):
             refresh_interval=REFRESH_INTERVAL,
         )
         self.set_interval(REFRESH_INTERVAL, self._tick_refresh)
+        self._apply_state_builders()
         self._navigate_to("dashboard")
+        self.query_one("#app-sidebar", SidebarWidget).focus()
+
+    def _apply_state_builders(self) -> None:
+        """Push registered state builders into the mounted views."""
+        for name, view in self._views.items():
+            builder = self._state_builders.get(name)
+            if builder is not None and hasattr(view, "set_state_builder"):
+                view.set_state_builder(builder)
+
+    def _set_active_view(self, name: str) -> None:
+        """Switch the ContentSwitcher to the named view and focus it."""
+        if self._content_switcher is None or name not in self._views:
+            return
+        self._content_switcher.current = f"view-{name}"
+        view = self._views[name]
+        if view.can_focus:
+            view.focus()
 
     def _tick_refresh(self) -> None:
         """Central refresh tick — updates header clock, status bar time."""
@@ -149,17 +226,17 @@ class ShellApp(App):
     def _navigate_to(self, name: str) -> None:
         """Navigate to a screen using the router."""
         try:
-            screen = self._router.navigate(name)
-            if name in self._state_builders:
-                builder = self._state_builders[name]
-                if hasattr(screen, "set_state_builder"):
-                    screen.set_state_builder(builder)
-            self.push_screen(screen)
-            if self._sidebar is not None:
-                self._sidebar.set_active(name)
-            self._update_status_for_screen(name)
+            self._router.navigate(name)
         except KeyError:
-            pass
+            return
+        self._set_active_view(name)
+        if self._sidebar is not None:
+            self._sidebar.set_active(name)
+        self._update_status_for_screen(name)
+
+    def on_sidebar_selected(self, event: SidebarSelected) -> None:
+        """Navigate when a sidebar section is selected."""
+        self._navigate_to(event.name)
 
     def _update_status_for_screen(self, name: str) -> None:
         """Update the status bar mode based on the active screen."""
@@ -229,16 +306,18 @@ class ShellApp(App):
         self._action_goto("help")
 
     def action_refresh(self) -> None:
-        """Refresh the current screen."""
-        current = self.screen
-        if hasattr(current, "action_refresh"):
+        """Refresh the current view."""
+        if self._content_switcher is None:
+            return
+        current = self._content_switcher.visible_content
+        if current is not None and hasattr(current, "action_refresh"):
             current.action_refresh()
 
     def action_go_back(self) -> None:
         """Navigate to the previous screen."""
         prev = self._router.go_back()
         if prev is not None:
-            self.push_screen(prev)
+            self._set_active_view(self._router.current)
             if self._sidebar is not None:
                 self._sidebar.set_active(self._router.current)
             self._update_status_for_screen(self._router.current)
@@ -258,3 +337,11 @@ class ShellApp(App):
     @property
     def status_bar(self) -> StatusBarWidget | None:
         return self._status_bar
+
+    @property
+    def content_switcher(self) -> ContentSwitcher | None:
+        return self._content_switcher
+
+    @property
+    def views(self) -> dict[str, Widget]:
+        return self._views

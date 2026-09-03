@@ -6,7 +6,6 @@ from typing import ClassVar
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
-from textual.screen import Screen
 
 from titan.tui.models import MarketScreenState
 from titan.tui.widgets.market import (
@@ -22,12 +21,12 @@ from titan.tui.widgets.market import (
 )
 
 
-class MarketScreen(Screen):
-    """Market Intelligence Screen."""
+class MarketScreen(VerticalScroll):
+    """Market Intelligence view."""
 
     BINDINGS: ClassVar[list[Binding | tuple[str, str] | tuple[str, str, str]]] = [
         Binding("r", "refresh_data", "Refresh"),
-        Binding("escape", "app.pop_screen", "Back"),
+        Binding("escape", "back", "Back"),
         Binding("up", "scroll_up", "Scroll Up", show=False),
         Binding("down", "scroll_down", "Scroll Down", show=False),
         Binding("pageup", "page_up", "Page Up", show=False),
@@ -97,6 +96,13 @@ class MarketScreen(Screen):
 
     def action_refresh_data(self) -> None:
         self._refresh_state()
+
+    def action_back(self) -> None:
+        """Return to the previous view via the shell router."""
+        try:
+            self.app.action_go_back()
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
+            pass
 
     def action_scroll_up(self) -> None:
         self.query_one("#market-scroll", VerticalScroll).scroll_up()

@@ -230,14 +230,81 @@ class LocalTransportServer:
                         {
                             "order_id": order.broker_order_id,
                             "symbol": order.symbol,
-                            "side": order.side.value,
-                            "type": order.order_type.value,
+                            "side": order.side.value if hasattr(order.side, "value") else str(order.side),
+                            "type": order.order_type.value if hasattr(order.order_type, "value") else str(order.order_type),
                             "quantity": order.quantity,
                             "filled_quantity": order.filled_quantity,
-                            "status": order.status.value,
+                            "status": order.status.value if hasattr(order.status, "value") else str(order.status),
+                            "price": _d(getattr(order, "average_price", getattr(order, "price", 0))),
+                            "placed_at": order.placed_at.isoformat() if hasattr(order, "placed_at") and order.placed_at else None,
                         }
                         for order in all_orders
                     ],
+                    "trades": [
+                        {
+                            "symbol": trade.symbol,
+                            "side": trade.side.value if hasattr(trade.side, "value") else str(trade.side),
+                            "quantity": trade.quantity,
+                            "price": _d(getattr(trade, "price", 0)),
+                            "pnl": _d(getattr(trade, "pnl", 0)),
+                            "timestamp": trade.timestamp.isoformat() if hasattr(trade, "timestamp") and trade.timestamp else None,
+                        }
+                        for trade in all_trades[-20:]
+                    ]
+                }
+                return {"status": "ok", "data": data}
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        elif command == "live_status":
+            try:
+                broker = self.service.engine.broker
+                funds = broker.funds() if hasattr(broker, "funds") else None
+                margin = broker.margin() if hasattr(broker, "margin") else None
+                positions = broker.positions() if hasattr(broker, "positions") else []
+                orders = broker.orders() if hasattr(broker, "orders") else []
+
+                def _d(v):
+                    return float(v) if v is not None else 0.0
+
+                data = {
+                    "provider": type(broker).__name__,
+                    "is_connected": broker.is_connected(),
+                    "funds": {
+                        "available_cash": _d(funds.available_cash) if funds else 0.0,
+                        "payin": _d(funds.payin) if funds else 0.0,
+                        "payout": _d(funds.payout) if funds else 0.0,
+                    },
+                    "margin": {
+                        "used_margin": _d(margin.used_margin) if margin else 0.0,
+                        "available_margin": _d(margin.available_margin) if margin else 0.0,
+                    },
+                    "positions": [
+                        {
+                            "symbol": p.symbol,
+                            "exchange": p.exchange.value if hasattr(p.exchange, "value") else str(p.exchange),
+                            "product": p.product.value if hasattr(p.product, "value") else str(p.product),
+                            "quantity": p.quantity,
+                            "buy_qty": getattr(p, "buy_quantity", 0),
+                            "sell_qty": getattr(p, "sell_quantity", 0),
+                            "avg_price": _d(getattr(p, "buy_price", 0.0)),
+                            "current_price": _d(getattr(p, "current_price", 0.0)),
+                            "pnl": _d(getattr(p, "pnl", 0.0)),
+                            "realised_pnl": _d(getattr(p, "realised_pnl", 0.0)),
+                        }
+                        for p in positions
+                    ],
+                    "orders": [
+                        {
+                            "order_id": o.broker_order_id,
+                            "symbol": o.symbol,
+                            "side": o.side.value if hasattr(o.side, "value") else str(o.side),
+                            "type": o.order_type.value if hasattr(o.order_type, "value") else str(o.order_type),
+                            "quantity": getattr(o, "quantity", getattr(o, "total_quantity", 0)),
+                            "filled_quantity": getattr(o, "filled_quantity", 0),
+                            "status": o.status.value if hasattr(o.status, "value") else str(o.status),
+                        }
+                        for o in orders
+                    ]
                 }
                 return {"status": "ok", "data": data}
             except Exception as e:
@@ -333,6 +400,12 @@ class LocalTransport(RuntimeTransport):
 
     def paper_status(self) -> dict[str, Any]:
         resp = self._send_command("paper_status")
+        if resp.get("status") != "ok":
+            raise TitanRuntimeError(resp.get("message", "Unknown error"))
+        return cast(dict[str, Any], resp.get("data", {}))
+
+    def live_status(self) -> dict[str, Any]:
+        resp = self._send_command("live_status")
         if resp.get("status") != "ok":
             raise TitanRuntimeError(resp.get("message", "Unknown error"))
         return cast(dict[str, Any], resp.get("data", {}))

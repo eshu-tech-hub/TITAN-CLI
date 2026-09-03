@@ -15,14 +15,14 @@ class EnvironmentValidator:
     def validate() -> list[ValidationResult]:
         results: list[ValidationResult] = []
         # Python version check
-        if sys.version_info < (3, 14):
+        if sys.version_info < (3, 12):
             results.append(
                 ValidationResult(
                     level=ValidationLevel.ERROR,
                     category="Environment",
-                    message=f"Python 3.14+ required, found {sys.version_info[0]}.{sys.version_info[1]}",
+                    message=f"Python 3.12+ required, found {sys.version_info[0]}.{sys.version_info[1]}",
                     component="python",
-                    resolution="Upgrade Python to version 3.14 or higher.",
+                    resolution="Upgrade Python to version 3.12 or higher.",
                 )
             )
         return results

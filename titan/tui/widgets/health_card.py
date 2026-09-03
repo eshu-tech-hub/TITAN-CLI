@@ -8,6 +8,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from titan.tui.models import HealthInfo
+from titan.tui.widgets import markup_color
 
 
 class HealthCard(Widget):
@@ -63,7 +64,7 @@ class HealthCard(Widget):
         self._info = info
         mon_cls = _health_class(info.monitoring_status)
         self._monitoring.update(
-            f'[bold]Monitoring:[/bold] <span class="{mon_cls}">{info.monitoring_status}</span>'
+            f"[bold]Monitoring:[/bold] [{markup_color(mon_cls)}]{info.monitoring_status}[/]"
         )
         if info.critical_alerts > 0:
             alert_cls = "value-unhealthy"
@@ -77,12 +78,12 @@ class HealthCard(Widget):
             else "0 Critical"
         )
         self._alerts.update(
-            f'[bold]Alerts:[/bold] <span class="{alert_cls}">{alert_text}</span>'
+            f"[bold]Alerts:[/bold] [{markup_color(alert_cls)}]{alert_text}[/]"
             f" ({info.total_alerts} total)"
         )
         rec_cls = _recovery_class(info.recovery_status)
         self._recovery.update(
-            f'[bold]Recovery:[/bold] <span class="{rec_cls}">{info.recovery_status}</span>'
+            f"[bold]Recovery:[/bold] [{markup_color(rec_cls)}]{info.recovery_status}[/]"
             f" ({info.recovery_attempts} attempts)"
         )
 

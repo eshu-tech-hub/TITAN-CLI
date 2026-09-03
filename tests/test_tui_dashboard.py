@@ -365,18 +365,20 @@ class TestDashboardAsync:
     async def test_dashboard_screen_is_default(self) -> None:
         app = TITANApp()
         async with app.run_test():
-            assert isinstance(app.screen, DashboardScreen)
+            assert isinstance(app.query_one("#view-dashboard"), DashboardScreen)
+            assert app._content_switcher is not None
+            assert app._content_switcher.current == "view-dashboard"
 
     @pytest.mark.asyncio
     async def test_cards_are_mounted(self) -> None:
         app = TITANApp()
         async with app.run_test():
-            screen = app.screen
-            assert screen.query_one("#runtime-card") is not None
-            assert screen.query_one("#market-card") is not None
-            assert screen.query_one("#trading-card") is not None
-            assert screen.query_one("#health-card") is not None
-            assert screen.query_one("#system-card") is not None
+            dashboard = app.query_one("#view-dashboard", DashboardScreen)
+            assert dashboard.query_one("#runtime-card") is not None
+            assert dashboard.query_one("#market-card") is not None
+            assert dashboard.query_one("#trading-card") is not None
+            assert dashboard.query_one("#health-card") is not None
+            assert dashboard.query_one("#system-card") is not None
 
     @pytest.mark.asyncio
     async def test_title_is_shown(self) -> None:
@@ -384,7 +386,9 @@ class TestDashboardAsync:
         async with app.run_test():
             from textual.widgets import Static
 
-            title = app.screen.query_one("#dashboard-title", Static)
+            title = app.query_one("#view-dashboard", DashboardScreen).query_one(
+                "#dashboard-title", Static
+            )
             assert "TITAN Dashboard" in str(title.render())
 
     @pytest.mark.asyncio
@@ -393,15 +397,16 @@ class TestDashboardAsync:
         async with app.run_test():
             from textual.widgets import Static
 
-            indicator = app.screen.query_one("#refresh-indicator", Static)
+            indicator = app.query_one("#view-dashboard", DashboardScreen).query_one(
+                "#refresh-indicator", Static
+            )
             assert indicator is not None
 
     @pytest.mark.asyncio
     async def test_manual_refresh(self) -> None:
         app = TITANApp()
         async with app.run_test():
-            screen = app.screen
-            assert isinstance(screen, DashboardScreen)
+            screen = app.query_one("#view-dashboard", DashboardScreen)
             screen.action_refresh()
             from textual.widgets import Static
 
@@ -420,9 +425,7 @@ class TestDashboardAsync:
         app = TITANApp()
         app.set_state_builder(counting_builder)
         async with app.run_test():
-            screen = app.screen
-            assert isinstance(screen, DashboardScreen)
-            screen.set_state_builder(counting_builder)
+            screen = app.query_one("#view-dashboard", DashboardScreen)
             screen._refresh_state()
             assert call_count >= 1
 
@@ -446,9 +449,7 @@ class TestDashboardAsync:
         app = TITANApp()
         app.set_state_builder(custom_builder)
         async with app.run_test():
-            screen = app.screen
-            assert isinstance(screen, DashboardScreen)
-            screen.set_state_builder(custom_builder)
+            screen = app.query_one("#view-dashboard", DashboardScreen)
             screen._refresh_state()
             assert screen.state.runtime.status == "Running"
             assert screen.state.market.symbols_tracked == 42

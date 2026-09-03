@@ -17,6 +17,7 @@ from titan.tui.models import (
     LogSummaryInfo,
     RecoveryHistoryEntry,
 )
+from titan.tui.widgets import markup_color
 
 
 class AuditSummaryWidget(Widget):
@@ -81,8 +82,8 @@ class AuditSummaryWidget(Widget):
         )
         integrity_cls = _integrity_class(info.integrity_status)
         self._integrity.update(
-            f'[bold]Integrity:[/bold] <span class="{integrity_cls}">'
-            f"{info.integrity_status}</span>"
+            f"[bold]Integrity:[/bold] [{markup_color(integrity_cls)}]"
+            f"{info.integrity_status}[/]"
             f" ({info.verification_failures} failures)"
         )
         self._first_time.update(
@@ -155,9 +156,9 @@ class RecentAuditWidget(Widget):
                 sev_cls = _audit_severity_class(entry.severity)
                 res_cls = _audit_result_class(entry.result)
                 row = Static(
-                    f'  <span class="{sev_cls}">[{entry.severity.upper()}]</span> '
+                    f"  [{markup_color(sev_cls)}][{entry.severity.upper()}][/] "
                     f"[{entry.source}] {entry.action} "
-                    f'<span class="{res_cls}">{entry.result}</span> '
+                    f"[{markup_color(res_cls)}]{entry.result}[/] "
                     f"({entry.timestamp_str})",
                     classes="card-row",
                 )
@@ -291,7 +292,7 @@ class RecentLogsWidget(Widget):
             for log in logs:
                 level_cls = _log_level_class(log.level)
                 row = Static(
-                    f'  <span class="{level_cls}">[{log.level.upper():>8}]</span> '
+                    f"  [{markup_color(level_cls)}][{log.level.upper():>8}][/] "
                     f"{log.timestamp_str} {log.module}/{log.component}: {log.message}",
                     classes="card-row",
                 )
@@ -364,7 +365,7 @@ class RecoveryHistoryWidget(Widget):
             for entry in entries:
                 status_cls = _recovery_status_class(entry.status)
                 row = Static(
-                    f'  <span class="{status_cls}">[{entry.status.upper()}]</span> '
+                    f"  [{markup_color(status_cls)}][{entry.status.upper()}][/] "
                     f"{entry.component} — {entry.strategy} "
                     f"({entry.attempts} attempts) "
                     f"{entry.failure_reason or ''} "
@@ -437,7 +438,7 @@ class CircuitBreakerWidget(Widget):
             for cb in breakers:
                 state_cls = _cb_state_class(cb.state)
                 row = Static(
-                    f'  <span class="{state_cls}">[{cb.state}]</span> '
+                    f"  [{markup_color(state_cls)}][{cb.state}][/] "
                     f"{cb.name}: failures={cb.failure_count}/{cb.failure_threshold} "
                     f"successes={cb.success_count} "
                     f"timeout={cb.recovery_timeout}",

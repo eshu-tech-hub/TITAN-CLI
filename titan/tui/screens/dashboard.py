@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 from titan.tui.models import DashboardState
@@ -22,8 +21,8 @@ if TYPE_CHECKING:
 REFRESH_INTERVAL = 1.0  # seconds
 
 
-class DashboardScreen(Screen):
-    """Main dashboard screen with five status cards.
+class DashboardScreen(VerticalScroll):
+    """Main dashboard view with five status cards.
 
     Refreshes automatically every REFRESH_INTERVAL seconds.
     Data is read-only from all managers.
@@ -99,7 +98,7 @@ class DashboardScreen(Screen):
         if self._state_builder is not None:
             try:
                 self._state = self._state_builder()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._state = DashboardState()
         self._update_widgets()
         self._update_refresh_indicator()
@@ -120,9 +119,9 @@ class DashboardScreen(Screen):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#refresh-indicator", Static)
-            now = datetime.now(UTC).strftime("%H:%M:%S")
+            now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
             indicator.update(f"Last refresh: {now}")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_refresh(self) -> None:

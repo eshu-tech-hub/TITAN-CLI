@@ -13,19 +13,19 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from textual.screen import Screen
+    from textual.widget import Widget
 
 
 class ScreenRouter:
     """Manages screen registration, creation, switching, and navigation history.
 
-    Screens are registered by name with a factory callable. They are created
-    lazily on first navigation. The history stack enables back-navigation.
+    Screens (views) are registered by name with a factory callable. They are
+    created lazily on first navigation. The history stack enables back-navigation.
     """
 
     def __init__(self, default: str = "dashboard") -> None:
-        self._factories: dict[str, Callable[..., Screen]] = {}
-        self._cache: dict[str, Screen] = {}
+        self._factories: dict[str, Callable[..., Widget]] = {}
+        self._cache: dict[str, Widget] = {}
         self._history: deque[str] = deque()
         self._default = default
         self._current: str = default
@@ -54,7 +54,7 @@ class ScreenRouter:
     def register(
         self,
         name: str,
-        factory: Callable[..., Screen],
+        factory: Callable[..., Widget],
         *,
         is_default: bool = False,
     ) -> None:
@@ -62,7 +62,7 @@ class ScreenRouter:
 
         Args:
             name: Unique screen identifier.
-            factory: Callable that returns a new Screen instance.
+            factory: Callable that returns a new view instance.
             is_default: If True, set this as the default screen.
         """
         self._factories[name] = factory
@@ -71,7 +71,7 @@ class ScreenRouter:
         if is_default:
             self._default = name
 
-    def create(self, name: str, **kwargs: Any) -> Screen:
+    def create(self, name: str, **kwargs: Any) -> Widget:
         """Create a new screen instance by name.
 
         Args:
@@ -79,7 +79,7 @@ class ScreenRouter:
             **kwargs: Forwarded to the factory.
 
         Returns:
-            A new Screen instance.
+            A new view instance.
 
         Raises:
             KeyError: If the screen name is not registered.
@@ -88,7 +88,7 @@ class ScreenRouter:
             raise KeyError(f"Screen not registered: {name}")
         return self._factories[name](**kwargs)
 
-    def get_or_create(self, name: str, **kwargs: Any) -> Screen:
+    def get_or_create(self, name: str, **kwargs: Any) -> Widget:
         """Get cached screen or create a new one.
 
         Screens are cached after first creation. Use invalidate()
@@ -109,7 +109,7 @@ class ScreenRouter:
         else:
             self._cache.pop(name, None)
 
-    def navigate(self, name: str, **kwargs: Any) -> Screen:
+    def navigate(self, name: str, **kwargs: Any) -> Widget:
         """Navigate to a screen, pushing the current one onto history.
 
         Returns the target screen instance.
@@ -123,7 +123,7 @@ class ScreenRouter:
         self._current = name
         return self.get_or_create(name, **kwargs)
 
-    def go_back(self) -> Screen | None:
+    def go_back(self) -> Widget | None:
         """Navigate to the previous screen in history.
 
         Returns the previous screen, or None if history is empty

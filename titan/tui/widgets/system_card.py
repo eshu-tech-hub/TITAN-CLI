@@ -8,6 +8,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from titan.tui.models import SystemInfo
+from titan.tui.widgets import markup_color
 
 
 class SystemCard(Widget):
@@ -62,7 +63,7 @@ class SystemCard(Widget):
         self._environment.update(f"[bold]Environment:[/bold] {info.environment}")
         dep_cls = _deploy_class(info.deployment_status)
         self._deployment.update(
-            f'[bold]Deployment:[/bold] <span class="{dep_cls}">{info.deployment_status}</span>'
+            f"[bold]Deployment:[/bold] [{markup_color(dep_cls)}]{info.deployment_status}[/]"
         )
 
     def render(self) -> str:  # type: ignore[override]

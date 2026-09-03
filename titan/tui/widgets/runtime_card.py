@@ -8,6 +8,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from titan.tui.models import RuntimeInfo
+from titan.tui.widgets import markup_color
 
 
 class RuntimeCard(Widget):
@@ -66,7 +67,7 @@ class RuntimeCard(Widget):
         self._info = info
         status_cls = _status_class(info.status)
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.status}</span>'
+            f"[bold]Status:[/bold] [{markup_color(status_cls)}]{info.status}[/]"
         )
         self._uptime.update(f"[bold]Uptime:[/bold] {info.uptime}")
         self._pipeline.update(

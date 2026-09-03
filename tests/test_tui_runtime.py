@@ -603,6 +603,48 @@ class TestRuntimeScreenUnit:
         screen._refresh_state()
         assert screen.state.engine.scheduler_active is True
 
+    def test_engine_control_bindings_exist(self) -> None:
+        keys = [b[0] for b in RuntimeScreen.BINDINGS]
+        assert "s" in keys
+        assert "x" in keys
+
+    def test_engine_control_actions_exist(self) -> None:
+        screen = RuntimeScreen()
+        assert hasattr(screen, "action_start_engine")
+        assert hasattr(screen, "action_stop_engine")
+        assert hasattr(screen, "_start_engine_worker")
+        assert hasattr(screen, "_stop_engine_worker")
+
+    def test_start_engine_guard_when_running(self) -> None:
+        screen = RuntimeScreen()
+        screen.notify = MagicMock()
+        mock_engine = MagicMock()
+        mock_engine.is_running = True
+        with patch(
+            "titan.tui.screens.runtime.get_runtime_engine", return_value=mock_engine
+        ) as mock_get:
+            screen.action_start_engine()
+            mock_get.assert_called_once_with()
+        mock_engine.start.assert_not_called()
+        screen.notify.assert_called()
+
+    def test_stop_engine_guard_when_not_running(self) -> None:
+        screen = RuntimeScreen()
+        screen.notify = MagicMock()
+        mock_engine = MagicMock()
+        mock_engine.is_running = False
+        with patch(
+            "titan.tui.screens.runtime.get_runtime_engine", return_value=mock_engine
+        ):
+            screen.action_stop_engine()
+        mock_engine.stop.assert_not_called()
+        screen.notify.assert_called()
+
+    def test_update_engine_status_bar_without_app(self) -> None:
+        screen = RuntimeScreen()
+        screen._update_engine_status_bar("Running")
+        assert screen is not None
+
 
 # ──────────────────────────────────────────────────
 # App tests
@@ -649,6 +691,7 @@ def _make_mock_engine(
 ) -> MagicMock:
     engine = MagicMock()
     engine.is_running = status == "RUNNING"
+    engine.status.name = status
     from titan.runtime.models import RuntimeStatus
 
     status_map = {
@@ -897,10 +940,8 @@ class TestRuntimeAsync:
         async with app.run_test() as pilot:
             from titan.tui.screens.runtime import RuntimeScreen
 
-            screen = RuntimeScreen()
-            app.push_screen(screen)
-            await pilot.pause()
-            assert isinstance(app.screen, RuntimeScreen)
+            await pilot.press("f2")
+            assert isinstance(app.query_one("#view-runtime"), RuntimeScreen)
 
     @pytest.mark.asyncio
     async def test_runtime_screen_widgets_mounted(self) -> None:
@@ -908,9 +949,7 @@ class TestRuntimeAsync:
         async with app.run_test() as pilot:
             from titan.tui.screens.runtime import RuntimeScreen
 
-            screen = RuntimeScreen()
-            app.push_screen(screen)
-            await pilot.pause()
+            screen = app.query_one("#view-runtime", RuntimeScreen)
             assert screen.query_one("#engine-widget") is not None
             assert screen.query_one("#stream-widget") is not None
             assert screen.query_one("#pipeline-widget") is not None
@@ -926,9 +965,7 @@ class TestRuntimeAsync:
 
             from titan.tui.screens.runtime import RuntimeScreen
 
-            screen = RuntimeScreen()
-            app.push_screen(screen)
-            await pilot.pause()
+            screen = app.query_one("#view-runtime", RuntimeScreen)
             title = screen.query_one("#runtime-title", Static)
             assert "Runtime" in str(title.render())
 
@@ -940,9 +977,7 @@ class TestRuntimeAsync:
 
             from titan.tui.screens.runtime import RuntimeScreen
 
-            screen = RuntimeScreen()
-            app.push_screen(screen)
-            await pilot.pause()
+            screen = app.query_one("#view-runtime", RuntimeScreen)
             indicator = screen.query_one("#refresh-indicator", Static)
             assert indicator is not None
 
@@ -954,9 +989,7 @@ class TestRuntimeAsync:
 
             from titan.tui.screens.runtime import RuntimeScreen
 
-            screen = RuntimeScreen()
-            app.push_screen(screen)
-            await pilot.pause()
+            screen = app.query_one("#view-runtime", RuntimeScreen)
             screen.action_refresh()
             indicator = screen.query_one("#refresh-indicator", Static)
             assert "Last refresh:" in str(indicator.render())
@@ -965,15 +998,11 @@ class TestRuntimeAsync:
     async def test_runtime_escape_back(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.dashboard import DashboardScreen
-            from titan.tui.screens.runtime import RuntimeScreen
-
-            screen = RuntimeScreen()
-            app.push_screen(screen)
-            await pilot.pause()
-            assert isinstance(app.screen, RuntimeScreen)
+            await pilot.press("f2")
+            assert app._content_switcher is not None
+            assert app._content_switcher.current == "view-runtime"
             await pilot.press("escape")
-            assert isinstance(app.screen, DashboardScreen)
+            assert app._content_switcher.current == "view-dashboard"
 
     @pytest.mark.asyncio
     async def test_f2_navigates_to_runtime(self) -> None:
@@ -982,16 +1011,66 @@ class TestRuntimeAsync:
             from titan.tui.screens.runtime import RuntimeScreen
 
             await pilot.press("f2")
-            assert isinstance(app.screen, RuntimeScreen)
+            assert app._content_switcher is not None
+            assert app._content_switcher.current == "view-runtime"
+            assert isinstance(app.query_one("#view-runtime"), RuntimeScreen)
 
     @pytest.mark.asyncio
     async def test_f1_navigates_to_dashboard(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.dashboard import DashboardScreen
-            from titan.tui.screens.runtime import RuntimeScreen
-
-            app.push_screen(RuntimeScreen())
-            await pilot.pause()
+            await pilot.press("f2")
             await pilot.press("f1")
-            assert isinstance(app.screen, DashboardScreen)
+            assert app._content_switcher is not None
+            assert app._content_switcher.current == "view-dashboard"
+
+    @pytest.mark.asyncio
+    async def test_press_s_starts_engine_worker(self) -> None:
+        app = TITANApp()
+        async with app.run_test() as pilot:
+            await pilot.press("f2")
+            mock_engine = MagicMock()
+            mock_engine.is_running = False
+            with patch(
+                "titan.tui.screens.runtime.get_runtime_engine",
+                return_value=mock_engine,
+            ):
+                await pilot.press("s")
+                for _ in range(100):
+                    if mock_engine.start.called:
+                        break
+                    await pilot.pause()
+                assert mock_engine.start.called
+
+    @pytest.mark.asyncio
+    async def test_press_x_stops_engine_worker(self) -> None:
+        app = TITANApp()
+        async with app.run_test() as pilot:
+            await pilot.press("f2")
+            mock_engine = MagicMock()
+            mock_engine.is_running = True
+            with patch(
+                "titan.tui.screens.runtime.get_runtime_engine",
+                return_value=mock_engine,
+            ):
+                await pilot.press("x")
+                for _ in range(100):
+                    if mock_engine.stop.called:
+                        break
+                    await pilot.pause()
+                assert mock_engine.stop.called
+
+    @pytest.mark.asyncio
+    async def test_press_x_when_not_running_does_not_stop(self) -> None:
+        app = TITANApp()
+        async with app.run_test() as pilot:
+            await pilot.press("f2")
+            mock_engine = MagicMock()
+            mock_engine.is_running = False
+            with patch(
+                "titan.tui.screens.runtime.get_runtime_engine",
+                return_value=mock_engine,
+            ):
+                await pilot.press("x")
+                await pilot.pause()
+                mock_engine.stop.assert_not_called()

@@ -15,6 +15,7 @@ from titan.tui.models import (
     RuntimePipelineInfo,
     RuntimeStreamInfo,
 )
+from titan.tui.widgets import markup_color
 
 
 class RuntimeStatusWidget(Widget):
@@ -77,13 +78,13 @@ class RuntimeStatusWidget(Widget):
             return
         status_cls = _status_class(info.status)
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.status}</span>'
+            f"[bold]Status:[/bold] [{markup_color(status_cls)}]{info.status}[/]"
         )
         self._uptime.update(f"[bold]Uptime:[/bold] {info.uptime}")
         sched_cls = "value-active" if info.scheduler_active else "value-inactive"
         sched_text = "Active" if info.scheduler_active else "Inactive"
         self._scheduler.update(
-            f'[bold]Scheduler:[/bold] <span class="{sched_cls}">{sched_text}</span>'
+            f"[bold]Scheduler:[/bold] [{markup_color(sched_cls)}]{sched_text}[/]"
         )
 
     def render(self) -> str:
@@ -139,7 +140,7 @@ class StreamWidget(Widget):
         conn_cls = "value-connected" if info.connected else "value-disconnected"
         conn_text = "Yes" if info.connected else "No"
         self._connected.update(
-            f'[bold]Connected:[/bold] <span class="{conn_cls}">{conn_text}</span>'
+            f"[bold]Connected:[/bold] [{markup_color(conn_cls)}]{conn_text}[/]"
         )
         self._symbols.update(f"[bold]Symbols:[/bold] {info.symbols_tracked}")
         self._tick_rate.update(f"[bold]Tick Rate:[/bold] {info.tick_rate}")
@@ -299,7 +300,7 @@ class HealthWidget(Widget):
             for comp in components:
                 cls = _health_class(comp.status)
                 row = Static(
-                    f'  {comp.name}: <span class="{cls}">{comp.status}</span>',
+                    f"  {comp.name}: [{markup_color(cls)}]{comp.status}[/]",
                     classes="card-row",
                 )
                 self._rows.append(row)
@@ -373,7 +374,7 @@ class RuntimeEventsWidget(Widget):
                 prefix = f"[{ev.level.upper()}]" if ev.level else ""
                 src = f" {ev.source} |" if ev.source else ""
                 row = Static(
-                    f'  <span class="{level_cls}">{prefix}</span>{src} {ev.message}',
+                    f"  [{markup_color(level_cls)}]{prefix}[/]{src} {ev.message}",
                     classes="card-row",
                 )
                 self._rows.append(row)

@@ -60,8 +60,28 @@ def get_runtime_engine() -> RuntimeEngine:
         from titan.paper.broker import PaperBroker
         from titan.runtime.runtime import RuntimeEngine
 
-        broker = PaperBroker(initial_cash=Decimal(100000))
-        _runtime_engine = RuntimeEngine(broker=broker)
+        broker = PaperBroker(initial_cash=Decimal(1000000))
+        from titan.execution.allocator import ExecutionAllocator
+        from titan.execution.book import OrderBook
+        from titan.execution.execution import ExecutionEngine
+        from titan.execution.orchestrator import ExecutionOrchestrator
+        from titan.execution.planner import ExecutionPlanner
+        from titan.execution.router import OrderRouter
+        from titan.execution.validator import ExecutionValidator
+        from titan.pipeline.pipeline import TradePipeline
+        from titan.trading.strategies.momentum import MomentumStrategy
+        
+        pipeline = TradePipeline(
+            strategy=MomentumStrategy(),
+        )
+        pipeline._orchestrator = ExecutionOrchestrator(
+            planner=ExecutionPlanner(),
+            validator=ExecutionValidator(),
+            allocator=ExecutionAllocator(),
+            oms=ExecutionEngine(order_book=OrderBook(), router=OrderRouter()),
+            broker=broker,
+        )
+        _runtime_engine = RuntimeEngine(broker=broker, pipeline=pipeline)
     return _runtime_engine
 
 
@@ -164,11 +184,40 @@ def create_broker(config: TitanConfig) -> Broker:
     return PaperBroker(initial_cash=Decimal(str(config.broker.paper_initial_cash)))
 
 
-def create_runtime_engine(config: TitanConfig) -> RuntimeEngine:
+def create_runtime_engine(
+    config: TitanConfig,
+    *,
+    target_symbol: str = "RELIANCE",
+    target_exchange: str = "NSE",
+) -> RuntimeEngine:
+    from titan.execution.allocator import ExecutionAllocator
+    from titan.execution.book import OrderBook
+    from titan.execution.execution import ExecutionEngine
+    from titan.execution.orchestrator import ExecutionOrchestrator
+    from titan.execution.planner import ExecutionPlanner
+    from titan.execution.router import OrderRouter
+    from titan.execution.validator import ExecutionValidator
+    from titan.pipeline.pipeline import TradePipeline
     from titan.runtime.runtime import RuntimeEngine
+    from titan.trading.strategies.momentum import MomentumStrategy
 
     broker = create_broker(config)
-    return RuntimeEngine(broker=broker)
+    pipeline = TradePipeline(
+        strategy=MomentumStrategy(),
+    )
+    pipeline._orchestrator = ExecutionOrchestrator(
+        planner=ExecutionPlanner(),
+        validator=ExecutionValidator(),
+        allocator=ExecutionAllocator(),
+        oms=ExecutionEngine(order_book=OrderBook(), router=OrderRouter()),
+        broker=broker,
+    )
+    return RuntimeEngine(
+        broker=broker,
+        pipeline=pipeline,
+        target_symbol=target_symbol,
+        target_exchange=target_exchange,
+    )
 
 
 __all__ = [

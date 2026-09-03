@@ -71,3 +71,43 @@ app.add_typer(
     portfolio_app, name="portfolio", help="Portfolio Analytics & Risk Dashboard"
 )
 app.add_typer(ai_app, name="ai", help="AI Research Assistant & Synthesizer")
+
+@app.command("tui")
+def launch_tui():
+    """Launch the TITAN Terminal User Interface (Dashboard)."""
+    # Force .env to load before ConfigManager or Textual App initialise.
+    # Without this the TUI boots under the 'default' profile instead of
+    # honouring the project .env file (e.g. TITAN__ENVIRONMENT=development).
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(override=True)
+    except ImportError:
+        pass  # python-dotenv is optional; silently skip if absent
+
+    try:
+        import inspect
+
+        from textual.app import App
+
+        from titan.tui import shell
+        
+        # Dynamically find the class that inherits from Textual's App
+        app_class = None
+        for name, obj in inspect.getmembers(shell, inspect.isclass):
+            if issubclass(obj, App) and obj is not App:
+                app_class = obj
+                break
+                
+        if not app_class:
+            raise ImportError("Could not locate the main Textual App class in titan.tui.shell")
+            
+        # Instantiate and run the dashboard
+        tui_app = app_class()
+        tui_app.run()
+        
+    except Exception as e:
+        import typer
+        from rich.console import Console
+        Console().print(f"[bold red]Error launching TUI:[/bold red] {e}")
+        raise typer.Exit(1)

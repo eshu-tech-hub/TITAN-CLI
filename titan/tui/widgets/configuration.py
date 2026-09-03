@@ -16,6 +16,7 @@ from titan.tui.models import (
     ServiceStatusEntry,
     VersionInfo,
 )
+from titan.tui.widgets import markup_color
 
 
 class ConfigurationWidget(Widget):
@@ -66,7 +67,7 @@ class ConfigurationWidget(Widget):
         self._profile.update(f"[bold]Profile:[/bold] {info.profile}")
         status_cls = _validation_class(info.validation_status)
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.validation_status.upper() or "UNKNOWN"}</span>'
+            f'[bold]Status:[/bold] [{markup_color(status_cls)}]{info.validation_status.upper() or "UNKNOWN"}[/]'
         )
         self._log_level.update(f"[bold]Log Level:[/bold] {info.log_level}")
         self._pipeline.update(
@@ -191,7 +192,7 @@ class EnvironmentWidget(Widget):
         self._env_name.update(f"[bold]Name:[/bold] {info.name}")
         val_cls = _validation_class(info.validation_status)
         self._validation.update(
-            f'[bold]Validation:[/bold] <span class="{val_cls}">{info.validation_status.upper() or "UNKNOWN"}</span>'
+            f'[bold]Validation:[/bold] [{markup_color(val_cls)}]{info.validation_status.upper() or "UNKNOWN"}[/]'
         )
         dirs_str = "Verified" if info.directories_verified else "Pending"
         self._dirs.update(f"[bold]Directories:[/bold] {dirs_str}")
@@ -252,11 +253,11 @@ class DeploymentWidget(Widget):
             return
         status_cls = _deployment_status_class(info.status)
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.status.upper() or "UNKNOWN"}</span>'
+            f'[bold]Status:[/bold] [{markup_color(status_cls)}]{info.status.upper() or "UNKNOWN"}[/]'
         )
         health_cls = _health_class(info.health_status)
         self._health.update(
-            f'[bold]Health:[/bold] <span class="{health_cls}">{info.health_status.upper() or "UNKNOWN"}</span>'
+            f'[bold]Health:[/bold] [{markup_color(health_cls)}]{info.health_status.upper() or "UNKNOWN"}[/]'
         )
         self._uptime.update(f"[bold]Uptime:[/bold] {info.uptime}")
         self._started.update(f"[bold]Started:[/bold] {info.start_time}")
@@ -370,7 +371,7 @@ class BackupWidget(Widget):
             "value-success" if str(info.status).lower() == "success" else "value-failed"
         )
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.status.upper() if info.status else "N/A"}</span>'
+            f'[bold]Status:[/bold] [{markup_color(status_cls)}]{info.status.upper() if info.status else "N/A"}[/]'
         )
 
     def render(self) -> str:
@@ -429,7 +430,7 @@ class ServicesWidget(Widget):
                 msg = f" - {entry.message}" if entry.message else ""
                 row = Static(
                     f"  [bold]{entry.name.ljust(15)}[/bold] : "
-                    f'<span class="{h_cls}">{entry.status.upper()}</span> '
+                    f"[{markup_color(h_cls)}]{entry.status.upper()}[/] "
                     f"({entry.latency_ms}ms){msg}",
                     classes="card-row",
                 )
@@ -497,7 +498,7 @@ class DeploymentHistoryWidget(Widget):
                 )
                 row = Static(
                     f"  {entry.timestamp_str} | [bold]{entry.action.upper()}[/bold] | "
-                    f'<span class="{s_cls}">{entry.status.upper()}</span> | '
+                    f"[{markup_color(s_cls)}]{entry.status.upper()}[/] | "
                     f"v{entry.version} ({entry.duration})",
                     classes="card-row",
                 )

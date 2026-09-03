@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import Horizontal, VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 from titan.tui.widgets.portfolio_replay import (
@@ -18,8 +17,8 @@ if TYPE_CHECKING:
     from titan.portfolio.replay import PortfolioReplayService
 
 
-class PortfolioReplayScreen(Screen):
-    """Portfolio historical replay dashboard."""
+class PortfolioReplayScreen(VerticalScroll):
+    """Portfolio historical replay dashboard view."""
 
     DEFAULT_CSS: ClassVar[str] = """
     PortfolioReplayScreen {
@@ -92,5 +91,5 @@ class PortfolioReplayScreen(Screen):
             )
             self._timeline_widget.replay = result
             self._analytics_widget.replay = result
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass

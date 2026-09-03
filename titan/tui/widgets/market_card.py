@@ -8,6 +8,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from titan.tui.models import MarketInfo
+from titan.tui.widgets import markup_color
 
 
 class MarketCard(Widget):
@@ -63,7 +64,7 @@ class MarketCard(Widget):
         )
         broker_status = "Connected" if info.broker_connected else "Disconnected"
         self._broker.update(
-            f'[bold]Broker:[/bold] <span class="{broker_cls}">{broker_status}</span>'
+            f"[bold]Broker:[/bold] [{markup_color(broker_cls)}]{broker_status}[/]"
             f" ({info.broker_provider})"
         )
         stream_cls = (
@@ -71,7 +72,7 @@ class MarketCard(Widget):
         )
         stream_status = "Connected" if info.stream_connected else "Disconnected"
         self._stream.update(
-            f'[bold]Stream:[/bold] <span class="{stream_cls}">{stream_status}</span>'
+            f"[bold]Stream:[/bold] [{markup_color(stream_cls)}]{stream_status}[/]"
         )
         self._symbols.update(f"[bold]Symbols:[/bold] {info.symbols_tracked}")
 

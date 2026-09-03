@@ -19,6 +19,7 @@ from titan.tui.models import (
     SystemHealthInfo,
     TelemetryInfo,
 )
+from titan.tui.widgets import markup_color
 
 
 class SystemHealthWidget(Widget):
@@ -74,14 +75,14 @@ class SystemHealthWidget(Widget):
             return
         overall_cls = _health_class(info.overall_status)
         self._overall.update(
-            f'[bold]Overall:[/bold] <span class="{overall_cls}">{info.overall_status}</span>'
+            f"[bold]Overall:[/bold] [{markup_color(overall_cls)}]{info.overall_status}[/]"
         )
         self._counts.update(
             f"[bold]Subsystems:[/bold] "
-            f'<span class="value-healthy">{info.healthy_count}H</span> '
-            f'<span class="value-warning">{info.warning_count}W</span> '
-            f'<span class="value-critical">{info.critical_count}C</span> '
-            f'<span class="value-offline">{info.offline_count}O</span>'
+            f"[green]{info.healthy_count}H[/] "
+            f"[yellow]{info.warning_count}W[/] "
+            f"[red]{info.critical_count}C[/] "
+            f"[yellow]{info.offline_count}O[/]"
         )
         for row in self._subsystem_rows:
             row.remove()
@@ -89,7 +90,7 @@ class SystemHealthWidget(Widget):
         for sub in info.subsystems[:6]:
             sub_cls = _health_class(sub.status)
             row = Static(
-                f'  <span class="{sub_cls}">{sub.name}</span>: {sub.status}'
+                f"  [{markup_color(sub_cls)}]{sub.name}[/]: {sub.status}"
                 f" ({sub.latency_ms}ms, {sub.failures} failures)",
                 classes="card-row",
             )
@@ -210,16 +211,10 @@ class AlertSummaryWidget(Widget):
         if not hasattr(self, "_total"):
             return
         self._total.update(f"[bold]Total:[/bold] {info.total}")
-        self._active.update(
-            f'[bold]Active:[/bold] <span class="value-active">{info.active}</span>'
-        )
-        self._critical.update(
-            f'[bold]Critical:[/bold] <span class="value-critical">{info.critical}</span>'
-        )
+        self._active.update(f"[bold]Active:[/bold] [green]{info.active}[/]")
+        self._critical.update(f"[bold]Critical:[/bold] [red]{info.critical}[/]")
         self._ack.update(f"[bold]Acknowledged:[/bold] {info.acknowledged}")
-        self._resolved.update(
-            f'[bold]Resolved:[/bold] <span class="value-resolved">{info.resolved}</span>'
-        )
+        self._resolved.update(f"[bold]Resolved:[/bold] [green]{info.resolved}[/]")
 
     def render(self) -> str:
         return ""
@@ -278,7 +273,7 @@ class RecoveryStatusWidget(Widget):
             return
         status_cls = _recovery_class(info.status)
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.status}</span>'
+            f"[bold]Status:[/bold] [{markup_color(status_cls)}]{info.status}[/]"
         )
         self._attempts.update(
             f"[bold]Attempts:[/bold] {info.total_attempts} "
@@ -342,7 +337,7 @@ class MetricsWidget(Widget):
                 trend_cls = _trend_class(m.trend)
                 row = Static(
                     f"  {m.name}: {m.value} {m.unit} "
-                    f'<span class="{trend_cls}">{m.trend}</span>',
+                    f"[{markup_color(trend_cls)}]{m.trend}[/]",
                     classes="card-row",
                 )
                 self._rows.append(row)
@@ -414,7 +409,7 @@ class ActiveAlertsWidget(Widget):
             for alert in alerts:
                 level_cls = _alert_level_class(alert.level)
                 row = Static(
-                    f'  <span class="{level_cls}">[{alert.level.upper()}]</span> '
+                    f"  [{markup_color(level_cls)}][{alert.level.upper()}][/] "
                     f"{alert.title} — {alert.source} ({alert.timestamp_str})",
                     classes="card-row",
                 )
@@ -484,7 +479,7 @@ class AlertHistoryWidget(Widget):
             for entry in entries:
                 status_cls = _history_status_class(entry.status)
                 row = Static(
-                    f'  <span class="{status_cls}">[{entry.status.upper()}]</span> '
+                    f"  [{markup_color(status_cls)}][{entry.status.upper()}][/] "
                     f"{entry.title} — {entry.level} | {entry.duration}",
                     classes="card-row",
                 )
@@ -554,7 +549,7 @@ class MonitoringEventsWidget(Widget):
             for event in events:
                 level_cls = _event_level_class(event.level)
                 row = Static(
-                    f'  <span class="{level_cls}">[{event.level.upper()}]</span> '
+                    f"  [{markup_color(level_cls)}][{event.level.upper()}][/] "
                     f"{event.source}: {event.message} ({event.timestamp_str})",
                     classes="card-row",
                 )

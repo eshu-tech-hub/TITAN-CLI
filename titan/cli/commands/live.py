@@ -341,6 +341,12 @@ def start(
         bool, typer.Option("--dry-run", help="Validate only, do not start")
     ] = False,
     force: Annotated[bool, typer.Option("--force", help="Skip safety checks")] = False,
+    symbol: Annotated[
+        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
+    ] = "RELIANCE",
+    exchange: Annotated[
+        str, typer.Option("--exchange", "-e", help="Exchange segment")
+    ] = "nse",
 ) -> None:
     """Start live trading with full validation pipeline."""
     logger.info("Live start command executed")
@@ -368,14 +374,18 @@ def start(
         return
 
     if verbose:
-        _start_with_progress(config)
+        _start_with_progress(config, symbol=symbol, exchange=exchange)
     else:
-        _start_silent(config)
+        _start_silent(config, symbol=symbol, exchange=exchange)
 
 
-def _start_silent(config: TitanConfig) -> None:
+def _start_silent(config: TitanConfig, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
     try:
-        engine = create_runtime_engine(config)
+        engine = create_runtime_engine(
+            config,
+            target_symbol=symbol.upper(),
+            target_exchange=exchange.upper(),
+        )
         set_runtime_engine(engine)
         engine.start()
 
@@ -397,7 +407,7 @@ def _start_silent(config: TitanConfig) -> None:
         raise typer.Exit(code=3)
 
 
-def _start_with_progress(config: TitanConfig) -> None:
+def _start_with_progress(config: TitanConfig, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
     steps = [
         "Loading configuration",
         "Creating broker",
@@ -425,7 +435,11 @@ def _start_with_progress(config: TitanConfig) -> None:
             time.sleep(0.15)
 
         try:
-            engine = create_runtime_engine(config)
+            engine = create_runtime_engine(
+                config,
+                target_symbol=symbol.upper(),
+                target_exchange=exchange.upper(),
+            )
             set_runtime_engine(engine)
             engine.start()
 

@@ -14,7 +14,7 @@ class GeminiAIProvider(AIProvider):
     def __init__(
         self,
         api_key: str | None = None,
-        model_name: str = "gemini-2.5-flash",
+        model_name: str = "gemini-3.6-flash",
     ) -> None:
         self._api_key = (
             api_key if api_key is not None else os.getenv("GEMINI_API_KEY", "")
@@ -39,16 +39,21 @@ class GeminiAIProvider(AIProvider):
 
         try:
             # Lazy import to keep core TITAN independent of google SDK
-            import google.generativeai as genai  # type: ignore[import-untyped]
+            from google import genai  # type: ignore[import-untyped]
+            from google.genai import types  # type: ignore[import-untyped]
 
-            genai.configure(api_key=self._api_key)
-            model = genai.GenerativeModel(
-                model_name=self._model_name,
+            client = genai.Client(api_key=self._api_key)
+            config = types.GenerateContentConfig(
                 system_instruction=context.system_prompt,
             )
 
-            response = model.generate_content(context.user_prompt)
-            content_text = getattr(response, "text", str(response))
+            response = client.models.generate_content(
+                model=self._model_name,
+                contents=context.user_prompt,
+                config=config,
+            )
+            
+            content_text = response.text if response.text else str(response)
 
             return AIResponse(
                 provider_name=self.provider_name,
@@ -60,7 +65,7 @@ class GeminiAIProvider(AIProvider):
                 provider_name=self.provider_name,
                 model_name=self._model_name,
                 content=(
-                    "[Gemini Provider Warning]: 'google-generativeai' library not installed. "
+                    "[Gemini Provider Warning]: 'google-genai' library not installed. "
                     "Install package to enable live Gemini synthesis."
                 ),
             )

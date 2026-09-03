@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 from textual.widget import Widget
@@ -109,7 +109,7 @@ class StatusBarWidget(Widget):
 
     def update_time(self) -> None:
         """Update the clock. Called every second."""
-        self._time = datetime.now(UTC).strftime("%H:%M:%S UTC")
+        self._time = datetime.now().strftime("%H:%M:%S IST")  # noqa: DTZ005 - local time for display
         if hasattr(self, "_time_widget"):
             self._time_widget.update(self._time)
 

@@ -487,25 +487,25 @@ class TestFormatHelpers:
         assert _format_uptime(86400) == "24:00:00"
 
     def test_format_inr_positive(self) -> None:
-        assert _format_inr(Decimal(1234)) == "₹1,234"
+        assert _format_inr(Decimal(1234)) == "INR 1,234"
 
     def test_format_inr_negative(self) -> None:
-        assert _format_inr(Decimal(-1234)) == "-₹1,234"
+        assert _format_inr(Decimal(-1234)) == "-INR 1,234"
 
     def test_format_inr_zero(self) -> None:
-        assert _format_inr(0) == "₹0"
+        assert _format_inr(0) == "INR 0"
 
     def test_format_inr_none(self) -> None:
-        assert _format_inr(None) == "₹0"
+        assert _format_inr(None) == "INR 0"
 
     def test_format_pnl_positive(self) -> None:
-        assert _format_pnl(Decimal(500)) == "+₹500"
+        assert _format_pnl(Decimal(500)) == "+INR 500"
 
     def test_format_pnl_negative(self) -> None:
-        assert _format_pnl(Decimal(-300)) == "-₹300"
+        assert _format_pnl(Decimal(-300)) == "-INR 300"
 
     def test_format_pnl_zero(self) -> None:
-        assert _format_pnl(Decimal(0)) == "+₹0"
+        assert _format_pnl(Decimal(0)) == "+INR 0"
 
 
 # ──────────────────────────────────────────────────
@@ -1275,7 +1275,7 @@ class TestLiveScreenActions:
             type(screen), "app", new_callable=lambda: property(lambda self: mock_app)
         ):
             screen.action_back()
-        mock_app.pop_screen.assert_called_once()
+        mock_app.action_go_back.assert_called_once()
 
     def test_action_refresh(self) -> None:
         screen = LiveScreen()

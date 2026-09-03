@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import Horizontal, VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 from titan.tui.models import PortfolioScreenState
@@ -29,8 +28,8 @@ if TYPE_CHECKING:
 REFRESH_INTERVAL = 1.0  # seconds
 
 
-class PortfolioDashboardScreen(Screen):
-    """Portfolio analytics dashboard screen with read-only metrics."""
+class PortfolioDashboardScreen(VerticalScroll):
+    """Portfolio analytics dashboard view with read-only metrics."""
 
     DEFAULT_CSS: ClassVar[str] = """
     PortfolioDashboardScreen {
@@ -136,7 +135,7 @@ class PortfolioDashboardScreen(Screen):
             self._sector_widget.allocation = self.state.allocation
             self._strategy_widget.allocation = self.state.allocation
 
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         self._update_refresh_indicator()
@@ -144,9 +143,9 @@ class PortfolioDashboardScreen(Screen):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#refresh-indicator", Static)
-            now = datetime.now(UTC).strftime("%H:%M:%S")
+            now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
             indicator.update(f"Last refresh: {now}")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_refresh(self) -> None:

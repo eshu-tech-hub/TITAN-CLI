@@ -63,6 +63,8 @@ class RuntimeEngine:
     supervisor: RuntimeSupervisor = field(default_factory=RuntimeSupervisor)
     health: HealthCheck = field(default_factory=HealthCheck)
     subscriptions: SubscriptionManager = field(default_factory=SubscriptionManager)
+    target_symbol: str = field(default="RELIANCE")
+    target_exchange: str = field(default="NSE")
     _status: RuntimeStatus = field(default=RuntimeStatus.STOPPED, init=False)
     _start_time: datetime | None = field(default=None, init=False)
     _error: str = field(default="", init=False)
@@ -469,8 +471,9 @@ class RuntimeEngine:
 
         self._pipeline_executions += 1
         exchanges = self.broker.profile().enabled_exchanges
-        exchange = exchanges[0] if exchanges else Exchange.NSE
-        report = self.pipeline.run(symbol="", exchange=exchange)
+        exchange_val = exchanges[0] if exchanges else Exchange.NSE
+        symbol = self.target_symbol or "RELIANCE"
+        report = self.pipeline.run(symbol=symbol, exchange=exchange_val)
 
         # Record execution results if any orders were submitted
         if report.orders_submitted > 0:

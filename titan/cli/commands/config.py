@@ -119,7 +119,7 @@ def validate(
     report = validator.validate_all()
 
     if json_output:
-        profile_name = "default"
+        profile_name = "development"
         try:
             profile_name = manager.get_config().app.environment
         except (RuntimeError, ValueError, TypeError, OSError, AttributeError, KeyError) as e:

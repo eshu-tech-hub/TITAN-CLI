@@ -46,7 +46,8 @@ class AppConfig:
 
 @dataclass(frozen=True, slots=True)
 class BrokerConfig:
-    provider: str = "paper"
+    provider: str = "angel_one"
+    exchange: str = "nse"
     api_key: str = ""
     client_id: str = ""
     pin: str = ""

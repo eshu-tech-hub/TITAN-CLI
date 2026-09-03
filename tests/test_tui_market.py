@@ -416,8 +416,8 @@ class TestMarketWidgets:
 
 
 class MarketApp(App):
-    def on_mount(self) -> None:
-        self.push_screen(MarketScreen())
+    def compose(self) -> ComposeResult:
+        yield MarketScreen()
 
 
 @pytest.mark.asyncio
@@ -428,7 +428,7 @@ class TestMarketScreen:
         app = MarketApp()
         async with app.run_test() as pilot:
             await pilot.pause(0.1)
-            screen = app.screen
+            screen = app.query_one(MarketScreen)
             assert isinstance(screen, MarketScreen)
             assert screen._refresh_task is not None
             assert not screen._refresh_task.done()
@@ -441,7 +441,7 @@ class TestMarketScreen:
         app = MarketApp()
         async with app.run_test() as pilot:
             await pilot.pause(0.1)
-            screen = app.screen
+            screen = app.query_one(MarketScreen)
             assert isinstance(screen, MarketScreen)
 
             # Scroll actions shouldn't crash
@@ -460,10 +460,10 @@ class TestMarketScreen:
         app = MarketApp()
         async with app.run_test() as pilot:
             await pilot.pause(0.1)
-            screen = app.screen
+            screen = app.query_one(MarketScreen)
             assert isinstance(screen, MarketScreen)
             task = screen._refresh_task
-            await app.pop_screen()
+            screen.remove()
             await pilot.pause(0.1)
             if task:
                 assert task.cancelled()

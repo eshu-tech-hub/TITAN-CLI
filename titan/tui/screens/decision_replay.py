@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import Horizontal, VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 from titan.tui.models import ReplayScreenState
@@ -24,8 +23,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class DecisionReplayScreen(Screen):
-    """Explainability Explorer for replaying historical decisions.
+class DecisionReplayScreen(VerticalScroll):
+    """Explainability Explorer view for replaying historical decisions.
 
     Navigates through the DecisionJournal immutably.
     Does not auto-refresh. State is updated on navigation.
@@ -139,7 +138,7 @@ class DecisionReplayScreen(Screen):
                 # Keep current_entry_id synced with whatever state builder loaded
                 if self._state.summary.decision_id != "None":
                     self._current_entry_id = self._state.summary.decision_id
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._state = ReplayScreenState()
         self._update_widgets()
         self._update_refresh_indicator()
@@ -163,16 +162,20 @@ class DecisionReplayScreen(Screen):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#replay-indicator", Static)
-            now = datetime.now(UTC).strftime("%H:%M:%S")
+            now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
             indicator.update(f"Replay loaded at: {now}")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_refresh(self) -> None:
         self._refresh_state()
 
     def action_back(self) -> None:
-        self.app.pop_screen()
+        """Return to the previous view via the shell router."""
+        try:
+            self.app.action_go_back()
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
+            pass
 
     def action_previous(self) -> None:
         if self._state.metadata.has_previous and self._state.metadata.previous_id:
@@ -188,42 +191,42 @@ class DecisionReplayScreen(Screen):
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_up(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_down_line(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_down(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_up(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     def action_scroll_down(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     def action_scroll_top(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     def action_scroll_bottom(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     @property

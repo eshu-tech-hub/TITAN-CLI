@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import Horizontal, VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 from titan.tui.models import AuditScreenState
@@ -27,8 +26,8 @@ if TYPE_CHECKING:
 REFRESH_INTERVAL = 1.0
 
 
-class AuditScreen(Screen):
-    """Audit, Logs & Recovery screen with eight operational widgets.
+class AuditScreen(VerticalScroll):
+    """Audit, Logs & Recovery view with eight operational widgets.
 
     Refreshes automatically every REFRESH_INTERVAL seconds.
     Data is read-only from all managers.
@@ -123,7 +122,7 @@ class AuditScreen(Screen):
         if self._state_builder is not None:
             try:
                 self._state = self._state_builder()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._state = AuditScreenState()
         self._update_widgets()
         self._update_refresh_indicator()
@@ -149,57 +148,61 @@ class AuditScreen(Screen):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#refresh-indicator", Static)
-            now = datetime.now(UTC).strftime("%H:%M:%S")
+            now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
             indicator.update(f"Last refresh: {now}")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_refresh(self) -> None:
         self._refresh_state()
 
     def action_back(self) -> None:
-        self.app.pop_screen()
+        """Return to the previous view via the shell router."""
+        try:
+            self.app.action_go_back()
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
+            pass
 
     def action_scroll_up_line(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_up(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_down_line(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_down(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_up(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_down(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_top(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_scroll_bottom(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     @property

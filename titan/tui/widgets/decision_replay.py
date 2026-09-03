@@ -16,6 +16,7 @@ from titan.tui.models import (
     ReplaySummaryInfo,
     ReplayTimelineEntry,
 )
+from titan.tui.widgets import markup_color
 
 
 class ReplaySummaryWidget(Widget):
@@ -79,7 +80,7 @@ class ReplaySummaryWidget(Widget):
             dec_cls = "decision-sell"
 
         self._decision.update(
-            f'[bold]Decision:[/bold] <span class="{dec_cls}">{info.decision.upper()}</span>'
+            f"[bold]Decision:[/bold] [{markup_color(dec_cls)}]{info.decision.upper()}[/]"
         )
         self._symbol.update(f"[bold]Symbol:[/bold] {info.symbol}")
         self._details.update(
@@ -291,7 +292,7 @@ class ReplayReasonsWidget(Widget):
                     cls = "reason-info"
 
                 row = Static(
-                    f'  <span class="{cls}">[{r.reason_type.upper()}]</span> {r.description}',
+                    f"  [{markup_color(cls)}][{r.reason_type.upper()}][/] {r.description}",
                     classes="card-row",
                 )
                 self._rows.append(row)

@@ -269,7 +269,7 @@ class TestHeaderWidget:
         h = HeaderWidget()
         assert h._version == "TITAN"
         assert h._hostname == ""
-        assert h._profile == "default"
+        assert h._profile == "development"
         assert h._uptime == "00:00:00"
         assert h._runtime_status == "Stopped"
 
@@ -722,7 +722,9 @@ class TestShellAppAsync:
         async with app.run_test() as pilot:
             await pilot.pause()
             await pilot.press("f12")
-            assert isinstance(app.screen, HelpScreen)
+            assert app.content_switcher is not None
+            assert app.content_switcher.current == "view-help"
+            assert isinstance(app.query_one("#view-help"), HelpScreen)
 
     @pytest.mark.asyncio
     async def test_help_escape_returns(self) -> None:
@@ -737,9 +739,10 @@ class TestShellAppAsync:
             await pilot.pause()
             await pilot.press("f12")
             await pilot.pause()
-            assert isinstance(app.screen, HelpScreen)
+            assert app.content_switcher is not None
+            assert app.content_switcher.current == "view-help"
             await pilot.press("escape")
-            assert isinstance(app.screen, DashboardScreen)
+            assert app.content_switcher.current == "view-dashboard"
 
     @pytest.mark.asyncio
     async def test_sidebar_active_updates(self) -> None:
@@ -803,7 +806,9 @@ class TestShellAppAsync:
         async with app.run_test() as pilot:
             await pilot.pause()
             await pilot.press("f2")
-            assert isinstance(app.screen, RuntimeScreen)
+            assert app.content_switcher is not None
+            assert app.content_switcher.current == "view-runtime"
+            assert isinstance(app.query_one("#view-runtime"), RuntimeScreen)
 
     @pytest.mark.asyncio
     async def test_shell_f3_opens_paper(self) -> None:
@@ -821,7 +826,9 @@ class TestShellAppAsync:
         async with app.run_test() as pilot:
             await pilot.pause()
             await pilot.press("f3")
-            assert isinstance(app.screen, PaperScreen)
+            assert app.content_switcher is not None
+            assert app.content_switcher.current == "view-paper"
+            assert isinstance(app.query_one("#view-paper"), PaperScreen)
 
 
 # ──────────────────────────────────────────────────

@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import VerticalScroll
-from textual.screen import Screen
 from textual.widgets import DataTable, Static
 
 from titan.tui.models import StrategyEvalScreenState
@@ -57,8 +56,8 @@ class StrategyScorecardWidget(Static):
             )
 
 
-class StrategyEvalScreen(Screen):
-    """Strategy Intelligence Dashboard."""
+class StrategyEvalScreen(VerticalScroll):
+    """Strategy Intelligence Dashboard view."""
 
     DEFAULT_CSS: ClassVar[str] = """
     StrategyEvalScreen {
@@ -126,7 +125,7 @@ class StrategyEvalScreen(Screen):
         if self._state_builder is not None:
             try:
                 self._state = self._state_builder()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._state = StrategyEvalScreenState()
 
         self._update_widgets()
@@ -135,7 +134,7 @@ class StrategyEvalScreen(Screen):
     def _update_widgets(self) -> None:
         try:
             container = self.query_one("#scorecards-container", VerticalScroll)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return
 
         current_widgets = container.query(StrategyScorecardWidget)
@@ -161,11 +160,15 @@ class StrategyEvalScreen(Screen):
                 else ""
             )
             indicator.update(f"Last refresh: {self._state.last_refresh}{best_str}")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_refresh(self) -> None:
         self._refresh_state()
 
     def action_back(self) -> None:
-        self.app.pop_screen()
+        """Return to the previous view via the shell router."""
+        try:
+            self.app.action_go_back()
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
+            pass

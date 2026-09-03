@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual.containers import VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 from titan.tui.models import AIScreenState
@@ -35,12 +34,12 @@ class AIExplanationWidget(Static):
                 f"Provider: {info.provider} | Model: {info.model} | Time: {info.timestamp_str}"
             )
             content.update(info.content)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
 
-class AIAssistantScreen(Screen):
-    """TUI screen for AI Research Assistant explanations."""
+class AIAssistantScreen(VerticalScroll):
+    """TUI view for AI Research Assistant explanations."""
 
     DEFAULT_CSS = """
     AIAssistantScreen {
@@ -114,7 +113,7 @@ class AIAssistantScreen(Screen):
         if self._state_builder is not None:
             try:
                 self._state = self._state_builder()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._state = AIScreenState()
 
         self._update_widgets()
@@ -128,11 +127,15 @@ class AIAssistantScreen(Screen):
         try:
             indicator = self.query_one("#refresh-indicator", Static)
             indicator.update(f"Last refresh: {self._state.last_refresh}")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
     def action_refresh(self) -> None:
         self._refresh_state()
 
     def action_back(self) -> None:
-        self.app.pop_screen()
+        """Return to the previous view via the shell router."""
+        try:
+            self.app.action_go_back()
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
+            pass

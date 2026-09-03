@@ -529,6 +529,7 @@ class TestPipelineScheduler:
 
         time.sleep(0.05)
         scheduler.pause()
+        time.sleep(0.05)
         assert scheduler.is_paused
         prev_count = count[0]
         time.sleep(0.1)

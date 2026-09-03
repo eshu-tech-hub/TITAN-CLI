@@ -18,8 +18,17 @@ from titan.backtesting.models import (
 )
 from titan.backtesting.replay import ReplayEngine
 from titan.backtesting.statistics import StatisticsEngine
+from titan.execution.allocator import ExecutionAllocator
+from titan.execution.book import OrderBook
+from titan.execution.execution import ExecutionEngine
+from titan.execution.orchestrator import ExecutionOrchestrator
+from titan.execution.planner import ExecutionPlanner
+from titan.execution.router import OrderRouter
+from titan.execution.validator import ExecutionValidator
 from titan.paper.broker import PaperBroker
 from titan.pipeline.pipeline import TradePipeline
+from titan.trading.strategies.base import Strategy
+from titan.trading.strategies.momentum import MomentumStrategy
 
 
 @dataclass(slots=True)
@@ -54,6 +63,7 @@ class BacktestEngine:
     risk_profile: str = "MODERATE"
     total_capital: Decimal = Decimal(1000000)
     collect_pipeline_reports: bool = True
+    strategy: Strategy | None = None
 
     _pipeline_reports: list[Mapping[str, Any]] = field(default_factory=list, init=False)
     _equity_curve: list[EquityPoint] = field(default_factory=list, init=False)
@@ -62,6 +72,25 @@ class BacktestEngine:
     _bars_processed: int = field(default=0, init=False)
     _start_time: datetime | None = field(default=None, init=False)
     _end_time: datetime | None = field(default=None, init=False)
+
+    def __post_init__(self) -> None:
+        if self.broker is not None and hasattr(self.broker, "portfolio"):
+            self.broker.portfolio.reset(initial_cash=self.total_capital)
+            
+        if self.strategy is None:
+            self.strategy = MomentumStrategy()
+            
+        self.pipeline.strategy = self.strategy
+        
+        if self.pipeline._orchestrator is None:
+            self.pipeline._orchestrator = ExecutionOrchestrator(
+                planner=ExecutionPlanner(),
+                validator=ExecutionValidator(),
+                allocator=ExecutionAllocator(),
+                oms=ExecutionEngine(order_book=OrderBook(), router=OrderRouter()),
+                broker=self.broker,
+            )
+
 
     def run(self) -> BacktestReport:
         """Execute the full backtest.

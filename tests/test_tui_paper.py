@@ -12,6 +12,7 @@ from titan.tui.layout import (
     _format_inr,
     _format_pnl,
     _format_uptime,
+    _get_paper_data,
     _read_paper_accounts,
     _read_paper_orders,
     _read_paper_performance,
@@ -286,48 +287,48 @@ class TestPnlClass:
 
 class TestFormatPnl:
     def test_positive_decimal(self) -> None:
-        assert _format_pnl(Decimal(2140)) == "+₹2,140"
+        assert _format_pnl(Decimal(2140)) == "+INR 2,140"
 
     def test_negative_decimal(self) -> None:
-        assert _format_pnl(Decimal(-1240)) == "-₹1,240"
+        assert _format_pnl(Decimal(-1240)) == "-INR 1,240"
 
     def test_zero(self) -> None:
-        assert _format_pnl(Decimal(0)) == "+₹0"
+        assert _format_pnl(Decimal(0)) == "+INR 0"
 
     def test_float_input(self) -> None:
         result = _format_pnl(1500.0)
-        assert result == "+₹1,500"
+        assert result == "+INR 1,500"
 
     def test_string_input(self) -> None:
         result = _format_pnl("500")
-        assert result == "+₹500"
+        assert result == "+INR 500"
 
     def test_invalid_input(self) -> None:
         result = _format_pnl("abc")
-        assert result == "+₹0"
+        assert result == "+INR 0"
 
 
 class TestFormatInr:
     def test_positive_decimal(self) -> None:
-        assert _format_inr(Decimal(2140)) == "₹2,140"
+        assert _format_inr(Decimal(2140)) == "INR 2,140"
 
     def test_negative_decimal(self) -> None:
-        assert _format_inr(Decimal(-1240)) == "-₹1,240"
+        assert _format_inr(Decimal(-1240)) == "-INR 1,240"
 
     def test_zero(self) -> None:
-        assert _format_inr(Decimal(0)) == "₹0"
+        assert _format_inr(Decimal(0)) == "INR 0"
 
     def test_none(self) -> None:
-        assert _format_inr(None) == "₹0"
+        assert _format_inr(None) == "INR 0"
 
     def test_float_input(self) -> None:
-        assert _format_inr(1500.0) == "₹1,500"
+        assert _format_inr(1500.0) == "INR 1,500"
 
     def test_string_input(self) -> None:
-        assert _format_inr("500") == "₹500"
+        assert _format_inr("500") == "INR 500"
 
     def test_invalid_input(self) -> None:
-        assert _format_inr("abc") == "₹0"
+        assert _format_inr("abc") == "INR 0"
 
 
 class TestFormatUptime:
@@ -673,7 +674,10 @@ def _make_mock_broker(
     connected: bool = True,
     initial_cash: Decimal = Decimal(100000),
 ) -> MagicMock:
+    from titan.paper.broker import PaperBroker
+
     broker = MagicMock()
+    broker.__class__ = PaperBroker  # required for _get_paper_data() class-name check
     broker.is_connected.return_value = connected
     broker._initial_cash = initial_cash
     return broker
@@ -708,54 +712,69 @@ def _make_mock_performance() -> MagicMock:
 
 class TestBuildPaperState:
     @patch("titan.cli.commands.paper._paper_start_time", None)
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         state = build_paper_state()
         assert state.session.status == "Stopped"
 
     @patch("titan.cli.commands.paper._paper_start_time", None)
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_broker(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         broker.position_engine.open_positions.return_value = []
         broker.position_engine.all_positions.return_value = []
         broker.portfolio.compute_state.return_value = _make_mock_portfolio_state()
         broker.performance.compute.return_value = _make_mock_performance()
         broker.journal.to_broker_trades.return_value = []
-        mock_broker.return_value = broker
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
         state = build_paper_state()
         assert state.session.status == "Running"
 
 
 class TestReadPaperSession:
     @patch("titan.cli.commands.paper._paper_start_time", None)
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_session()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_session(_get_paper_data())
         assert info.status == "Stopped"
 
     @patch("titan.cli.commands.paper._paper_start_time", None)
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_broker_not_connected(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_broker_not_connected(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker(connected=False)
-        mock_broker.return_value = broker
-        info = _read_paper_session()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        info = _read_paper_session(_get_paper_data())
         assert info.status == "Stopped"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_session()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_session(_get_paper_data())
         assert info.status == "Stopped"
 
 
 class TestReadPaperAccounts:
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_accounts()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_accounts(_get_paper_data())
         assert info.available_cash == "₹0"
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_broker(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         funds = MagicMock()
         funds.available_cash = Decimal(98450)
@@ -773,35 +792,47 @@ class TestReadPaperAccounts:
         margin.span_margin = None
         margin.exposure_margin = None
         broker.margin.return_value = margin
-        mock_broker.return_value = broker
-        info = _read_paper_accounts()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        info = _read_paper_accounts(_get_paper_data())
         assert "98,450" in info.available_cash
         assert "12,000" in info.used_margin
         assert "88,000" in info.available_margin
         assert "50,000" in info.payin
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_accounts()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_accounts(_get_paper_data())
         assert info.available_cash == "₹0"
 
 
 class TestReadPaperOrders:
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        result = _read_paper_orders()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        result = _read_paper_orders(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_empty_orders(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_empty_orders(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         broker.orders.return_value = []
-        mock_broker.return_value = broker
-        result = _read_paper_orders()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_orders(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_pending_order(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_pending_order(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         from titan.brokers.models import OrderSide, OrderStatus, OrderType
 
         order = MagicMock()
@@ -817,14 +848,19 @@ class TestReadPaperOrders:
         order.placed_at = None
         broker = _make_mock_broker()
         broker.orders.return_value = [order]
-        mock_broker.return_value = broker
-        result = _read_paper_orders()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_orders(_get_paper_data())
         assert len(result) == 1
         assert result[0].symbol == "RELIANCE"
         assert result[0].status == "pending"
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_filters_filled_orders(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_filters_filled_orders(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         from titan.brokers.models import OrderStatus
 
         filled = MagicMock()
@@ -832,12 +868,17 @@ class TestReadPaperOrders:
         filled.broker_order_id = "O001"
         broker = _make_mock_broker()
         broker.orders.return_value = [filled]
-        mock_broker.return_value = broker
-        result = _read_paper_orders()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_orders(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_partially_filled_order(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_partially_filled_order(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         from titan.brokers.models import OrderStatus
 
         order = MagicMock()
@@ -854,81 +895,107 @@ class TestReadPaperOrders:
         order.placed_at.strftime.return_value = "10:30"
         broker = _make_mock_broker()
         broker.orders.return_value = [order]
-        mock_broker.return_value = broker
-        result = _read_paper_orders()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_orders(_get_paper_data())
         assert len(result) == 1
         assert result[0].filled_quantity == 2
         assert result[0].placed_at == "10:30"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        result = _read_paper_orders()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        result = _read_paper_orders(_get_paper_data())
         assert result == ()
 
 
 class TestReadPaperPortfolio:
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_portfolio()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_portfolio(_get_paper_data())
         assert info.cash == "₹0"
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_broker(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         broker.position_engine.open_positions.return_value = []
         broker.position_engine.all_positions.return_value = []
         broker.portfolio.compute_state.return_value = _make_mock_portfolio_state()
-        mock_broker.return_value = broker
-        info = _read_paper_portfolio()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        info = _read_paper_portfolio(_get_paper_data())
         assert "98,450" in info.cash
         assert "101,830" in info.equity
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_portfolio()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_portfolio(_get_paper_data())
         assert info.cash == "₹0"
 
 
 class TestReadPaperPerformance:
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_performance()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_performance(_get_paper_data())
         assert info.total_trades == 0
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_broker(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         broker.position_engine.open_positions.return_value = []
         broker.portfolio.compute_state.return_value = _make_mock_portfolio_state()
         broker.performance.compute.return_value = _make_mock_performance()
-        mock_broker.return_value = broker
-        info = _read_paper_performance()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        info = _read_paper_performance(_get_paper_data())
         assert info.total_trades == 18
         assert info.win_rate == "72%"
         assert info.profit_factor == "2.31"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        info = _read_paper_performance()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        info = _read_paper_performance(_get_paper_data())
         assert info.total_trades == 0
 
 
 class TestReadPaperPositions:
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        result = _read_paper_positions()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        result = _read_paper_positions(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_empty_positions(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_empty_positions(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         broker.position_engine.open_positions.return_value = []
-        mock_broker.return_value = broker
-        result = _read_paper_positions()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_positions(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_positions(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_positions(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         pos = MagicMock()
         pos.symbol = "RELIANCE"
         pos.quantity = 10
@@ -937,33 +1004,45 @@ class TestReadPaperPositions:
         pos.unrealized_pnl = Decimal(200)
         broker = _make_mock_broker()
         broker.position_engine.open_positions.return_value = [pos]
-        mock_broker.return_value = broker
-        result = _read_paper_positions()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_positions(_get_paper_data())
         assert len(result) == 1
         assert result[0].symbol == "RELIANCE"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        result = _read_paper_positions()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        result = _read_paper_positions(_get_paper_data())
         assert result == ()
 
 
 class TestReadPaperTrades:
-    @patch("titan.cli.commands.paper._get_broker", return_value=None)
-    def test_no_broker(self, mock_broker: MagicMock) -> None:
-        result = _read_paper_trades()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        result = _read_paper_trades(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_empty_trades(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_empty_trades(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         broker = _make_mock_broker()
         broker.journal.to_broker_trades.return_value = []
-        mock_broker.return_value = broker
-        result = _read_paper_trades()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_trades(_get_paper_data())
         assert result == ()
 
-    @patch("titan.cli.commands.paper._get_broker")
-    def test_with_trades(self, mock_broker: MagicMock) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine")
+    def test_with_trades(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         trade = MagicMock()
         trade.symbol = "INFY"
         trade.side.value = "buy"
@@ -974,15 +1053,20 @@ class TestReadPaperTrades:
         trade.timestamp.strftime.return_value = "10:30"
         broker = _make_mock_broker()
         broker.journal.to_broker_trades.return_value = [trade]
-        mock_broker.return_value = broker
-        result = _read_paper_trades()
+        from titan.runtime.runtime import RuntimeEngine
+        engine_mock = MagicMock(spec=RuntimeEngine)
+        engine_mock.status.name = "RUNNING"
+        engine_mock.broker = broker
+        mock_engine.return_value = engine_mock
+        result = _read_paper_trades(_get_paper_data())
         assert len(result) == 1
         assert result[0].symbol == "INFY"
         assert result[0].side == "buy"
 
-    @patch("titan.cli.commands.paper._get_broker", side_effect=RuntimeError)
-    def test_exception(self, mock_broker: MagicMock) -> None:
-        result = _read_paper_trades()
+    @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
+    @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
+    def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
+        result = _read_paper_trades(_get_paper_data())
         assert result == ()
 
 
@@ -996,18 +1080,17 @@ class TestPaperAsync:
     async def test_paper_screen_pushes(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            screen = PaperScreen()
-            app.push_screen(screen)
+            app._show("paper")
             await pilot.pause()
-            assert isinstance(app.screen, PaperScreen)
+            assert app._content_switcher.current == "view-paper"
 
     @pytest.mark.asyncio
     async def test_paper_screen_widgets_mounted(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            screen = PaperScreen()
-            app.push_screen(screen)
+            app._show("paper")
             await pilot.pause()
+            screen = app.query_one("#view-paper")
             assert screen.query_one("#session-widget") is not None
             assert screen.query_one("#account-widget") is not None
             assert screen.query_one("#portfolio-widget") is not None
@@ -1022,9 +1105,9 @@ class TestPaperAsync:
         async with app.run_test() as pilot:
             from textual.widgets import Static
 
-            screen = PaperScreen()
-            app.push_screen(screen)
+            app._show("paper")
             await pilot.pause()
+            screen = app.query_one("#view-paper")
             title = screen.query_one("#paper-title", Static)
             assert "Paper Trading" in str(title.render())
 
@@ -1034,9 +1117,9 @@ class TestPaperAsync:
         async with app.run_test() as pilot:
             from textual.widgets import Static
 
-            screen = PaperScreen()
-            app.push_screen(screen)
+            app._show("paper")
             await pilot.pause()
+            screen = app.query_one("#view-paper")
             indicator = screen.query_one("#refresh-indicator", Static)
             assert indicator is not None
 
@@ -1046,9 +1129,9 @@ class TestPaperAsync:
         async with app.run_test() as pilot:
             from textual.widgets import Static
 
-            screen = PaperScreen()
-            app.push_screen(screen)
+            app._show("paper")
             await pilot.pause()
+            screen = app.query_one("#view-paper")
             screen.action_refresh()
             indicator = screen.query_one("#refresh-indicator", Static)
             assert "Last refresh:" in str(indicator.render())
@@ -1057,29 +1140,24 @@ class TestPaperAsync:
     async def test_paper_escape_back(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.dashboard import DashboardScreen
-
-            screen = PaperScreen()
-            app.push_screen(screen)
+            app._show("paper")
             await pilot.pause()
-            assert isinstance(app.screen, PaperScreen)
+            assert app._content_switcher.current == "view-paper"
             await pilot.press("escape")
-            assert isinstance(app.screen, DashboardScreen)
+            assert app._content_switcher.current == "view-dashboard"
 
     @pytest.mark.asyncio
     async def test_f3_navigates_to_paper(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
             await pilot.press("f3")
-            assert isinstance(app.screen, PaperScreen)
+            assert app._content_switcher.current == "view-paper"
 
     @pytest.mark.asyncio
     async def test_f1_navigates_to_dashboard(self) -> None:
         app = TITANApp()
         async with app.run_test() as pilot:
-            from titan.tui.screens.dashboard import DashboardScreen
-
-            app.push_screen(PaperScreen())
+            app._show("paper")
             await pilot.pause()
             await pilot.press("f1")
-            assert isinstance(app.screen, DashboardScreen)
+            assert app._content_switcher.current == "view-dashboard"

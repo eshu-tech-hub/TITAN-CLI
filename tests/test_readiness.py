@@ -37,7 +37,7 @@ def test_python_version_validator():
         issues = validator.validate_environment()
         assert len(issues) > 0
         assert issues[0].severity == ValidationSeverity.CRITICAL
-        assert "Python 3.14+ required" in issues[0].message
+        assert "Python 3.12+" in issues[0].message
 
 
 def test_readiness_review_success():

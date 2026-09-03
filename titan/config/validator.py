@@ -225,13 +225,13 @@ class ConfigurationValidator:
     def validate_environment(self) -> list[ValidationIssue]:
         """Check for correct Python versions and core environment requirements."""
         issues: list[ValidationIssue] = []
-        # TITAN strictly requires Python 3.14+
-        if sys.version_info < (3, 14):
+        # TITAN strictly requires Python 3.12+
+        if sys.version_info < (3, 12):
             issues.append(
                 ValidationIssue(
                     component="Environment",
                     severity=ValidationSeverity.CRITICAL,
-                    message=f"Python 3.14+ required. Found {sys.version_info[0]}.{sys.version_info[1]}",
+                    message=f"Python 3.12+ required. Found {sys.version_info[0]}.{sys.version_info[1]}",
                 )
             )
         return issues

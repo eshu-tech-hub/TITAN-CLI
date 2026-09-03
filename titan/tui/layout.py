@@ -6,13 +6,16 @@ Dashboard is the default screen.
 
 from __future__ import annotations
 
+import concurrent.futures
 import sys
-from datetime import UTC, datetime
+from collections import deque
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from textual.app import App
+from textual.app import App, ComposeResult
+from textual.widgets import ContentSwitcher
 
-from titan.runtime.exceptions import RuntimeError as TitanRuntimeError
+_ipc_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 if TYPE_CHECKING:
     from titan.tui.models import AIScreenState, StrategyEvalScreenState
@@ -112,13 +115,21 @@ if TYPE_CHECKING:
 class TITANApp(App):
     """Main TITAN TUI application.
 
-    Manages screen stack and keyboard navigation.
-    Dashboard is the default screen.
+    Manages mounted views via ContentSwitcher and keyboard navigation.
+    Dashboard is the default view.
     """
 
     CSS = """
     Screen {
         background: $surface;
+    }
+    #app-content {
+        width: 1fr;
+        height: 1fr;
+    }
+    #app-content > * {
+        width: 1fr;
+        height: 1fr;
     }
     """
 
@@ -134,6 +145,7 @@ class TITANApp(App):
         ("f2", "show_runtime", "Runtime"),
         ("f3", "show_paper", "Paper"),
         ("f10", "show_decision_replay", "Replay"),
+        ("escape", "go_back", "Back"),
     ]
 
     def __init__(self, **kwargs: Any) -> None:
@@ -144,13 +156,42 @@ class TITANApp(App):
         self._replay_state_builder: Callable[[str | None], ReplayScreenState] | None = (
             None
         )
+        self._views: dict[str, Any] = {}
+        self._content_switcher: ContentSwitcher | None = None
+        self._history: deque[str] = deque()
+
+    def compose(self) -> ComposeResult:
+        """Mount the four built-in views into a ContentSwitcher."""
+        from titan.tui.screens.decision_replay import DecisionReplayScreen
+
+        self._views = {
+            "dashboard": DashboardScreen(),
+            "runtime": RuntimeScreen(),
+            "paper": PaperScreen(),
+            "decision_replay": DecisionReplayScreen(),
+        }
+        self._content_switcher = ContentSwitcher(
+            id="app-content", initial="view-dashboard"
+        )
+        with self._content_switcher:
+            for name, view in self._views.items():
+                view.id = f"view-{name}"
+                yield view
 
     def on_mount(self) -> None:
-        """Push the default dashboard screen on mount."""
-        dashboard = DashboardScreen()
-        if self._state_builder is not None:
-            dashboard.set_state_builder(self._state_builder)
-        self.push_screen(dashboard)
+        """Apply state builders and show the default dashboard view."""
+        for name, view in self._views.items():
+            builder: Callable[..., Any] | None = {
+                "dashboard": self._state_builder,
+                "runtime": self._runtime_state_builder,
+                "paper": self._paper_state_builder,
+                "decision_replay": self._replay_state_builder,
+            }.get(name)
+            if builder is not None:
+                view.set_state_builder(builder)
+        assert self._content_switcher is not None
+        self._content_switcher.current = "view-dashboard"
+        self.query_one("#view-dashboard").focus()
 
     def set_state_builder(self, builder: Callable[[], DashboardState]) -> None:
         """Set the function that builds DashboardState from managers."""
@@ -172,39 +213,42 @@ class TITANApp(App):
         """Set the function that builds ReplayScreenState."""
         self._replay_state_builder = builder
 
+    def _show(self, name: str) -> None:
+        """Switch the ContentSwitcher to the named view and focus it."""
+        if self._content_switcher is None:
+            return
+        target = f"view-{name}"
+        if self._content_switcher.current == target:
+            return
+        current = self._content_switcher.current
+        if current:
+            self._history.append(current.removeprefix("view-"))
+        self._content_switcher.current = target
+        self.query_one(f"#{target}").focus()
+
     def action_show_dashboard(self) -> None:
-        """Navigate to the Dashboard screen."""
-        if len(self.screen_stack) > 1:
-            self.pop_screen()
-        else:
-            dashboard = DashboardScreen()
-            if self._state_builder is not None:
-                dashboard.set_state_builder(self._state_builder)
-            self.push_screen(dashboard)
+        """Navigate to the Dashboard view."""
+        self._show("dashboard")
 
     def action_show_runtime(self) -> None:
-        """Navigate to the Runtime screen."""
-        runtime = RuntimeScreen()
-        if self._runtime_state_builder is not None:
-            runtime.set_state_builder(self._runtime_state_builder)
-        self.push_screen(runtime)
+        """Navigate to the Runtime view."""
+        self._show("runtime")
 
     def action_show_paper(self) -> None:
-        """Navigate to the Paper Trading screen."""
-
-        paper = PaperScreen()
-        if self._paper_state_builder is not None:
-            paper.set_state_builder(self._paper_state_builder)
-        self.push_screen(paper)
+        """Navigate to the Paper Trading view."""
+        self._show("paper")
 
     def action_show_decision_replay(self) -> None:
-        """Navigate to the Decision Replay screen."""
-        from titan.tui.screens.decision_replay import DecisionReplayScreen
+        """Navigate to the Decision Replay view."""
+        self._show("decision_replay")
 
-        replay = DecisionReplayScreen()
-        if self._replay_state_builder is not None:
-            replay.set_state_builder(self._replay_state_builder)
-        self.push_screen(replay)
+    def action_go_back(self) -> None:
+        """Navigate back to the previous view."""
+        if self._content_switcher is None or not self._history:
+            return
+        prev = self._history.pop()
+        self._content_switcher.current = f"view-{prev}"
+        self.query_one(f"#view-{prev}").focus()
 
     def action_focus_previous(self) -> None:
         """Move focus to the previous widget."""
@@ -220,7 +264,7 @@ class TITANApp(App):
 
 def build_portfolio_state() -> PortfolioScreenState:
     """Build PortfolioScreenState with a fallback if managers are missing."""
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
     return PortfolioScreenState(last_refresh=now)
 
 
@@ -238,7 +282,7 @@ def build_dashboard_state() -> DashboardState:
 
     from datetime import datetime
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return DashboardState(
         runtime=runtime,
@@ -264,7 +308,7 @@ def _read_runtime() -> RuntimeInfo:
             broker_status=report.broker.connection,
             stream_status=report.market.stream_status,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return RuntimeInfo()
 
 
@@ -286,7 +330,7 @@ def _read_market() -> MarketInfo:
                 else "Never"
             ),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return MarketInfo()
 
 
@@ -297,7 +341,7 @@ def _read_trading() -> TradingInfo:
         engine = get_runtime_engine()
         live_status = "Running" if engine.is_running else "Stopped"
         return TradingInfo(live_status=live_status)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return TradingInfo()
 
 
@@ -310,7 +354,7 @@ def _read_health() -> HealthInfo:
         monitoring_status = (
             str(mon_report.system_health) if mon_report.system_health else "Unknown"
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         monitoring_status = "Unknown"
 
     try:
@@ -320,7 +364,7 @@ def _read_health() -> HealthInfo:
         al_report = al.generate_report()
         critical = al_report.critical_alerts
         total = al_report.total_alerts
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         critical = 0
         total = 0
 
@@ -335,7 +379,7 @@ def _read_health() -> HealthInfo:
             else str(rm_report.status)
         )
         recovery_attempts = rm_report.total_attempts
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         recovery_status = "Idle"
         recovery_attempts = 0
 
@@ -361,7 +405,7 @@ def _read_system() -> SystemInfo:
             uptime=_format_uptime(report.uptime_seconds),
             python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return SystemInfo(
             python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         )
@@ -379,7 +423,9 @@ def _format_relative_time(dt: datetime | None) -> str:
     """Format a datetime as a relative time string."""
     if dt is None:
         return "Never"
-    now = datetime.now(UTC)
+    now = datetime.now()  # noqa: DTZ005 - local time for display
+    if dt.tzinfo is not None:
+        dt = dt.astimezone().replace(tzinfo=None)
     delta = (now - dt).total_seconds()
     if delta <= 0.1:
         return "Just now"
@@ -406,7 +452,7 @@ def build_runtime_state() -> RuntimeScreenState:
     components = _read_runtime_components()
     events = _read_runtime_events()
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return RuntimeScreenState(
         engine=engine_info,
@@ -424,14 +470,25 @@ def _read_runtime_engine() -> RuntimeEngineInfo:
         from titan.cli.common import get_runtime_engine
 
         engine = get_runtime_engine()
-        report = engine.generate_report()
+        status = engine.status.name
+        is_running = engine.is_running
+        
+        uptime = "00:00:00"
+        scheduler_active = False
+        try:
+            report = engine.generate_report()
+            uptime = _format_uptime(report.performance.uptime_seconds)
+            scheduler_active = report.scheduler.active
+        except Exception:
+            pass
+
         return RuntimeEngineInfo(
-            status=report.runtime_status.name,
-            uptime=_format_uptime(report.performance.uptime_seconds),
-            is_running=engine.is_running,
-            scheduler_active=report.scheduler.active,
+            status=status,
+            uptime=uptime,
+            is_running=is_running,
+            scheduler_active=scheduler_active,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return RuntimeEngineInfo()
 
 
@@ -446,7 +503,7 @@ def _read_runtime_stream() -> RuntimeStreamInfo:
             symbols_tracked=report.market.active_subscriptions,
             tick_rate="N/A",
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return RuntimeStreamInfo()
 
 
@@ -461,7 +518,7 @@ def _read_runtime_pipeline() -> RuntimePipelineInfo:
             avg_runtime="N/A",
             last_run=_format_relative_time(report.scheduler.last_pipeline_time),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return RuntimePipelineInfo()
 
 
@@ -479,7 +536,7 @@ def _read_runtime_event_bus() -> RuntimeEventBusInfo:
             published=0,
             subscribers=total_subscribers,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return RuntimeEventBusInfo()
 
 
@@ -496,7 +553,7 @@ def _read_runtime_components() -> tuple[RuntimeComponentInfo, ...]:
             )
             for comp in report.health.component_health
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -515,7 +572,7 @@ def _read_runtime_events() -> tuple[RuntimeEventEntry, ...]:
             entries.append(
                 RuntimeEventEntry(level="error", source="runtime", message=error)
             )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
         pass
     try:
         from titan.cli.common import get_recovery_manager
@@ -534,7 +591,7 @@ def _read_runtime_events() -> tuple[RuntimeEventEntry, ...]:
                     ),
                 )
             )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
         pass
     return tuple(entries[-20:])
 
@@ -547,15 +604,17 @@ def build_paper_state() -> PaperScreenState:
 
     All manager access is try/except guarded for resilience.
     """
-    session = _read_paper_session()
-    account = _read_paper_accounts()
-    portfolio = _read_paper_portfolio()
-    performance = _read_paper_performance()
-    positions = _read_paper_positions()
-    orders = _read_paper_orders()
-    trades = _read_paper_trades()
+    data = _get_paper_data()
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    session = _read_paper_session(data)
+    account = _read_paper_accounts(data)
+    portfolio = _read_paper_portfolio(data)
+    performance = _read_paper_performance(data)
+    positions = _read_paper_positions(data)
+    orders = _read_paper_orders(data)
+    trades = _read_paper_trades(data)
+
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return PaperScreenState(
         session=session,
@@ -569,221 +628,414 @@ def build_paper_state() -> PaperScreenState:
     )
 
 
-def _read_paper_session() -> PaperSessionInfo:
-    try:
-        from titan.cli.commands.paper import _get_broker, _paper_start_time
+def _get_paper_data() -> dict[str, Any]:
+    from titan.cli.common import get_runtime_engine
 
-        broker = _get_broker()
-        if broker is None or not broker.is_connected():
+    def _fetch_paper_ipc():
+        import gc
+        import socket
+
+        from titan.runtime.local_transport import LocalTransport
+
+        # Bypass Textual's Windows IPv6 localhost hijacking
+        _orig_getaddrinfo = socket.getaddrinfo
+
+        def _ipv4_override(*args, **kwargs):
+            if args and args[0] == "localhost":
+                args = ("127.0.0.1",) + args[1:]
+            return _orig_getaddrinfo(*args, **kwargs)
+
+        socket.getaddrinfo = _ipv4_override
+        try:
+            client = LocalTransport()
+            # Redundancy overrides
+            if hasattr(client, "host"):
+                client.host = "127.0.0.1"
+            if hasattr(client, "_host"):
+                client._host = "127.0.0.1"
+            if hasattr(client, "base_url"):
+                client.base_url = client.base_url.replace("localhost", "127.0.0.1")
+
+            return client.paper_status()
+        finally:
+            socket.getaddrinfo = _orig_getaddrinfo
+            if hasattr(client, "close"):
+                client.close()
+            elif hasattr(client, "disconnect"):
+                client.disconnect()
+            elif hasattr(client, "_session") and hasattr(client._session, "close"):
+                client._session.close()
+            del client
+            gc.collect()
+
+    # 1. Primary: Thread-isolated IPC using a persistent executor and socket
+    try:
+        transport_data = _ipc_executor.submit(_fetch_paper_ipc).result(timeout=1.0)
+        if transport_data and transport_data.get("running") is True:
+            return transport_data
+    except Exception as e:
+        # Log the invisible killer so we are never blind again
+        with open("tui_ipc_debug.log", "a") as f:
+            f.write(f"Paper IPC Error: {type(e).__name__}: {e}\n")
+
+    # 2. Fallback: (Keep your existing fallback logic here)
+    try:
+        engine = get_runtime_engine()
+        if engine.status.name in ("RUNNING", "STARTING") and hasattr(engine, "broker"):
+            if getattr(engine.broker, "__class__", type(engine.broker)).__name__ == "PaperBroker":
+                if engine.broker.is_connected():
+                    return {"_in_process_broker": engine.broker, "running": True}
+    except Exception:
+        pass
+
+    return {}
+
+
+def _read_paper_session(data: dict[str, Any]) -> PaperSessionInfo:
+    try:
+        if not data or not data.get("running"):
             return PaperSessionInfo()
-        uptime = 0.0
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            from titan.cli.commands.paper import _paper_start_time
+            uptime = 0.0
+            started_str = "--:--"
+            if _paper_start_time is not None:
+                uptime = (datetime.now() - _paper_start_time).total_seconds()  # noqa: DTZ005
+                started_str = _paper_start_time.strftime("%H:%M")
+            return PaperSessionInfo(
+                status="Running",
+                started=started_str,
+                duration=_format_uptime(uptime),
+            )
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        uptime = data.get("session_uptime_seconds", 0.0)
+        start_time_iso = data.get("start_time")
         started_str = "--:--"
-        if _paper_start_time is not None:
-            uptime = (datetime.now(UTC) - _paper_start_time).total_seconds()
-            started_str = _paper_start_time.strftime("%H:%M")
+        if start_time_iso:
+            try:
+                dt = datetime.fromisoformat(start_time_iso)
+                started_str = dt.strftime("%H:%M")
+            except ValueError:
+                pass
+                
         return PaperSessionInfo(
             status="Running",
             started=started_str,
             duration=_format_uptime(uptime),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return PaperSessionInfo()
 
 
-def _read_paper_accounts() -> PaperAccountInfo:
+def _read_paper_accounts(data: dict[str, Any]) -> PaperAccountInfo:
     try:
-        from titan.cli.commands.paper import _get_broker
-
-        broker = _get_broker()
-        if broker is None:
+        if not data or not data.get("running"):
             return PaperAccountInfo()
-        funds = broker.funds()
-        margin = broker.margin()
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            broker = data["_in_process_broker"]
+            funds = getattr(broker, "funds", lambda: None)()
+            margin = getattr(broker, "margin", lambda: None)()
+            return PaperAccountInfo(
+                available_cash=_format_inr(getattr(funds, "available_cash", 0.0)),
+                used_margin=_format_inr(getattr(margin, "used_margin", 0.0)),
+                available_margin=_format_inr(getattr(margin, "available_margin", getattr(funds, "buying_power", 0.0))),
+                payin=_format_inr(getattr(funds, "payin", getattr(broker, "_initial_cash", 100000.0))),
+                payout=_format_inr(getattr(funds, "payout", 0.0)),
+            )
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        initial = float(data.get("initial_cash", 0.0))
+        buying_power = float(data.get("buying_power", data.get("available_margin", 0.0)))
+        used_margin = float(data.get("used_margin", data.get("exposure", 0.0)))
+        
+        # If used_margin is reported as 0 but buying_power is less than initial cash
+        if used_margin == 0.0 and initial > buying_power:
+            used_margin = initial - buying_power
+
         return PaperAccountInfo(
-            available_cash=_format_inr(funds.available_cash),
-            used_margin=_format_inr(margin.used_margin),
-            available_margin=_format_inr(margin.available_margin),
-            payin=_format_inr(funds.payin),
-            payout=_format_inr(funds.payout),
+            available_cash=_format_inr(data.get("cash_balance", data.get("available_cash", 0.0))),
+            used_margin=_format_inr(used_margin),
+            available_margin=_format_inr(buying_power),
+            payin=_format_inr(initial),
+            payout=_format_inr(data.get("payout", 0.0)),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return PaperAccountInfo()
 
 
-def _read_paper_portfolio() -> PaperPortfolioInfo:
+def _read_paper_portfolio(data: dict[str, Any]) -> PaperPortfolioInfo:
     try:
-        from titan.cli.commands.paper import _get_broker
-
-        broker = _get_broker()
-        if broker is None:
+        if not data or not data.get("running"):
             return PaperPortfolioInfo()
-        positions = broker.position_engine.open_positions()
-        ps = broker.portfolio.compute_state(positions)
-        realized = sum(
-            (p.realized_pnl for p in broker.position_engine.all_positions()),
-            __import__("decimal").Decimal("0"),
-        )
-        unrealized = ps.total_pnl - realized
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            broker = data["_in_process_broker"]
+            positions = getattr(broker.position_engine, "open_positions", list)()
+            ps = getattr(broker.portfolio, "compute_state", lambda p: None)(positions)
+            if ps:
+                realized = sum(
+                    (getattr(p, "realized_pnl", 0) for p in getattr(broker.position_engine, "all_positions", list)()),
+                    __import__("decimal").Decimal("0"),
+                )
+                unrealized = ps.total_pnl - realized
+                return PaperPortfolioInfo(
+                    cash=f"INR {getattr(ps, 'cash', 0):,.0f}",
+                    equity=f"INR {getattr(ps, 'equity', 0):,.0f}",
+                    unrealized_pnl=_format_pnl(unrealized),
+                    realized_pnl=_format_pnl(realized),
+                )
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        cash = float(data.get("cash_balance", 0.0))
+        equity = float(data.get("portfolio_value", 0.0))
+
         return PaperPortfolioInfo(
-            cash=f"₹{ps.cash:,.0f}",
-            equity=f"₹{ps.equity:,.0f}",
-            unrealized_pnl=_format_pnl(unrealized),
-            realized_pnl=_format_pnl(realized),
+            cash=f"INR {cash:,.0f}",
+            equity=f"INR {equity:,.0f}",
+            unrealized_pnl=_format_pnl(data.get("unrealized_pnl", 0.0)),
+            realized_pnl=_format_pnl(data.get("realized_pnl", 0.0)),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return PaperPortfolioInfo()
 
 
-def _read_paper_performance() -> PaperPerformanceInfo:
+def _read_paper_performance(data: dict[str, Any]) -> PaperPerformanceInfo:
     try:
-        from titan.cli.commands.paper import _get_broker
-
-        broker = _get_broker()
-        if broker is None:
+        if not data or not data.get("running"):
             return PaperPerformanceInfo()
-        positions = broker.position_engine.open_positions()
-        ps = broker.portfolio.compute_state(positions)
-        perf = broker.performance.compute(ps)
-        exp_val = float(perf.expectancy)
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            broker = data["_in_process_broker"]
+            positions = getattr(broker.position_engine, "open_positions", list)()
+            ps = getattr(broker.portfolio, "compute_state", lambda p: None)(positions)
+            if ps:
+                perf = getattr(broker.performance, "compute", lambda p: None)(ps)
+                if perf:
+                    exp_val = float(getattr(perf, "expectancy", 0))
+                    return PaperPerformanceInfo(
+                        total_trades=getattr(perf, "total_trades", 0),
+                        win_rate=f"{getattr(perf, 'win_rate', 0) * 100:.0f}%",
+                        profit_factor=f"{getattr(perf, 'profit_factor', 0):.2f}",
+                        expectancy=f"{'+' if exp_val >= 0 else ''}{exp_val:.2f}R",
+                        max_drawdown=f"{float(getattr(perf, 'max_drawdown', 0)) * 100:.1f}%",
+                    )
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        exp_val = float(data.get("expectancy", 0.0))
+        win_rate = float(data.get("win_rate", 0.0))
+        drawdown = float(data.get("max_drawdown", 0.0))
+        
         return PaperPerformanceInfo(
-            total_trades=perf.total_trades,
-            win_rate=f"{perf.win_rate * 100:.0f}%",
-            profit_factor=f"{perf.profit_factor:.2f}",
+            total_trades=data.get("total_trades", 0),
+            win_rate=f"{win_rate * 100:.0f}%",
+            profit_factor=f"{float(data.get('profit_factor', 0.0)):.2f}",
             expectancy=f"{'+' if exp_val >= 0 else ''}{exp_val:.2f}R",
-            max_drawdown=f"{float(perf.max_drawdown) * 100:.1f}%",
+            max_drawdown=f"{drawdown * 100:.1f}%",
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return PaperPerformanceInfo()
 
 
-def _read_paper_positions() -> tuple[PaperPositionEntry, ...]:
+def _read_paper_positions(data: dict[str, Any]) -> tuple[PaperPositionEntry, ...]:
     try:
-        from titan.cli.commands.paper import _get_broker
-
-        broker = _get_broker()
-        if broker is None:
+        if not data or not data.get("running"):
             return ()
-        open_pos = broker.position_engine.open_positions()
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            broker = data["_in_process_broker"]
+            open_pos = getattr(broker.position_engine, "open_positions", list)()
+            return tuple(
+                PaperPositionEntry(
+                    symbol=getattr(p, "symbol", ""),
+                    quantity=getattr(p, "quantity", 0),
+                    avg_price=f"INR {p.average_price}" if getattr(p, "average_price", None) else "0",
+                    current_price=f"INR {p.current_price}" if getattr(p, "current_price", None) else "0",
+                    unrealized_pnl=_format_pnl(getattr(p, "unrealized_pnl", 0)),
+                )
+                for p in open_pos
+            )
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        positions = data.get("positions", [])
         return tuple(
             PaperPositionEntry(
-                symbol=p.symbol,
-                quantity=p.quantity,
-                avg_price=f"₹{p.average_price}" if p.average_price else "0",
-                current_price=f"₹{p.current_price}" if p.current_price else "0",
-                unrealized_pnl=_format_pnl(p.unrealized_pnl),
+                symbol=str(p.get("symbol", "")),
+                quantity=int(p.get("quantity", 0)),
+                avg_price=f"INR {p.get('average_price', 0.0)}",
+                current_price=f"INR {p.get('current_price', 0.0)}",
+                unrealized_pnl=_format_pnl(p.get("unrealized_pnl", 0.0)),
             )
-            for p in open_pos
+            for p in positions
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
-def _read_paper_trades() -> tuple[PaperTradeEntry, ...]:
+def _read_paper_trades(data: dict[str, Any]) -> tuple[PaperTradeEntry, ...]:
     try:
-        from titan.cli.commands.paper import _get_broker
-
-        broker = _get_broker()
-        if broker is None:
+        if not data or not data.get("running"):
             return ()
-        fills = broker.journal.to_broker_trades()
-        entries: list[PaperTradeEntry] = []
-        for trade in fills[-20:]:
-            side_val = (
-                trade.side.value if hasattr(trade.side, "value") else str(trade.side)
-            )
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            broker = data["_in_process_broker"]
+            fills = getattr(broker.journal, "to_broker_trades", list)()
+            entries: list[PaperTradeEntry] = []
+            for trade in fills[-20:]:
+                side_val = getattr(trade.side, "value", str(getattr(trade, "side", ""))) if hasattr(trade, "side") else ""
+                entries.append(
+                    PaperTradeEntry(
+                        symbol=getattr(trade, "symbol", ""),
+                        side=side_val,
+                        quantity=getattr(trade, "quantity", 0),
+                        price=f"INR {getattr(trade, 'price', 0)}",
+                        pnl=_format_pnl(getattr(trade, 'pnl', 0)),
+                        time=(
+                            trade.timestamp.strftime("%H:%M")
+                            if hasattr(trade, "timestamp") and getattr(trade, "timestamp", None)
+                            else ""
+                        ),
+                    )
+                )
+            return tuple(entries)
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        trades = data.get("trades", [])
+        entries = []
+        for t in trades[-20:]:
+            time_str = ""
+            ts = t.get("timestamp")
+            if ts:
+                try:
+                    time_str = datetime.fromisoformat(ts).strftime("%H:%M")
+                except ValueError:
+                    pass
             entries.append(
                 PaperTradeEntry(
-                    symbol=trade.symbol,
-                    side=side_val,
-                    quantity=trade.quantity,
-                    price=f"₹{trade.price}",
-                    pnl=_format_pnl(trade.pnl) if hasattr(trade, "pnl") else "₹0",
-                    time=(
-                        trade.timestamp.strftime("%H:%M")
-                        if hasattr(trade, "timestamp") and trade.timestamp
-                        else ""
-                    ),
+                    symbol=str(t.get("symbol", "")),
+                    side=str(t.get("side", "")),
+                    quantity=int(t.get("quantity", 0)),
+                    price=f"INR {t.get('price', 0.0)}",
+                    pnl=_format_pnl(t.get("pnl", 0.0)),
+                    time=time_str,
                 )
             )
         return tuple(entries)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
-def _read_paper_orders() -> tuple[PaperOrderEntry, ...]:
+def _read_paper_orders(data: dict[str, Any]) -> tuple[PaperOrderEntry, ...]:
     try:
-        from titan.cli.commands.paper import _get_broker
-
-        broker = _get_broker()
-        if broker is None:
+        if not data or not data.get("running"):
             return ()
-        all_orders = broker.orders()
-        active: list[PaperOrderEntry] = []
-        for o in all_orders:
-            status_str = o.status.value if hasattr(o.status, "value") else str(o.status)
-            if status_str not in ("pending", "open", "partially_filled"):
+
+        # Branch A: In-Process Fallback
+        if "_in_process_broker" in data:
+            broker = data["_in_process_broker"]
+            all_orders = getattr(broker, "orders", list)()
+            active: list[PaperOrderEntry] = []
+            for o in all_orders:
+                status_str = getattr(o.status, "value", str(getattr(o, "status", ""))) if hasattr(o, "status") else ""
+                if status_str not in ("pending", "open", "partially_filled"):
+                    continue
+                side_val = getattr(o.side, "value", str(getattr(o, "side", ""))) if hasattr(o, "side") else ""
+                ot_val = getattr(o.order_type, "value", str(getattr(o, "order_type", ""))) if hasattr(o, "order_type") else ""
+                price_str = _format_inr(getattr(o, "average_price", getattr(o, "price", 0)))
+                placed_str = ""
+                if getattr(o, "placed_at", None):
+                    placed_str = o.placed_at.strftime("%H:%M")
+                active.append(
+                    PaperOrderEntry(
+                        order_id=getattr(o, "broker_order_id", ""),
+                        symbol=getattr(o, "symbol", ""),
+                        side=side_val,
+                        order_type=ot_val,
+                        quantity=getattr(o, "quantity", 0),
+                        filled_quantity=getattr(o, "filled_quantity", 0),
+                        price=price_str,
+                        status=status_str,
+                        placed_at=placed_str,
+                    )
+                )
+            return tuple(active)
+
+        # Branch B: IPC Flat Dictionary (From LocalTransport)
+        orders = data.get("orders", [])
+        active = []
+        for o in orders:
+            status = str(o.get("status", ""))
+            if status not in ("pending", "open", "partially_filled"):
                 continue
-            side_val = o.side.value if hasattr(o.side, "value") else str(o.side)
-            ot_val = (
-                o.order_type.value
-                if hasattr(o.order_type, "value")
-                else str(o.order_type)
-            )
-            price_str = _format_inr(o.average_price or o.price)
+                
             placed_str = ""
-            if o.placed_at:
-                placed_str = o.placed_at.strftime("%H:%M")
+            ts = o.get("placed_at")
+            if ts:
+                try:
+                    placed_str = datetime.fromisoformat(ts).strftime("%H:%M")
+                except ValueError:
+                    pass
+                    
             active.append(
                 PaperOrderEntry(
-                    order_id=o.broker_order_id,
-                    symbol=o.symbol,
-                    side=side_val,
-                    order_type=ot_val,
-                    quantity=o.quantity,
-                    filled_quantity=o.filled_quantity,
-                    price=price_str,
-                    status=status_str,
+                    order_id=str(o.get("order_id", o.get("broker_order_id", ""))),
+                    symbol=str(o.get("symbol", "")),
+                    side=str(o.get("side", "")),
+                    order_type=str(o.get("type", o.get("order_type", ""))),
+                    quantity=int(o.get("quantity", 0)),
+                    filled_quantity=int(o.get("filled_quantity", 0)),
+                    price=_format_inr(o.get("price", o.get("average_price", 0))),
+                    status=status,
                     placed_at=placed_str,
                 )
             )
         return tuple(active)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
-from decimal import Decimal, InvalidOperation
+
+from decimal import Decimal
 
 
 def _format_inr(value: Any) -> str:
     """Safely format numeric values to INR currency string."""
     if value is None:
-        return "₹0"
+        return "INR 0"
     try:
         dec_val = Decimal(str(value))
         if dec_val < 0:
-            return f"-₹{abs(dec_val):,.0f}"
-        return f"₹{dec_val:,.0f}"
-    except (InvalidOperation, ValueError, TypeError, AttributeError):
-        return "₹0"
+            return f"-INR {abs(dec_val):,.0f}"
+        return f"INR {dec_val:,.0f}"
+    except Exception:  # noqa: BLE001
+        return "INR 0"
 
 
 def _format_pnl(value: Any) -> str:
     """Safely format PnL values with + / - signs."""
     if value is None:
-        return "+₹0"
+        return "+INR 0"
     try:
         dec_val = Decimal(str(value))
         if dec_val < 0:
-            return f"-₹{abs(dec_val):,.0f}"
-        return f"+₹{abs(dec_val):,.0f}"
-    except (InvalidOperation, ValueError, TypeError, AttributeError):
-        return "+₹0"
+            return f"-INR {abs(dec_val):,.0f}"
+        return f"+INR {abs(dec_val):,.0f}"
+    except Exception:  # noqa: BLE001
+        return "+INR 0"
 
 
 def _format_pct(value: object) -> str:
     """Format a float as a percentage string."""
     try:
         return f"{float(str(value)) * 100:.0f}%"
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return "0%"
 
 
@@ -791,7 +1043,7 @@ def _format_float(value: object, decimals: int = 2) -> str:
     """Format a float with fixed decimals."""
     try:
         return f"{float(str(value)):.{decimals}f}"
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return "0"
 
 
@@ -804,7 +1056,7 @@ def _format_volume(value: object) -> str:
         if v >= 1_000:
             return f"{v / 1_000:.1f}K"
         return f"{v:.0f}"
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return "0"
 
 
@@ -824,7 +1076,7 @@ def build_live_state() -> LiveScreenState:
     orders = _read_live_orders()
     executions = _read_recent_executions()
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return LiveScreenState(
         live_status=live_status,
@@ -838,91 +1090,228 @@ def build_live_state() -> LiveScreenState:
     )
 
 
-def _read_live_status() -> LiveStatusInfo:
+def _get_live_data() -> dict[str, Any]:
+    """Query the live runtime state."""
+
+    # Primary check: Inspect get_runtime_engine()
     try:
         from titan.cli.common import get_runtime_engine
-
         engine = get_runtime_engine()
-        report = engine.generate_report()
-        return LiveStatusInfo(
-            status=report.runtime_status.name,
-            uptime=_format_uptime(report.performance.uptime_seconds),
-            is_running=engine.is_running,
-            broker_connected=report.broker.connection.value.lower() == "connected",
-            stream_connected=report.market.stream_status.lower() == "connected",
-            pipeline_executions=report.scheduler.pipeline_executions,
-        )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+        if engine.status.name in ("RUNNING", "STARTING"):
+            broker = engine.broker
+            if getattr(broker, "__class__", type(broker)).__name__ != "PaperBroker":
+                if broker.is_connected():
+                    return {"_in_process_broker": broker, "running": True}
+    except Exception:
+        pass
+
+    # Secondary fallback: Thread-isolated IPC to bypass Textual's active asyncio loop
+    try:
+        def _fetch_live_ipc():
+            import gc
+            import socket
+
+            from titan.runtime.local_transport import LocalTransport
+
+            # Bypass Textual's Windows IPv6 localhost hijacking
+            _orig_getaddrinfo = socket.getaddrinfo
+
+            def _ipv4_override(*args, **kwargs):
+                if args and args[0] == "localhost":
+                    args = ("127.0.0.1",) + args[1:]
+                return _orig_getaddrinfo(*args, **kwargs)
+
+            socket.getaddrinfo = _ipv4_override
+            try:
+                client = LocalTransport()
+                # Redundancy overrides
+                if hasattr(client, "host"):
+                    client.host = "127.0.0.1"
+                if hasattr(client, "_host"):
+                    client._host = "127.0.0.1"
+                if hasattr(client, "base_url"):
+                    client.base_url = client.base_url.replace("localhost", "127.0.0.1")
+
+                return client.live_status()
+            finally:
+                socket.getaddrinfo = _orig_getaddrinfo
+                if hasattr(client, "close"):
+                    client.close()
+                elif hasattr(client, "disconnect"):
+                    client.disconnect()
+                elif hasattr(client, "_session") and hasattr(client._session, "close"):
+                    client._session.close()
+                del client
+                gc.collect()
+            
+        transport_data = _ipc_executor.submit(_fetch_live_ipc).result(timeout=1.0)
+        if transport_data:
+            return transport_data
+    except Exception as e:
+        # Log the invisible killer so we are never blind again
+        with open("tui_ipc_debug.log", "a") as f:
+            f.write(f"Live IPC Error: {type(e).__name__}: {e}\n")
+
+    # Tertiary fallback: Empty default DTO
+    return {"running": False}
+
+def _read_live_status() -> LiveStatusInfo:
+    try:
+        
+        try:
+            transport = LocalTransport()
+            report = transport.status()
+            return LiveStatusInfo(
+                status=report.runtime_status.name,
+                uptime=_format_uptime(report.performance.uptime_seconds),
+                is_running=report.runtime_status.name in ("RUNNING", "STARTING"),
+                broker_connected=report.broker.connection.value.lower() == "connected",
+                stream_connected=report.market.stream_status.lower() == "connected",
+                pipeline_executions=report.scheduler.pipeline_executions,
+            )
+        except Exception:
+            from titan.cli.common import get_runtime_engine
+            engine = get_runtime_engine()
+            report = engine.generate_report()
+            return LiveStatusInfo(
+                status=report.runtime_status.name,
+                uptime=_format_uptime(report.performance.uptime_seconds),
+                is_running=engine.is_running,
+                broker_connected=report.broker.connection.value.lower() == "connected",
+                stream_connected=report.market.stream_status.lower() == "connected",
+                pipeline_executions=report.scheduler.pipeline_executions,
+            )
+    except Exception:  # noqa: BLE001
         return LiveStatusInfo()
 
 
 def _read_broker_status() -> BrokerStatusInfo:
     try:
-        from titan.cli.common import get_runtime_engine
 
-        engine = get_runtime_engine()
-        report = engine.generate_report()
-        broker = engine.broker
-        is_connected = broker.is_connected()
-        provider = type(broker).__name__
-        return BrokerStatusInfo(
-            provider=provider,
-            connection_status=report.broker.connection.value,
-            is_connected=is_connected,
-            exchange="",
-            account_id="",
-        )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+        try:
+            transport = LocalTransport()
+            report = transport.status()
+            # If IPC succeeds, pull provider from live_status data
+            data = transport.live_status()
+            provider = data.get("provider", "Unknown")
+            is_connected = data.get("is_connected", False)
+            
+            return BrokerStatusInfo(
+                provider=provider,
+                connection_status=report.broker.connection.value,
+                is_connected=is_connected,
+                exchange="",
+                account_id="",
+            )
+        except Exception:
+            from titan.cli.common import get_runtime_engine
+            engine = get_runtime_engine()
+            report = engine.generate_report()
+            broker = engine.broker
+            is_connected = broker.is_connected()
+            provider = type(broker).__name__
+            return BrokerStatusInfo(
+                provider=provider,
+                connection_status=report.broker.connection.value,
+                is_connected=is_connected,
+                exchange="",
+                account_id="",
+            )
+    except Exception:  # noqa: BLE001
         return BrokerStatusInfo()
 
 
 def _read_live_account() -> AccountInfo:
     try:
-        from titan.cli.common import get_runtime_engine
+        data = _get_live_data()
+        if data.get("running"):
+            funds = data.get("funds", {})
+            margin = data.get("margin", {})
+            return AccountInfo(
+                available_cash=_format_inr(funds.get("available_cash", 0.0)),
+                used_margin=_format_inr(margin.get("used_margin", 0.0)),
+                available_margin=_format_inr(margin.get("available_margin", 0.0)),
+                payin=_format_inr(funds.get("payin", 0.0)),
+                payout=_format_inr(funds.get("payout", 0.0)),
+            )
 
+        from titan.cli.common import get_runtime_engine
         engine = get_runtime_engine()
         broker = engine.broker
-        funds = broker.funds()
-        margin = broker.margin()
+        funds_obj = broker.funds()
+        margin_obj = broker.margin()
         return AccountInfo(
-            available_cash=_format_inr(funds.available_cash),
-            used_margin=_format_inr(margin.used_margin),
-            available_margin=_format_inr(margin.available_margin),
-            payin=_format_inr(funds.payin),
-            payout=_format_inr(funds.payout),
+            available_cash=_format_inr(funds_obj.available_cash),
+            used_margin=_format_inr(margin_obj.used_margin),
+            available_margin=_format_inr(margin_obj.available_margin),
+            payin=_format_inr(funds_obj.payin),
+            payout=_format_inr(funds_obj.payout),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return AccountInfo()
 
 
 def _read_live_exposure() -> ExposureInfo:
     try:
-        from titan.cli.common import get_runtime_engine
+        data = _get_live_data()
+        if data.get("running"):
+            positions = data.get("positions", [])
+            long_count = sum(1 for p in positions if p.get("quantity", 0) > 0)
+            short_count = sum(1 for p in positions if p.get("quantity", 0) < 0)
+            gross = sum(abs(p.get("quantity", 0)) * float(p.get("current_price", 0.0)) for p in positions)
+            net = sum(p.get("quantity", 0) * float(p.get("current_price", 0.0)) for p in positions)
+            total_pnl = sum(float(p.get("pnl", 0.0)) for p in positions)
+            return ExposureInfo(
+                total_positions=len(positions),
+                long_positions=long_count,
+                short_positions=short_count,
+                gross_exposure=_format_inr(gross),
+                net_exposure=_format_inr(net),
+                unrealized_pnl=_format_pnl(total_pnl),
+            )
 
+        from titan.cli.common import get_runtime_engine
         engine = get_runtime_engine()
         broker = engine.broker
-        positions = broker.positions()
-        long_count = sum(1 for p in positions if p.quantity > 0)
-        short_count = sum(1 for p in positions if p.quantity < 0)
-        gross = sum(abs(p.quantity) * float(p.current_price or 0) for p in positions)
-        net = sum(p.quantity * float(p.current_price or 0) for p in positions)
-        total_pnl = sum(float(p.pnl or 0) for p in positions)
+        positions_obj = broker.positions()
+        long_count = sum(1 for p in positions_obj if p.quantity > 0)
+        short_count = sum(1 for p in positions_obj if p.quantity < 0)
+        gross = sum(abs(p.quantity) * float(p.current_price or 0) for p in positions_obj)
+        net = sum(p.quantity * float(p.current_price or 0) for p in positions_obj)
+        total_pnl = sum(float(p.pnl or 0) for p in positions_obj)
         return ExposureInfo(
-            total_positions=len(positions),
+            total_positions=len(positions_obj),
             long_positions=long_count,
             short_positions=short_count,
             gross_exposure=_format_inr(gross),
             net_exposure=_format_inr(net),
             unrealized_pnl=_format_pnl(total_pnl),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ExposureInfo()
 
 
 def _read_live_positions() -> tuple[LivePositionEntry, ...]:
     try:
-        from titan.cli.common import get_runtime_engine
+        data = _get_live_data()
+        if data.get("running"):
+            return tuple(
+                LivePositionEntry(
+                    symbol=p.get("symbol", ""),
+                    exchange=p.get("exchange", ""),
+                    product=p.get("product", ""),
+                    quantity=p.get("quantity", 0),
+                    buy_qty=p.get("buy_qty", 0),
+                    sell_qty=p.get("sell_qty", 0),
+                    avg_price=_format_inr(p.get("avg_price", 0.0)),
+                    current_price=_format_inr(p.get("current_price", 0.0)),
+                    pnl=_format_pnl(p.get("pnl", 0.0)),
+                    realised_pnl=_format_pnl(p.get("realised_pnl", 0.0)),
+                )
+                for p in data.get("positions", [])
+            )
 
+        from titan.cli.common import get_runtime_engine
         engine = get_runtime_engine()
         broker = engine.broker
         positions = broker.positions()
@@ -947,18 +1336,40 @@ def _read_live_positions() -> tuple[LivePositionEntry, ...]:
             )
             for p in positions
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
 def _read_live_orders() -> tuple[LiveOrderEntry, ...]:
     try:
+        data = _get_live_data()
+        if data.get("running"):
+            active = []
+            for o in data.get("orders", []):
+                status_str = o.get("status", "")
+                if status_str not in ("pending", "open", "partially_filled"):
+                    continue
+                active.append(
+                    LiveOrderEntry(
+                        order_id=o.get("order_id", ""),
+                        symbol=o.get("symbol", ""),
+                        side=o.get("side", ""),
+                        order_type=o.get("type", ""),
+                        quantity=o.get("quantity", 0),
+                        filled_quantity=o.get("filled_quantity", 0),
+                        price=_format_inr(o.get("average_price") or o.get("price") or 0),
+                        status=status_str,
+                        placed_at="",
+                    )
+                )
+            return tuple(active)
+
         from titan.cli.common import get_runtime_engine
 
         engine = get_runtime_engine()
         broker = engine.broker
         all_orders = broker.orders()
-        active: list[LiveOrderEntry] = []
+        active_list: list[LiveOrderEntry] = []
         for o in all_orders:
             status_str = o.status.value if hasattr(o.status, "value") else str(o.status)
             if status_str not in ("pending", "open", "partially_filled"):
@@ -973,7 +1384,7 @@ def _read_live_orders() -> tuple[LiveOrderEntry, ...]:
             placed_str = ""
             if o.placed_at:
                 placed_str = o.placed_at.strftime("%H:%M")
-            active.append(
+            active_list.append(
                 LiveOrderEntry(
                     order_id=o.broker_order_id,
                     symbol=o.symbol,
@@ -986,8 +1397,8 @@ def _read_live_orders() -> tuple[LiveOrderEntry, ...]:
                     placed_at=placed_str,
                 )
             )
-        return tuple(active)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+        return tuple(active_list)
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1016,7 +1427,7 @@ def _read_recent_executions() -> tuple[ExecutionEntry, ...]:
                 )
             )
         return tuple(entries)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1039,7 +1450,7 @@ def build_monitoring_state() -> MonitoringScreenState:
     recovery_status = _read_monitoring_recovery_status()
     monitoring_events = _read_monitoring_events()
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return MonitoringScreenState(
         system_health=system_health,
@@ -1080,7 +1491,7 @@ def _read_monitoring_system_health() -> SystemHealthInfo:
             offline_count=health.offline_count,
             subsystems=subsystems,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return SystemHealthInfo()
 
 
@@ -1099,7 +1510,7 @@ def _read_monitoring_telemetry() -> TelemetryInfo:
             total_collections=status.total_collections,
             uptime=_format_uptime(status.uptime_seconds),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return TelemetryInfo()
 
 
@@ -1121,7 +1532,7 @@ def _read_monitoring_resource_metrics() -> ResourceMetricsInfo:
             for summary in status.metric_summaries
         )
         return ResourceMetricsInfo(metrics=metrics)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ResourceMetricsInfo()
 
 
@@ -1141,7 +1552,7 @@ def _read_monitoring_alert_summary() -> AlertSummaryInfo:
             resolved=report.resolved_alerts,
             escalated=report.escalated_alerts,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return AlertSummaryInfo()
 
 
@@ -1165,7 +1576,7 @@ def _read_monitoring_active_alerts() -> tuple[AlertEntry, ...]:
             )
             for alert in alerts[-20:]
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1202,7 +1613,7 @@ def _read_monitoring_alert_history() -> tuple[AlertHistoryEntry, ...]:
                 )
             )
         return tuple(result)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1240,7 +1651,7 @@ def _read_monitoring_recovery_status() -> RecoveryStatusInfo:
             last_strategy=last_strategy,
             recovered_components=recovered,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return RecoveryStatusInfo()
 
 
@@ -1259,7 +1670,7 @@ def _read_monitoring_events() -> tuple[MonitoringEventEntry, ...]:
                     level="warning",
                     source="monitoring",
                     message=warning,
-                    timestamp_str=datetime.now(UTC).strftime("%H:%M:%S"),
+                    timestamp_str=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
                 )
             )
         for rec in report.recommendations:
@@ -1268,10 +1679,10 @@ def _read_monitoring_events() -> tuple[MonitoringEventEntry, ...]:
                     level="info",
                     source="monitoring",
                     message=rec,
-                    timestamp_str=datetime.now(UTC).strftime("%H:%M:%S"),
+                    timestamp_str=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
                 )
             )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
         pass
     try:
         from titan.cli.common import get_recovery_manager
@@ -1295,7 +1706,7 @@ def _read_monitoring_events() -> tuple[MonitoringEventEntry, ...]:
                     ),
                 )
             )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
         pass
     try:
         from titan.cli.common import get_alert_manager
@@ -1308,10 +1719,10 @@ def _read_monitoring_events() -> tuple[MonitoringEventEntry, ...]:
                     level="warning",
                     source="alerting",
                     message=w,
-                    timestamp_str=datetime.now(UTC).strftime("%H:%M:%S"),
+                    timestamp_str=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
                 )
             )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
         pass
     return tuple(entries[-30:])
 
@@ -1335,7 +1746,7 @@ def build_audit_state() -> AuditScreenState:
     checkpoints = _read_checkpoints()
     backup_status = _read_backup_status()
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return AuditScreenState(
         audit_summary=audit_summary,
@@ -1379,7 +1790,7 @@ def _read_audit_summary() -> AuditSummaryInfo:
             first_event_time=first,
             last_event_time=last,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return AuditSummaryInfo()
 
 
@@ -1425,7 +1836,7 @@ def _read_recent_audit() -> tuple[AuditEntry, ...]:
                 )
             )
         return tuple(entries)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1450,7 +1861,7 @@ def _read_log_summary() -> LogSummaryInfo:
             warning_count=len(report.warnings),
             error_count=len(report.errors),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return LogSummaryInfo()
 
 
@@ -1486,7 +1897,7 @@ def _read_recent_logs() -> tuple[LogEntry, ...]:
                 )
             )
         return tuple(entries[-20:])
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1524,7 +1935,7 @@ def _read_recovery_history_entries() -> tuple[RecoveryHistoryEntry, ...]:
                 )
             )
         return tuple(entries)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1551,7 +1962,7 @@ def _read_circuit_breakers() -> tuple[CircuitBreakerInfo, ...]:
                 )
             )
         return tuple(result)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1582,7 +1993,7 @@ def _read_checkpoints() -> tuple[CheckpointInfo, ...]:
                 )
             )
         return tuple(result)
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1622,7 +2033,7 @@ def _read_backup_status() -> BackupStatusInfo:
             storage_type=storage_type,
             storage_path=storage_path,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return BackupStatusInfo()
 
 
@@ -1641,7 +2052,7 @@ def build_configuration_state() -> ConfigurationScreenState:
     backup = _read_backup()
     history = _read_deployment_history()
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     return ConfigurationScreenState(
         configuration=configuration,
@@ -1676,7 +2087,7 @@ def _read_configuration() -> ConfigurationInfo:
             pipeline_interval=pipeline_interval,
             validation_status=report.validation_status,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ConfigurationInfo()
 
 
@@ -1704,7 +2115,7 @@ def _read_environment() -> EnvironmentInfo:
             secrets_available=report.secrets_available,
             validation_status=validation_status,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return EnvironmentInfo()
 
 
@@ -1741,7 +2152,7 @@ def _read_deployment() -> DeploymentInfo:
             health_status=health_val,
             startup_duration=startup_duration,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return DeploymentInfo()
 
 
@@ -1766,7 +2177,7 @@ def _read_services() -> tuple[ServiceStatusEntry, ...]:
             )
             for sub in health.subsystems
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -1785,7 +2196,7 @@ def _read_versions() -> VersionInfo:
             git_branch=ver.git_branch,
             python_version=ver.python_version,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return VersionInfo()
 
 
@@ -1820,7 +2231,7 @@ def build_market_state() -> MarketScreenState:
         greeks=_read_greeks(),
         evidence=_read_evidence(),
         events=_read_market_events(),
-        last_refresh=datetime.now().strftime("%H:%M:%S"),
+        last_refresh=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
     )
 
 
@@ -1850,7 +2261,7 @@ def _read_market_status() -> MarketStatusInfo:
                 else ""
             ),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return MarketStatusInfo()
 
 
@@ -1919,7 +2330,7 @@ def build_decision_state() -> DecisionScreenState:
         reasons=_read_decision_reasons(),
         timeline=_read_decision_timeline(),
         history=_read_decision_history(),
-        last_refresh=datetime.now().strftime("%H:%M:%S"),
+        last_refresh=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
     )
 
 
@@ -1944,7 +2355,7 @@ def _read_decision_summary() -> DecisionSummaryInfo:
             institutional_grade=entry.institutional_grade,
             timestamp_str=entry.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return DecisionSummaryInfo()
 
 
@@ -1967,7 +2378,7 @@ def _read_decision_evidence() -> DecisionEvidenceInfo:
             weight=ev.weight,
             reasons=ev.reasons,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return DecisionEvidenceInfo()
 
 
@@ -1983,7 +2394,7 @@ def _read_decision_risk() -> DecisionRiskInfo:
         return DecisionRiskInfo(
             risk_summary=entries[0].risk_summary or "No risk data available."
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return DecisionRiskInfo()
 
 
@@ -2000,7 +2411,7 @@ def _read_decision_qualification() -> DecisionQualificationInfo:
             explanation_summary=entries[0].explanation_summary
             or "No explanation available."
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return DecisionQualificationInfo()
 
 
@@ -2021,7 +2432,7 @@ def _read_decision_reasons() -> tuple[DecisionReasonEntry, ...]:
             )
             for r in entries[0].reasons
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -2046,7 +2457,7 @@ def _read_decision_history() -> tuple[DecisionJournalEntry, ...]:
             )
             for e in entries
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return ()
 
 
@@ -2074,13 +2485,13 @@ def build_trade_journal_state() -> TradeJournalScreenState:
         perf = analyzer.analyze(entries)
 
         summary = TradeJournalSummaryInfo(
-            today_pnl=f"₹{perf.overall.net_pnl:.2f}",
-            open_risk="₹0",  # TBD
-            exposure="₹0",  # TBD
+            today_pnl=f"INR {perf.overall.net_pnl:.2f}",
+            open_risk="INR 0",  # TBD
+            exposure="INR 0",  # TBD
             win_percent=f"{perf.overall.win_rate * 100:.1f}%",
             current_drawdown="0.0%",  # TBD: Calculate real-time drawdown
-            largest_winner=f"₹{perf.overall.largest_winner:.2f}",
-            largest_loser=f"₹{perf.overall.largest_loser:.2f}",
+            largest_winner=f"INR {perf.overall.largest_winner:.2f}",
+            largest_loser=f"INR {perf.overall.largest_loser:.2f}",
         )
 
         history = tuple(
@@ -2089,9 +2500,9 @@ def build_trade_journal_state() -> TradeJournalScreenState:
                 symbol=e.symbol,
                 direction=e.direction,
                 quantity=e.quantity,
-                entry_price=f"₹{e.entry_price:.2f}",
-                exit_price=f"₹{e.exit_price:.2f}",
-                net_pnl=f"₹{e.net_pnl:.2f}",
+                entry_price=f"INR {e.entry_price:.2f}",
+                exit_price=f"INR {e.exit_price:.2f}",
+                net_pnl=f"INR {e.net_pnl:.2f}",
                 status=e.execution_status.value.upper(),
                 open_time=e.open_time.strftime("%H:%M:%S") if e.open_time else "",
             )
@@ -2101,9 +2512,9 @@ def build_trade_journal_state() -> TradeJournalScreenState:
         return TradeJournalScreenState(
             summary=summary,
             history=history,
-            last_refresh=datetime.now(UTC).strftime("%H:%M:%S"),
+            last_refresh=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return TradeJournalScreenState()
 
 
@@ -2137,7 +2548,7 @@ def build_replay_state(entry_id: str | None = None) -> ReplayScreenState:
     if not result:
         return ReplayScreenState(
             metadata=ReplayMetadataInfo(total_decisions=total),
-            last_refresh=datetime.now().strftime("%H:%M:%S"),
+            last_refresh=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
         )
 
     entry = result.snapshot.entry
@@ -2220,7 +2631,7 @@ def build_replay_state(entry_id: str | None = None) -> ReplayScreenState:
         reasons=reasons,
         timeline=timeline,
         metadata=metadata,
-        last_refresh=datetime.now().strftime("%H:%M:%S"),
+        last_refresh=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005 - local time for display
     )
 
 
@@ -2239,7 +2650,7 @@ def build_strategy_eval_state() -> StrategyEvalScreenState:
         StrategyScorecardInfo,
     )
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     try:
         engine = get_runtime_engine()
@@ -2256,7 +2667,7 @@ def build_strategy_eval_state() -> StrategyEvalScreenState:
                     trades=r.total_trades,
                     win_rate=f"{r.win_rate * 100:.1f}%",
                     profit_factor=f"{r.profit_factor:.2f}",
-                    net_pnl=f"₹{r.net_pnl:,.2f}",
+                    net_pnl=f"INR {r.net_pnl:,.2f}",
                 )
                 for r in strat.regime_breakdown.values()
             )
@@ -2268,8 +2679,8 @@ def build_strategy_eval_state() -> StrategyEvalScreenState:
                     win_rate=f"{strat.win_rate * 100:.1f}%",
                     profit_factor=f"{strat.profit_factor:.2f}",
                     expectancy=f"{strat.expectancy:.2f}R",
-                    net_pnl=f"₹{strat.net_pnl:,.2f}",
-                    max_drawdown=f"₹{strat.max_drawdown:,.2f}",
+                    net_pnl=f"INR {strat.net_pnl:,.2f}",
+                    max_drawdown=f"INR {strat.max_drawdown:,.2f}",
                     regimes=regimes,
                 )
             )
@@ -2279,7 +2690,7 @@ def build_strategy_eval_state() -> StrategyEvalScreenState:
             scorecards=tuple(scorecards),
             last_refresh=now,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return StrategyEvalScreenState(last_refresh=now)
 
 
@@ -2298,7 +2709,7 @@ def build_ai_state(provider_name: str = "mock") -> AIScreenState:
     from titan.portfolio.models import ExistingPortfolio, OpenPosition
     from titan.tui.models import AIExplanationInfo, AIScreenState
 
-    now = datetime.now(UTC).strftime("%H:%M:%S")
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
 
     provider = (
         MockAIProvider() if provider_name.lower() == "mock" else GeminiAIProvider()
@@ -2361,5 +2772,5 @@ def build_ai_state(provider_name: str = "mock") -> AIScreenState:
             strategy_explanation=strat_info,
             last_refresh=now,
         )
-    except (RuntimeError, OSError, ValueError, TypeError, AttributeError, KeyError, TitanRuntimeError):
+    except Exception:  # noqa: BLE001
         return AIScreenState(last_refresh=now)

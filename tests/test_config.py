@@ -77,7 +77,8 @@ class TestAppConfig:
 class TestBrokerConfig:
     def test_defaults(self) -> None:
         cfg = BrokerConfig()
-        assert cfg.provider == "paper"
+        assert cfg.provider == "angel_one"
+        assert cfg.exchange == "nse"
         assert cfg.paper_initial_cash == Decimal(100000)
         assert cfg.max_retries == 3
 

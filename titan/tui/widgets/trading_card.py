@@ -8,6 +8,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from titan.tui.models import TradingInfo
+from titan.tui.widgets import markup_color
 
 
 class TradingCard(Widget):
@@ -61,10 +62,10 @@ class TradingCard(Widget):
         live_cls = _trading_status_class(info.live_status)
         paper_cls = _trading_status_class(info.paper_status)
         self._live.update(
-            f'[bold]Live:[/bold] <span class="{live_cls}">{info.live_status}</span>'
+            f"[bold]Live:[/bold] [{markup_color(live_cls)}]{info.live_status}[/]"
         )
         self._paper.update(
-            f'[bold]Paper:[/bold] <span class="{paper_cls}">{info.paper_status}</span>'
+            f"[bold]Paper:[/bold] [{markup_color(paper_cls)}]{info.paper_status}[/]"
         )
         self._backtests.update(f"[bold]Backtests Today:[/bold] {info.backtests_today}")
 

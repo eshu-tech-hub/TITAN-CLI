@@ -36,7 +36,7 @@ class TradeSummaryWidget(Static):
 [b]Largest Winner:[/b] {summary.largest_winner}   |   [b]Largest Loser:[/b] {summary.largest_loser}
 """
             content.update(text.strip())
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
 
 
@@ -86,7 +86,7 @@ class TradeHistoryWidget(Static):
                     entry.exit_price,
                     entry.net_pnl,
                     entry.status,
-                    entry.open_time,
-                )
-        except Exception:
+entry.open_time,
+            )
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass

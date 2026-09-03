@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 from textual.widget import Widget
@@ -56,7 +56,7 @@ class HeaderWidget(Widget):
         super().__init__(**kwargs)
         self._version: str = "TITAN"
         self._hostname: str = ""
-        self._profile: str = "default"
+        self._profile: str = "development"
         self._uptime: str = "00:00:00"
         self._runtime_status: str = "Stopped"
         self._clock: str = ""
@@ -101,7 +101,7 @@ class HeaderWidget(Widget):
 
     def update_clock(self) -> None:
         """Update the clock display. Called every second."""
-        self._clock = datetime.now(UTC).strftime("%H:%M:%S UTC")
+        self._clock = datetime.now().strftime("%H:%M:%S IST")  # noqa: DTZ005 - local time for display
         if hasattr(self, "_clock_widget"):
             self._clock_widget.update(f"[bold]{self._clock}[/bold]")
 

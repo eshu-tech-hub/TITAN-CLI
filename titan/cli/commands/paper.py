@@ -512,7 +512,13 @@ def start(
     ] = False,
     cash: Annotated[
         float, typer.Option("--cash", help="Initial cash balance")
-    ] = 100000.0,
+    ] = 1000000.0,
+    symbol: Annotated[
+        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
+    ] = "RELIANCE",
+    exchange: Annotated[
+        str, typer.Option("--exchange", "-e", help="Exchange segment")
+    ] = "nse",
 ) -> None:
     """Start a paper trading session."""
     global _paper_broker, _paper_start_time
@@ -537,25 +543,25 @@ def start(
         return
 
     if verbose:
-        _start_with_progress(cash)
+        _start_with_progress(cash, symbol=symbol, exchange=exchange)
     else:
-        _start_silent(cash)
+        _start_silent(cash, symbol=symbol, exchange=exchange)
 
 
-def _start_silent(initial_cash: float) -> None:
+def _start_silent(initial_cash: float, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
     try:
-        _launch_paper_runtime(initial_cash)
+        _launch_paper_runtime(initial_cash, symbol=symbol, exchange=exchange)
         console.print("[bold green]+[/bold green] Paper trading session started.")
     except Exception as exc:
         console.print(f"[bold red]![/bold red] Failed to start: {exc}")
         raise typer.Exit(code=3)
 
 
-def _start_with_progress(initial_cash: float) -> None:
-    _start_silent(initial_cash)
+def _start_with_progress(initial_cash: float, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
+    _start_silent(initial_cash, symbol=symbol, exchange=exchange)
 
 
-def _launch_paper_runtime(initial_cash: float) -> None:
+def _launch_paper_runtime(initial_cash: float, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
     import sys
 
     from titan.runtime.launcher import DetachedRuntimeLauncher
@@ -570,6 +576,10 @@ def _launch_paper_runtime(initial_cash: float) -> None:
             "serve",
             "--cash",
             str(initial_cash),
+            "--symbol",
+            symbol.upper(),
+            "--exchange",
+            exchange.lower(),
         ],
         log_path=Path("logs") / "paper_runtime.log",
     )
@@ -593,16 +603,48 @@ def _wait_until_runtime_stops(timeout_seconds: float = 5.0) -> None:
 @app.command("serve", hidden=True)
 def serve(
     cash: Annotated[float, typer.Option("--cash", help="Initial cash balance")],
+    symbol: Annotated[
+        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
+    ] = "RELIANCE",
+    exchange: Annotated[
+        str, typer.Option("--exchange", "-e", help="Exchange segment")
+    ] = "nse",
 ) -> None:
     """Run the detached paper runtime process."""
     from decimal import Decimal as D
 
+    from titan.execution.allocator import ExecutionAllocator
+    from titan.execution.book import OrderBook
+    from titan.execution.execution import ExecutionEngine
+    from titan.execution.orchestrator import ExecutionOrchestrator
+    from titan.execution.planner import ExecutionPlanner
+    from titan.execution.router import OrderRouter
+    from titan.execution.validator import ExecutionValidator
     from titan.paper.broker import PaperBroker
+    from titan.pipeline.pipeline import TradePipeline
     from titan.runtime.local_transport import LocalTransportServer
     from titan.runtime.runtime import RuntimeEngine
     from titan.runtime.service import RuntimeService
+    from titan.trading.strategies.momentum import MomentumStrategy
 
-    engine = RuntimeEngine(broker=PaperBroker(initial_cash=D(str(cash))))
+    broker = PaperBroker(initial_cash=D(str(cash)))
+    pipeline = TradePipeline(
+        strategy=MomentumStrategy(),
+    )
+    pipeline._orchestrator = ExecutionOrchestrator(
+        planner=ExecutionPlanner(),
+        validator=ExecutionValidator(),
+        allocator=ExecutionAllocator(),
+        oms=ExecutionEngine(order_book=OrderBook(), router=OrderRouter()),
+        broker=broker,
+    )
+
+    engine = RuntimeEngine(
+        broker=broker,
+        pipeline=pipeline,
+        target_symbol=symbol.upper(),
+        target_exchange=exchange.upper(),
+    )
     server = LocalTransportServer(RuntimeService(engine))
     try:
         engine.start()
@@ -658,7 +700,13 @@ def restart(
     ] = False,
     cash: Annotated[
         float, typer.Option("--cash", help="Initial cash balance (for new session)")
-    ] = 100000.0,
+    ] = 1000000.0,
+    symbol: Annotated[
+        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
+    ] = "RELIANCE",
+    exchange: Annotated[
+        str, typer.Option("--exchange", "-e", help="Exchange segment")
+    ] = "nse",
 ) -> None:
     """Restart paper trading (stop then start)."""
     logger.info("Paper restart command executed")
@@ -671,7 +719,7 @@ def restart(
     if verbose:
         console.print("[green]+[/green] Starting new session...")
 
-    start(verbose=verbose, dry_run=False, cash=cash)
+    start(verbose=verbose, dry_run=False, cash=cash, symbol=symbol, exchange=exchange)
 
 
 @app.command("status")

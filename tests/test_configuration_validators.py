@@ -15,7 +15,7 @@ def test_environment_validator_python_version():
         results = EnvironmentValidator.validate()
         assert len(results) == 1
         assert results[0].level == ValidationLevel.ERROR
-        assert "Python 3.14+" in results[0].message
+        assert "Python 3.12+" in results[0].message
 
 
 def test_directory_validator_missing_dirs():

@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, ClassVar
 
 from textual.containers import VerticalScroll
-from textual.screen import Screen
 from textual.widgets import Static
 
 SHORTCUTS = [
@@ -47,8 +46,8 @@ SHORTCUTS = [
 ]
 
 
-class HelpScreen(Screen):
-    """Full-screen help with keyboard shortcuts and navigation reference."""
+class HelpScreen(VerticalScroll):
+    """Full-screen help view with keyboard shortcuts and navigation reference."""
 
     BINDINGS: ClassVar[list] = [
         ("escape", "back", "Back"),
@@ -106,8 +105,8 @@ class HelpScreen(Screen):
         yield Static("Press Escape or Q to return", classes="help-footer")
 
     def action_back(self) -> None:
-        """Return to previous screen."""
+        """Return to previous view via the shell router."""
         try:
-            self.app.pop_screen()
-        except Exception:
+            self.app.action_go_back()
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass

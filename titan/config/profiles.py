@@ -15,6 +15,10 @@ def profile_defaults(profile: str) -> dict:
     registry: dict[str, dict] = {
         EnvironmentProfile.DEVELOPMENT: {
             "app": {"log_level": LogLevel.DEBUG.value},
+            "broker": {
+                "provider": BrokerProvider.ANGEL_ONE.value,
+                "exchange": "nse",
+            },
             "runtime": {
                 "pipeline_interval_seconds": 120.0,
                 "stream_enabled": False,
@@ -83,6 +87,10 @@ def profile_defaults(profile: str) -> dict:
         },
         EnvironmentProfile.PRODUCTION: {
             "app": {"log_level": LogLevel.WARNING.value},
+            "broker": {
+                "provider": BrokerProvider.ANGEL_ONE.value,
+                "exchange": "nse",
+            },
             "runtime": {
                 "pipeline_interval_seconds": 60.0,
                 "stream_enabled": True,

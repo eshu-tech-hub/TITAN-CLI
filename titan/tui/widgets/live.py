@@ -16,6 +16,7 @@ from titan.tui.models import (
     LivePositionEntry,
     LiveStatusInfo,
 )
+from titan.tui.widgets import markup_color
 
 
 class LiveStatusWidget(Widget):
@@ -76,7 +77,7 @@ class LiveStatusWidget(Widget):
             return
         status_cls = _live_status_class(info.status)
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{status_cls}">{info.status}</span>'
+            f"[bold]Status:[/bold] [{markup_color(status_cls)}]{info.status}[/]"
         )
         self._uptime.update(f"[bold]Uptime:[/bold] {info.uptime}")
         broker_cls = (
@@ -84,14 +85,14 @@ class LiveStatusWidget(Widget):
         )
         broker_text = "Connected" if info.broker_connected else "Disconnected"
         self._broker.update(
-            f'[bold]Broker:[/bold] <span class="{broker_cls}">{broker_text}</span>'
+            f"[bold]Broker:[/bold] [{markup_color(broker_cls)}]{broker_text}[/]"
         )
         stream_cls = (
             "value-connected" if info.stream_connected else "value-disconnected"
         )
         stream_text = "Connected" if info.stream_connected else "Disconnected"
         self._stream.update(
-            f'[bold]Stream:[/bold] <span class="{stream_cls}">{stream_text}</span>'
+            f"[bold]Stream:[/bold] [{markup_color(stream_cls)}]{stream_text}[/]"
         )
         self._pipeline.update(
             f"[bold]Pipeline:[/bold] {info.pipeline_executions} executions"
@@ -152,7 +153,7 @@ class BrokerStatusWidget(Widget):
         self._provider.update(f"[bold]Provider:[/bold] {info.provider}")
         conn_cls = "value-connected" if info.is_connected else "value-disconnected"
         self._connection.update(
-            f'[bold]Status:[/bold] <span class="{conn_cls}">{info.connection_status}</span>'
+            f"[bold]Status:[/bold] [{markup_color(conn_cls)}]{info.connection_status}[/]"
         )
         self._exchange.update(f"[bold]Exchange:[/bold] {info.exchange or '--'}")
         self._account.update(f"[bold]Account:[/bold] {info.account_id or '--'}")
@@ -279,7 +280,7 @@ class ExposureWidget(Widget):
         self._net.update(f"[bold]Net Exposure:[/bold] {info.net_exposure}")
         pnl_cls = _pnl_class(info.unrealized_pnl)
         self._pnl.update(
-            f'[bold]Unrealized P&L:[/bold] <span class="{pnl_cls}">{info.unrealized_pnl}</span>'
+            f"[bold]Unrealized P&L:[/bold] [{markup_color(pnl_cls)}]{info.unrealized_pnl}[/]"
         )
 
     def render(self) -> str:
@@ -355,7 +356,7 @@ class LiveHealthWidget(Widget):
             return
         mon_cls = _health_class(monitoring_status)
         self._monitoring.update(
-            f'[bold]Monitoring:[/bold] <span class="{mon_cls}">{monitoring_status}</span>'
+            f"[bold]Monitoring:[/bold] [{markup_color(mon_cls)}]{monitoring_status}[/]"
         )
         alert_level = (
             "event-error"
@@ -363,7 +364,7 @@ class LiveHealthWidget(Widget):
             else ("event-warning" if total_alerts > 0 else "event-info")
         )
         self._alerts.update(
-            f'[bold]Alerts:[/bold] <span class="{alert_level}">{critical_alerts}C / {total_alerts}T</span>'
+            f"[bold]Alerts:[/bold] [{markup_color(alert_level)}]{critical_alerts}C / {total_alerts}T[/]"
         )
         self._recovery.update(
             f"[bold]Recovery:[/bold] {recovery_status} ({recovery_attempts} attempts)"
@@ -427,7 +428,7 @@ class LivePositionsWidget(Widget):
                 row = Static(
                     f"  {pos.symbol} ({pos.exchange}) | Qty {pos.quantity} | "
                     f"Avg {pos.avg_price} | LTP {pos.current_price} | "
-                    f'<span class="{pnl_cls}">{pos.pnl}</span>',
+                    f"[{markup_color(pnl_cls)}]{pos.pnl}[/]",
                     classes="card-row",
                 )
                 self._rows.append(row)
@@ -493,7 +494,7 @@ class LiveOrdersWidget(Widget):
             for o in orders:
                 side_cls = "value-buy" if o.side.lower() == "buy" else "value-sell"
                 row = Static(
-                    f'  <span class="{side_cls}">{o.side.upper()}</span>'
+                    f"  [{markup_color(side_cls)}]{o.side.upper()}[/]"
                     f" {o.symbol} | {o.order_type} | Qty {o.quantity}"
                     f" | Filled {o.filled_quantity} | {o.price} | {o.status}",
                     classes="card-row",
@@ -561,7 +562,7 @@ class ExecutionsWidget(Widget):
             for ex in executions:
                 side_cls = "value-buy" if ex.side.lower() == "buy" else "value-sell"
                 row = Static(
-                    f'  <span class="{side_cls}">{ex.side.upper()}</span>'
+                    f"  [{markup_color(side_cls)}]{ex.side.upper()}[/]"
                     f" {ex.symbol} | Qty {ex.quantity} @ {ex.price}"
                     f" | {ex.trade_id} | {ex.time}",
                     classes="card-row",

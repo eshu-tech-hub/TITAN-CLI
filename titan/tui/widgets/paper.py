@@ -16,6 +16,7 @@ from titan.tui.models import (
     PaperSessionInfo,
     PaperTradeEntry,
 )
+from titan.tui.widgets import markup_color
 
 
 class PaperSessionWidget(Widget):
@@ -70,7 +71,7 @@ class PaperSessionWidget(Widget):
         else:
             cls = "value-stopped"
         self._status.update(
-            f'[bold]Status:[/bold] <span class="{cls}">{info.status}</span>'
+            f"[bold]Status:[/bold] [{markup_color(cls)}]{info.status}[/]"
         )
         self._started.update(f"[bold]Started:[/bold] {info.started}")
         self._duration.update(f"[bold]Duration:[/bold] {info.duration}")
@@ -187,7 +188,7 @@ class ActiveOrdersWidget(Widget):
             for o in orders:
                 side_cls = "value-buy" if o.side.lower() == "buy" else "value-sell"
                 row = Static(
-                    f'  <span class="{side_cls}">{o.side.upper()}</span>'
+                    f"  [{markup_color(side_cls)}]{o.side.upper()}[/]"
                     f" {o.symbol} | {o.order_type} | Qty {o.quantity}"
                     f" | Filled {o.filled_quantity} | {o.price} | {o.status}",
                     classes="card-row",
@@ -258,11 +259,11 @@ class PortfolioWidget(Widget):
         self._equity.update(f"[bold]Equity:[/bold] {info.equity}")
         u_cls = _pnl_class(info.unrealized_pnl)
         self._unrealized.update(
-            f'[bold]Unrealized P&L:[/bold] <span class="{u_cls}">{info.unrealized_pnl}</span>'
+            f"[bold]Unrealized P&L:[/bold] [{markup_color(u_cls)}]{info.unrealized_pnl}[/]"
         )
         r_cls = _pnl_class(info.realized_pnl)
         self._realized.update(
-            f'[bold]Realized P&L:[/bold] <span class="{r_cls}">{info.realized_pnl}</span>'
+            f"[bold]Realized P&L:[/bold] [{markup_color(r_cls)}]{info.realized_pnl}[/]"
         )
 
     def render(self) -> str:
@@ -377,7 +378,7 @@ class PositionWidget(Widget):
                 row = Static(
                     f"  {pos.symbol} | Qty {pos.quantity} | "
                     f"Avg {pos.avg_price} | LTP {pos.current_price} | "
-                    f'<span class="{pnl_cls}">{pos.unrealized_pnl}</span>',
+                    f"[{markup_color(pnl_cls)}]{pos.unrealized_pnl}[/]",
                     classes="card-row",
                 )
                 self._rows.append(row)
@@ -450,9 +451,9 @@ class TradeHistoryWidget(Widget):
                 side_cls = "value-buy" if t.side.lower() == "buy" else "value-sell"
                 pnl_cls = _pnl_class(t.pnl)
                 row = Static(
-                    f'  <span class="{side_cls}">{t.side.upper()}</span>'
+                    f"  [{markup_color(side_cls)}]{t.side.upper()}[/]"
                     f" {t.symbol} | Qty {t.quantity} @ {t.price} | "
-                    f'<span class="{pnl_cls}">{t.pnl}</span> | {t.time}',
+                    f"[{markup_color(pnl_cls)}]{t.pnl}[/] | {t.time}",
                     classes="card-row",
                 )
                 self._rows.append(row)

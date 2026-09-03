@@ -4,12 +4,29 @@ from __future__ import annotations
 
 from typing import Any, ClassVar
 
+from textual import events
+from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
 
+class SidebarSelected(Message):
+    """Posted when the user activates a sidebar section."""
+
+    def __init__(self, name: str) -> None:
+        super().__init__()
+        self.name = name
+
+
 class SidebarWidget(Widget):
-    """Sidebar with section list, keyboard/mouse navigation, and active highlight."""
+    """Sidebar with section list, keyboard/mouse navigation, and active highlight.
+
+    The widget is focusable: the up/down arrow keys move the active highlight
+    between sections and Enter activates the highlighted section. Clicking a
+    section also activates it. Every activation posts a SidebarSelected message.
+    """
+
+    can_focus = True
 
     DEFAULT_CSS: ClassVar[str] = """
     SidebarWidget {
@@ -69,10 +86,17 @@ class SidebarWidget(Widget):
         ("Help", "help"),
     ]
 
+    BINDINGS: ClassVar[list] = [
+        ("up", "select_previous", "Previous"),
+        ("down", "select_next", "Next"),
+        ("enter", "activate", "Go"),
+    ]
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._active: str = "dashboard"
         self._rows: list[Static] = []
+        self._names: list[str] = []
 
     def compose(self):  # type: ignore[override]
         self._title = Static("TITAN OS", classes="sidebar-title")
@@ -88,6 +112,7 @@ class SidebarWidget(Widget):
                 )
                 row = Static(f"  {label}", classes=cls, id=f"sidebar-{key}")
                 self._rows.append(row)
+                self._names.append(key)
                 yield row
         yield Static("", classes="sidebar-spacer")
         self._footer = Static("F1 Help", classes="sidebar-footer")
@@ -107,6 +132,34 @@ class SidebarWidget(Widget):
             else:
                 row.remove_class("sidebar-section-active")
                 row.add_class("sidebar-section-inactive")
+
+    def _select_offset(self, offset: int) -> None:
+        """Move the active highlight by a relative row offset."""
+        if not self._names:
+            return
+        try:
+            index = self._names.index(self._active)
+        except ValueError:
+            index = 0
+        self.set_active(self._names[(index + offset) % len(self._names)])
+
+    def action_select_previous(self) -> None:
+        self._select_offset(-1)
+
+    def action_select_next(self) -> None:
+        self._select_offset(1)
+
+    def action_activate(self) -> None:
+        self.post_message(SidebarSelected(self._active))
+
+    def on_click(self, event: events.Click) -> None:
+        widget_id = getattr(event.widget, "id", None) or ""
+        if not widget_id.startswith("sidebar-"):
+            return
+        section = widget_id[len("sidebar-") :]
+        if section in self._names:
+            self.set_active(section)
+            self.post_message(SidebarSelected(section))
 
     @property
     def active(self) -> str:

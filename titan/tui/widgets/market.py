@@ -81,7 +81,7 @@ class MarketStatusWidget(Widget):
                 self.query_one("#market-quote-time", Label).update(
                     info.last_quote_time or "N/A"
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -143,7 +143,7 @@ class RegimeWidget(Widget):
                 self.query_one("#regime-confidence", Label).update(
                     f"{info.confidence * 100:.1f}%"
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
 
@@ -203,7 +203,7 @@ class VolatilityWidget(Widget):
                 lbl = self.query_one("#vol-bias", Label)
                 lbl.update(info.overall_bias)
                 lbl.classes = f"value {_format_status(info.overall_bias)}"
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -255,7 +255,7 @@ class LiquidityWidget(Widget):
                     _format_float(info.execution_score)
                 )
                 self.query_one("#liq-grade", Label).update(info.execution_grade)
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -320,7 +320,7 @@ class OptionChainWidget(Widget):
                 self.query_one("#opt-bear", Label).update(
                     _format_float(info.bearish_score)
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -358,7 +358,7 @@ class OpenInterestWidget(Widget):
                 self.query_one("#oi-conf", Label).update(
                     f"{info.confidence * 100:.1f}%"
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -412,7 +412,7 @@ class GreeksWidget(Widget):
                 lbl = self.query_one("#grk-bias", Label)
                 lbl.update(info.overall_bias)
                 lbl.classes = f"value {_format_status(info.overall_bias)}"
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -457,7 +457,7 @@ class EvidenceWidget(Widget):
                     f"{info.confidence * 100:.1f}%"
                 )
                 self.query_one("#ev-count", Label).update(str(info.evidence_count))
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
                 pass
 
 
@@ -492,5 +492,5 @@ class MarketEventsWidget(Widget):
 
             for ev in events:
                 table.add_row(ev.timestamp, ev.source, ev.message, ev.severity)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass

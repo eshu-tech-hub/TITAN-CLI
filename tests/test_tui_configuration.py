@@ -725,26 +725,24 @@ class TestConfigurationScreen:
     @pytest.mark.asyncio
     async def test_screen_mount_refresh(self) -> None:
         class DummyApp(App):
-            def on_mount(self):
-                self.push_screen(ConfigurationScreen())
+            def compose(self):
+                yield ConfigurationScreen()
 
         app = DummyApp()
         async with app.run_test():
-            s = app.screen
-            assert isinstance(s, ConfigurationScreen)
+            s = app.query_one(ConfigurationScreen)
             s._tick_refresh()
             assert s.state is not None
 
     @pytest.mark.asyncio
     async def test_screen_actions(self) -> None:
         class DummyApp(App):
-            def on_mount(self):
-                self.push_screen(ConfigurationScreen())
+            def compose(self):
+                yield ConfigurationScreen()
 
         app = DummyApp()
         async with app.run_test():
-            s = app.screen
-            assert isinstance(s, ConfigurationScreen)
+            s = app.query_one(ConfigurationScreen)
             s.action_refresh()
             s.action_scroll_up()
             s.action_scroll_down()
@@ -767,26 +765,24 @@ class TestConfigurationScreen:
     @pytest.mark.asyncio
     async def test_screen_back_action(self) -> None:
         class DummyApp(App):
-            def on_mount(self):
-                self.push_screen(ConfigurationScreen())
+            def compose(self):
+                yield ConfigurationScreen()
 
         app = DummyApp()
         async with app.run_test():
-            s = app.screen
-            assert isinstance(s, ConfigurationScreen)
+            s = app.query_one(ConfigurationScreen)
             s.action_back()
             # If there was a previous screen, it would pop. For tests, checking no crash.
 
     @pytest.mark.asyncio
     async def test_screen_update_widgets(self) -> None:
         class DummyApp(App):
-            def on_mount(self):
-                self.push_screen(ConfigurationScreen())
+            def compose(self):
+                yield ConfigurationScreen()
 
         app = DummyApp()
         async with app.run_test():
-            s = app.screen
-            assert isinstance(s, ConfigurationScreen)
+            s = app.query_one(ConfigurationScreen)
             s._update_widgets()
             assert s._config_widget is not None
             assert s._services_widget is not None
