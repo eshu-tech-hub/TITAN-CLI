@@ -439,7 +439,8 @@ See [ADR-033-CLI-Foundation.md](adr/ADR-033-CLI-Foundation.md) for the architect
  
  t i t a n   b r o k e r   c o m p l i a n c e   [ b r o k e r _ i d ] 
  
- t i t a n   b r o k e r   v a l i d a t e   [ b r o k e r _ i d ]  
+ t i t a n   b r o k e r   v a l i d a t e   [ b r o k e r _ i d ] 
+ 
  
 
 ## Architecture

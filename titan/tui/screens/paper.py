@@ -101,7 +101,88 @@ class PaperScreen(VerticalScroll):
             yield self._trades_widget
 
     def on_mount(self) -> None:
-        self.set_interval(REFRESH_INTERVAL, self._tick_refresh)
+        self._zmq_active = True
+        self._refresh_state()
+        self.set_interval(1.0, self._refresh_state)
+        # Launch ZMQ worker alongside polling
+        self._zmq_worker()
+
+    def on_unmount(self) -> None:
+        self._zmq_active = False
+
+    def _update_from_zmq(self, state: PaperScreenState) -> None:
+        self._state = state
+        self._update_widgets()
+        self._update_refresh_indicator()
+
+    @work(exclusive=True, thread=True)
+    def _zmq_worker(self) -> None:
+
+        import zmq
+
+        from titan.ipc.models import PaperStatusResponse
+        from titan.tui.layout import (
+            _read_paper_accounts,
+            _read_paper_orders,
+            _read_paper_performance,
+            _read_paper_portfolio,
+            _read_paper_positions,
+            _read_paper_session,
+            _read_paper_trades,
+        )
+
+        context = zmq.Context.instance()
+        socket = context.socket(zmq.SUB)
+        socket.connect("tcp://127.0.0.1:55556")
+        socket.setsockopt_string(zmq.SUBSCRIBE, "paper.status")
+        socket.setsockopt(zmq.RCVTIMEO, 2000)
+
+        while getattr(self, "_zmq_active", False) and self.app.is_running:
+            try:
+                msg = socket.recv_multipart()
+                if len(msg) == 2:
+                    topic, payload = msg
+                    if topic == b"paper.status":
+                        import json as _json
+
+                        try:
+                            raw_dict = _json.loads(payload.decode("utf-8"))
+                            # Guard: unwrap {"status": "ok", "data": {...}} envelope
+                            # if present; otherwise treat the whole payload as the model.
+                            target_dict = (
+                                raw_dict.get("data", raw_dict)
+                                if isinstance(raw_dict, dict)
+                                else raw_dict
+                            )
+                            data = PaperStatusResponse.model_validate(target_dict)
+                        except Exception as _parse_err:  # noqa: BLE001
+                            with open("tui_ipc_debug.log", "a") as _dbg:
+                                _dbg.write(
+                                    f"ZMQ Parse Error: {type(_parse_err).__name__}: {_parse_err}\n"
+                                )
+                            continue
+
+                        now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
+                        state = PaperScreenState(
+                            session=_read_paper_session(data),
+                            account=_read_paper_accounts(data),
+                            portfolio=_read_paper_portfolio(data),
+                            performance=_read_paper_performance(data),
+                            positions=_read_paper_positions(data),
+                            orders=_read_paper_orders(data),
+                            trades=_read_paper_trades(data),
+                            last_refresh=now,
+                        )
+                        self.app.call_from_thread(self._update_from_zmq, state)
+            except zmq.error.Again:
+                self.app.call_from_thread(self._update_refresh_indicator)
+            except Exception:  # noqa: BLE001, S110
+                pass
+
+        try:
+            socket.close(linger=0)
+        except Exception:  # noqa: BLE001, S110
+            pass
 
     def set_state_builder(self, builder: Callable[[], PaperScreenState]) -> None:
         self._state_builder = builder
@@ -110,13 +191,45 @@ class PaperScreen(VerticalScroll):
         self._refresh_state()
 
     def _refresh_state(self) -> None:
-        if self._state_builder is not None:
-            try:
-                self._state = self._state_builder()
-            except Exception:  # noqa: BLE001
-                self._state = PaperScreenState()
-        self._update_widgets()
-        self._update_refresh_indicator()
+        try:
+            from datetime import datetime
+
+            from titan.tui.layout import (
+                _get_paper_data,
+                _read_paper_accounts,
+                _read_paper_orders,
+                _read_paper_performance,
+                _read_paper_portfolio,
+                _read_paper_positions,
+                _read_paper_session,
+                _read_paper_trades,
+            )
+            from titan.tui.models import PaperScreenState
+
+            raw_data = _get_paper_data()
+            with open("tui_god_mode.log", "a") as _gmf:
+                _gmf.write(f"[BUILDER TRACE] _refresh_state received type: {type(raw_data)!r}\n")
+
+            self._state = PaperScreenState(
+                session=_read_paper_session(raw_data),
+                account=_read_paper_accounts(raw_data),
+                portfolio=_read_paper_portfolio(raw_data),
+                performance=_read_paper_performance(raw_data),
+                positions=_read_paper_positions(raw_data),
+                orders=_read_paper_orders(raw_data),
+                trades=_read_paper_trades(raw_data),
+                last_refresh=datetime.now().strftime("%H:%M:%S"),  # noqa: DTZ005
+            )
+
+            self._update_widgets()
+            if hasattr(self, "_update_refresh_indicator"):
+                self._update_refresh_indicator()
+
+        except Exception as e:  # noqa: BLE001
+            import traceback
+            with open("tui_god_mode.log", "a") as f:
+                f.write(f"[RENDER CRASH] UI crash: {e}\n{traceback.format_exc()}\n")
+
 
     def _update_widgets(self) -> None:
         if self._session_widget is not None:
@@ -137,7 +250,9 @@ class PaperScreen(VerticalScroll):
     def _update_refresh_indicator(self) -> None:
         try:
             indicator = self.query_one("#refresh-indicator", Static)
-            now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
+            now = datetime.now().strftime(  # noqa: DTZ005 - local time for display
+                "%H:%M:%S"
+            )
             indicator.update(f"Last refresh: {now}")
         except Exception:  # noqa: BLE001, S110 - silent pass for UI resilience
             pass
@@ -238,7 +353,7 @@ class PaperScreen(VerticalScroll):
         """Return to the previous view via the shell router."""
         try:
             self.app.action_go_back()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_up(self) -> None:
@@ -246,7 +361,7 @@ class PaperScreen(VerticalScroll):
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_down(self) -> None:
@@ -254,7 +369,7 @@ class PaperScreen(VerticalScroll):
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_top(self) -> None:
@@ -262,7 +377,7 @@ class PaperScreen(VerticalScroll):
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_bottom(self) -> None:
@@ -270,7 +385,7 @@ class PaperScreen(VerticalScroll):
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     @property

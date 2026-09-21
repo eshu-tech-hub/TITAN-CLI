@@ -42,7 +42,7 @@ cp .env.example .env
 # TITAN_BROKER_PROVIDER=paper
 
 # For live trading:
-# TITAN_BROKER_PROVIDER=angel_one
+# TITAN_BROKER_PROVIDER=yfinance
 # TITAN_BROKER_API_KEY=your_api_key
 # TITAN_BROKER_CLIENT_ID=your_client_id
 ```

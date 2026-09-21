@@ -794,8 +794,8 @@ class TestWeightProviderInterface:
 def test_fusion_has_no_forbidden_imports():
     fusion_dir = Path("titan/intelligence/fusion")
     forbidden_terms = (
-        "angel_one",
-        "smartapi",
+        "yfinance",
+        "yfinance",
         "smartconnect",
         "broker",
         "options",

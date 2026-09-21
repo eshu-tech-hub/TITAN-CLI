@@ -19,7 +19,11 @@ def test_paper_runtime_lifecycle() -> None:
     try:
         transport = LocalTransport(port=server.port)
         assert transport.status().runtime_status.name == "RUNNING"
-        assert transport.paper_status()["running"] is True
+        paper_data = transport.paper_status()
+        assert paper_data is not None
+        # Pydantic V2 IPC schema: payload is nested under "session"
+        assert "session" in paper_data
+        assert paper_data["session"]["running"] is True
         transport.stop()
         worker.join(timeout=2.0)
         assert not worker.is_alive()

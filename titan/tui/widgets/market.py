@@ -143,7 +143,7 @@ class RegimeWidget(Widget):
                 self.query_one("#regime-confidence", Label).update(
                     f"{info.confidence * 100:.1f}%"
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S110
                 pass
 
 

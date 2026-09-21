@@ -228,7 +228,7 @@ class ConfigManager:
             profile=self._profile,
             app=AppConfig(**resolved.get("app", {})),
             broker=BrokerConfig(
-                provider=resolved.get("broker", {}).get("provider", "angel_one"),
+                provider=resolved.get("broker", {}).get("provider", "paper"),
                 exchange=resolved.get("broker", {}).get("exchange", "nse"),
                 api_key=resolved.get("broker", {}).get("api_key", ""),
                 client_id=resolved.get("broker", {}).get("client_id", ""),

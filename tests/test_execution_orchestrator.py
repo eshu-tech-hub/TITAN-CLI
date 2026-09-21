@@ -423,7 +423,7 @@ class TestExecutionValidator:
         plan = ExecutionPlan(plan_id="P1", trade_decision_id="TD-1", orders=(order,))
         validator = ExecutionValidator()
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         result = validator.validate(plan, broker, oms)
         assert result.valid is False
         assert any("not connected" in i.lower() for i in result.issues)
@@ -450,7 +450,7 @@ class TestExecutionValidator:
         plan = ExecutionPlan(plan_id="P1", trade_decision_id="TD-1")
         validator = ExecutionValidator()
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         result = validator.validate(plan, broker, oms)
         assert result.valid is False
         assert any("no orders" in i.lower() for i in result.issues)
@@ -467,7 +467,7 @@ class TestExecutionValidator:
         plan = ExecutionPlan(plan_id="P1", trade_decision_id="TD-1", orders=(order,))
         validator = ExecutionValidator(market_hours_check=lambda s: False)
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         result = validator.validate(plan, broker, oms)
         assert result.valid is False
         assert any("market is closed" in i.lower() for i in result.issues)
@@ -484,7 +484,7 @@ class TestExecutionValidator:
         plan = ExecutionPlan(plan_id="P1", trade_decision_id="TD-1", orders=(order,))
         validator = ExecutionValidator(trading_enabled_check=lambda s: False)
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         result = validator.validate(plan, broker, oms)
         assert result.valid is False
         assert any("trading is not enabled" in i.lower() for i in result.issues)
@@ -501,7 +501,7 @@ class TestExecutionValidator:
         plan = ExecutionPlan(plan_id="P1", trade_decision_id="TD-1", orders=(order,))
         validator = ExecutionValidator(instrument_check=lambda s: False)
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         result = validator.validate(plan, broker, oms)
         assert result.valid is False
         assert any("not tradable" in i.lower() for i in result.issues)
@@ -519,7 +519,7 @@ class TestExecutionValidator:
         plan = ExecutionPlan(plan_id="P1", trade_decision_id="TD-1", orders=(order,))
         validator = ExecutionValidator()
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         result = validator.validate(plan, broker, oms, required_capital=Decimal(10000))
         assert result.valid is False
         assert any("insufficient funds" in i.lower() for i in result.issues)
@@ -670,7 +670,7 @@ class TestExecutionOrchestrator:
         broker = _MockBroker()
         oms = ExecutionEngine(MagicMock(), MagicMock())
         oms._router = MagicMock()
-        oms._router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms._router.registered_brokers.return_value = [BrokerType.PAPER]
         oms._router.route.return_value = MagicMock(
             success=True,
             broker_order_id="BROKER-O1",
@@ -733,7 +733,7 @@ class TestExecutionOrchestrator:
         broker = _MockBroker()
         broker._connected = False
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         planner = ExecutionPlanner()
         validator = ExecutionValidator()
         allocator = ExecutionAllocator()
@@ -753,7 +753,7 @@ class TestExecutionOrchestrator:
     def test_execute_allocation_failure(self) -> None:
         broker = _MockBroker()
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         planner = ExecutionPlanner()
         validator = ExecutionValidator()
         allocator = MagicMock()
@@ -775,7 +775,7 @@ class TestExecutionOrchestrator:
     def test_execute_oms_failure(self) -> None:
         broker = _MockBroker()
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         oms.execute.side_effect = RuntimeError("OMS crashed")
         planner = ExecutionPlanner()
         validator = ExecutionValidator()
@@ -797,7 +797,7 @@ class TestExecutionOrchestrator:
     def test_no_trade_decision_returns_empty_plan(self) -> None:
         broker = _MockBroker()
         oms = MagicMock()
-        oms.router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms.router.registered_brokers.return_value = [BrokerType.PAPER]
         planner = ExecutionPlanner()
         validator = ExecutionValidator()
         allocator = ExecutionAllocator()
@@ -825,7 +825,7 @@ class TestOrchestratorEvidence:
         broker = _MockBroker()
         oms = ExecutionEngine(MagicMock(), MagicMock())
         oms._router = MagicMock()
-        oms._router.registered_brokers.return_value = [BrokerType.ANGEL_ONE]
+        oms._router.registered_brokers.return_value = [BrokerType.PAPER]
         oms.execute = MagicMock()
         oms.execute.return_value = MagicMock(
             success=True,

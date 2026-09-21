@@ -71,28 +71,28 @@ class TestPaperSessionInfo:
 class TestPaperAccountInfo:
     def test_defaults(self) -> None:
         info = PaperAccountInfo()
-        assert info.available_cash == "₹0"
-        assert info.used_margin == "₹0"
-        assert info.available_margin == "₹0"
-        assert info.payin == "₹0"
-        assert info.payout == "₹0"
+        assert info.available_cash == "INR 0"
+        assert info.used_margin == "INR 0"
+        assert info.available_margin == "INR 0"
+        assert info.payin == "INR 0"
+        assert info.payout == "INR 0"
 
     def test_custom(self) -> None:
         info = PaperAccountInfo(
-            available_cash="₹98,450",
-            used_margin="₹12,000",
-            available_margin="₹88,000",
-            payin="₹50,000",
-            payout="₹0",
+            available_cash="INR 98,450",
+            used_margin="INR 12,000",
+            available_margin="INR 88,000",
+            payin="INR 50,000",
+            payout="INR 0",
         )
-        assert info.available_cash == "₹98,450"
-        assert info.used_margin == "₹12,000"
-        assert info.available_margin == "₹88,000"
+        assert info.available_cash == "INR 98,450"
+        assert info.used_margin == "INR 12,000"
+        assert info.available_margin == "INR 88,000"
 
     def test_frozen(self) -> None:
         info = PaperAccountInfo()
         with pytest.raises(AttributeError):
-            info.available_cash = "₹0"  # type: ignore[misc]
+            info.available_cash = "INR 0"  # type: ignore[misc]
 
 
 class TestPaperOrderEntry:
@@ -111,7 +111,7 @@ class TestPaperOrderEntry:
             order_type="LIMIT",
             quantity=10,
             filled_quantity=5,
-            price="₹2,450",
+            price="INR 2,450",
             status="PARTIALLY_FILLED",
             placed_at="09:15",
         )
@@ -129,25 +129,25 @@ class TestPaperOrderEntry:
 class TestPaperPortfolioInfo:
     def test_defaults(self) -> None:
         info = PaperPortfolioInfo()
-        assert info.cash == "₹0"
-        assert info.equity == "₹0"
-        assert info.unrealized_pnl == "+₹0"
-        assert info.realized_pnl == "+₹0"
+        assert info.cash == "INR 0"
+        assert info.equity == "INR 0"
+        assert info.unrealized_pnl == "+INR 0"
+        assert info.realized_pnl == "+INR 0"
 
     def test_custom(self) -> None:
         info = PaperPortfolioInfo(
-            cash="₹198,450",
-            equity="₹201,830",
-            unrealized_pnl="+₹2,140",
-            realized_pnl="+₹1,240",
+            cash="INR 198,450",
+            equity="INR 201,830",
+            unrealized_pnl="+INR 2,140",
+            realized_pnl="+INR 1,240",
         )
-        assert info.cash == "₹198,450"
-        assert info.equity == "₹201,830"
+        assert info.cash == "INR 198,450"
+        assert info.equity == "INR 201,830"
 
     def test_frozen(self) -> None:
         info = PaperPortfolioInfo()
         with pytest.raises(AttributeError):
-            info.cash = "₹0"  # type: ignore[misc]
+            info.cash = "INR 0"  # type: ignore[misc]
 
 
 class TestPaperPerformanceInfo:
@@ -186,9 +186,9 @@ class TestPaperPositionEntry:
         entry = PaperPositionEntry(
             symbol="RELIANCE",
             quantity=10,
-            avg_price="₹2,450",
-            current_price="₹2,470",
-            unrealized_pnl="+₹200",
+            avg_price="INR 2,450",
+            current_price="INR 2,470",
+            unrealized_pnl="+INR 200",
         )
         assert entry.symbol == "RELIANCE"
         assert entry.quantity == 10
@@ -208,7 +208,7 @@ class TestPaperTradeEntry:
 
     def test_custom(self) -> None:
         entry = PaperTradeEntry(
-            symbol="INFY", side="buy", quantity=5, price="₹1,500", pnl="+₹75"
+            symbol="INFY", side="buy", quantity=5, price="INR 1,500", pnl="+INR 75"
         )
         assert entry.symbol == "INFY"
         assert entry.side == "buy"
@@ -254,9 +254,9 @@ class TestPaperScreenState:
         assert state.orders[0].symbol == "RELIANCE"
 
     def test_with_account(self) -> None:
-        acct = PaperAccountInfo(available_cash="₹98,450")
+        acct = PaperAccountInfo(available_cash="INR 98,450")
         state = PaperScreenState(account=acct)
-        assert state.account.available_cash == "₹98,450"
+        assert state.account.available_cash == "INR 98,450"
 
 
 # ──────────────────────────────────────────────────
@@ -266,22 +266,22 @@ class TestPaperScreenState:
 
 class TestPnlClass:
     def test_positive(self) -> None:
-        assert _pnl_class("+₹200") == "value-positive"
+        assert _pnl_class("+INR 200") == "value-positive"
 
     def test_negative(self) -> None:
-        assert _pnl_class("-₹150") == "value-negative"
+        assert _pnl_class("-INR 150") == "value-negative"
 
     def test_zero(self) -> None:
-        assert _pnl_class("+₹0") == "value-positive"
+        assert _pnl_class("+INR 0") == "value-positive"
 
     def test_minus_sign(self) -> None:
-        assert _pnl_class("-₹1,240") == "value-negative"
+        assert _pnl_class("-INR 1,240") == "value-negative"
 
     def test_plain_positive_number(self) -> None:
-        assert _pnl_class("₹500") == "value-positive"
+        assert _pnl_class("INR 500") == "value-positive"
 
     def test_plain_zero(self) -> None:
-        result = _pnl_class("₹0")
+        result = _pnl_class("INR 0")
         assert result in ("value-positive", "value-neutral")
 
 
@@ -369,26 +369,26 @@ class TestPaperSessionWidget:
 class TestAccountSummaryWidget:
     def test_init(self) -> None:
         w = AccountSummaryWidget()
-        assert w._info.available_cash == "₹0"
+        assert w._info.available_cash == "INR 0"
 
     def test_update_data(self) -> None:
         w = AccountSummaryWidget()
         info = PaperAccountInfo(
-            available_cash="₹98,450",
-            used_margin="₹12,000",
-            available_margin="₹88,000",
-            payin="₹50,000",
-            payout="₹0",
+            available_cash="INR 98,450",
+            used_margin="INR 12,000",
+            available_margin="INR 88,000",
+            payin="INR 50,000",
+            payout="INR 0",
         )
         w.update_data(info)
-        assert w._info.available_cash == "₹98,450"
-        assert w._info.used_margin == "₹12,000"
+        assert w._info.available_cash == "INR 98,450"
+        assert w._info.used_margin == "INR 12,000"
 
     def test_update_data_defaults(self) -> None:
         w = AccountSummaryWidget()
         info = PaperAccountInfo()
         w.update_data(info)
-        assert w._info.available_cash == "₹0"
+        assert w._info.available_cash == "INR 0"
 
     def test_render_returns_empty_string(self) -> None:
         w = AccountSummaryWidget()
@@ -415,7 +415,7 @@ class TestActiveOrdersWidget:
                 order_type="LIMIT",
                 quantity=10,
                 filled_quantity=0,
-                price="₹2,450",
+                price="INR 2,450",
                 status="PENDING",
             ),
             PaperOrderEntry(
@@ -425,7 +425,7 @@ class TestActiveOrdersWidget:
                 order_type="MARKET",
                 quantity=5,
                 filled_quantity=0,
-                price="₹1,500",
+                price="INR 1,500",
                 status="OPEN",
             ),
         )
@@ -447,24 +447,24 @@ class TestActiveOrdersWidget:
 class TestPortfolioWidget:
     def test_init(self) -> None:
         w = PortfolioWidget()
-        assert w._info.cash == "₹0"
+        assert w._info.cash == "INR 0"
 
     def test_update_data(self) -> None:
         w = PortfolioWidget()
         info = PaperPortfolioInfo(
-            cash="₹198,450",
-            equity="₹201,830",
-            unrealized_pnl="+₹2,140",
-            realized_pnl="+₹1,240",
+            cash="INR 198,450",
+            equity="INR 201,830",
+            unrealized_pnl="+INR 2,140",
+            realized_pnl="+INR 1,240",
         )
         w.update_data(info)
-        assert w._info.cash == "₹198,450"
+        assert w._info.cash == "INR 198,450"
 
     def test_update_data_negative_pnl(self) -> None:
         w = PortfolioWidget()
-        info = PaperPortfolioInfo(unrealized_pnl="-₹500", realized_pnl="-₹200")
+        info = PaperPortfolioInfo(unrealized_pnl="-INR 500", realized_pnl="-INR 200")
         w.update_data(info)
-        assert w._info.unrealized_pnl == "-₹500"
+        assert w._info.unrealized_pnl == "-INR 500"
 
     def test_render_returns_empty_string(self) -> None:
         w = PortfolioWidget()
@@ -770,7 +770,7 @@ class TestReadPaperAccounts:
     @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         info = _read_paper_accounts(_get_paper_data())
-        assert info.available_cash == "₹0"
+        assert info.available_cash == "INR 0"
 
     @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
     @patch("titan.cli.common.get_runtime_engine")
@@ -807,7 +807,7 @@ class TestReadPaperAccounts:
     @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         info = _read_paper_accounts(_get_paper_data())
-        assert info.available_cash == "₹0"
+        assert info.available_cash == "INR 0"
 
 
 class TestReadPaperOrders:
@@ -917,7 +917,7 @@ class TestReadPaperPortfolio:
     @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_no_broker(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         info = _read_paper_portfolio(_get_paper_data())
-        assert info.cash == "₹0"
+        assert info.cash == "INR 0"
 
     @patch("titan.runtime.local_transport.LocalTransport.paper_status", side_effect=ConnectionRefusedError)
     @patch("titan.cli.common.get_runtime_engine")
@@ -939,7 +939,7 @@ class TestReadPaperPortfolio:
     @patch("titan.cli.common.get_runtime_engine", side_effect=RuntimeError)
     def test_exception(self, mock_engine: MagicMock, mock_ipc: MagicMock) -> None:
         info = _read_paper_portfolio(_get_paper_data())
-        assert info.cash == "₹0"
+        assert info.cash == "INR 0"
 
 
 class TestReadPaperPerformance:

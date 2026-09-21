@@ -1,0 +1,65 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.6.0
+rootdir: D:\Projects\TITAN-CLI
+configfile: pyproject.toml
+plugins: anyio-4.14.2, asyncio-1.4.0, xdist-3.8.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 137 items
+
+tests\test_tui_paper.py ................................................ [ 35%]
+.....................................................F..F...F.F..F..F... [ 87%]
+F...F............                                                        [100%]
+
+================================== FAILURES ===================================
+_______________ TestReadPaperSession.test_broker_not_connected ________________
+tests\test_tui_paper.py:796: in test_broker_not_connected
+    assert info.status == "Stopped"
+E   AssertionError: assert 'Running' == 'Stopped'
+E     
+E     - Stopped
+E     + Running
+___________________ TestReadPaperAccounts.test_with_broker ____________________
+tests\test_tui_paper.py:834: in test_with_broker
+    assert "98,450" in info.available_cash
+E   AssertionError: assert '98,450' in '\u20b90'
+E    +  where '\u20b90' = PaperAccountInfo(available_cash='\u20b90', used_margin='\u20b90', available_margin='\u20b90', payin='\u20b90', payout='\u20b90').available_cash
+_________________ TestReadPaperOrders.test_with_pending_order _________________
+tests\test_tui_paper.py:884: in test_with_pending_order
+    assert len(result) == 1
+E   assert 0 == 1
+E    +  where 0 = len(())
+____________ TestReadPaperOrders.test_with_partially_filled_order _____________
+tests\test_tui_paper.py:927: in test_with_partially_filled_order
+    assert len(result) == 1
+E   assert 0 == 1
+E    +  where 0 = len(())
+___________________ TestReadPaperPortfolio.test_with_broker ___________________
+tests\test_tui_paper.py:954: in test_with_broker
+    assert "98,450" in info.cash
+E   AssertionError: assert '98,450' in '\u20b90'
+E    +  where '\u20b90' = PaperPortfolioInfo(cash='\u20b90', equity='\u20b90', unrealized_pnl='+\u20b90', realized_pnl='+\u20b90').cash
+__________________ TestReadPaperPerformance.test_with_broker __________________
+tests\test_tui_paper.py:980: in test_with_broker
+    assert info.total_trades == 18
+E   AssertionError: assert 0 == 18
+E    +  where 0 = PaperPerformanceInfo(total_trades=0, win_rate='0%', profit_factor='0.00', expectancy='+0.00R', max_drawdown='0%').total_trades
+_________________ TestReadPaperPositions.test_with_positions __________________
+tests\test_tui_paper.py:1022: in test_with_positions
+    assert len(result) == 1
+E   assert 0 == 1
+E    +  where 0 = len(())
+____________________ TestReadPaperTrades.test_with_trades _____________________
+tests\test_tui_paper.py:1065: in test_with_trades
+    assert len(result) == 1
+E   assert 0 == 1
+E    +  where 0 = len(())
+=========================== short test summary info ===========================
+FAILED tests/test_tui_paper.py::TestReadPaperSession::test_broker_not_connected
+FAILED tests/test_tui_paper.py::TestReadPaperAccounts::test_with_broker - Ass...
+FAILED tests/test_tui_paper.py::TestReadPaperOrders::test_with_pending_order
+FAILED tests/test_tui_paper.py::TestReadPaperOrders::test_with_partially_filled_order
+FAILED tests/test_tui_paper.py::TestReadPaperPortfolio::test_with_broker - As...
+FAILED tests/test_tui_paper.py::TestReadPaperPerformance::test_with_broker - ...
+FAILED tests/test_tui_paper.py::TestReadPaperPositions::test_with_positions
+FAILED tests/test_tui_paper.py::TestReadPaperTrades::test_with_trades - asser...
+======================= 8 failed, 129 passed in 50.68s ========================

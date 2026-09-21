@@ -547,8 +547,8 @@ The `titan/logging/` module is introduced alongside the existing
 Core infrastructure modules migrate to the new framework:
 
 - `titan/execution/orchestrator.py`
-- `titan/broker/angel_one/client.py`
-- `titan/broker/angel_one/auth.py`
+- `titan/broker/yfinance/client.py`
+- `titan/broker/yfinance/auth.py`
 - `titan/cli.py`
 
 Each module receives a `StructuredLogger` via `LoggerManager.get_logger()`.

@@ -16,7 +16,7 @@ def profile_defaults(profile: str) -> dict:
         EnvironmentProfile.DEVELOPMENT: {
             "app": {"log_level": LogLevel.DEBUG.value},
             "broker": {
-                "provider": BrokerProvider.ANGEL_ONE.value,
+                "provider": BrokerProvider.PAPER.value,
                 "exchange": "nse",
             },
             "runtime": {
@@ -88,7 +88,7 @@ def profile_defaults(profile: str) -> dict:
         EnvironmentProfile.PRODUCTION: {
             "app": {"log_level": LogLevel.WARNING.value},
             "broker": {
-                "provider": BrokerProvider.ANGEL_ONE.value,
+                "provider": BrokerProvider.PAPER.value,
                 "exchange": "nse",
             },
             "runtime": {

@@ -10,7 +10,7 @@
 
 TITAN requires connectivity to external brokers for market data, order
 execution, and portfolio management. Multiple brokers are supported
-(Angel One, Zerodha, Dhan, Upstox, Interactive Brokers, Alpaca,
+(YFinance, Zerodha, Dhan, Upstox, Interactive Brokers, Alpaca,
 Binance), each with proprietary SDKs, authentication flows, data models,
 and network protocols.
 
@@ -98,14 +98,14 @@ BrokerError (base)
 
 The abstraction layer MUST NOT contain:
 - HTTP requests or network logic
-- Broker SDK imports (SmartAPI, etc.)
+- Broker SDK imports (yfinance, etc.)
 - API keys, tokens, or credentials
 - Authentication or session management
 - Any broker-specific implementation
 
 ### Relationship to Existing `titan/broker/`
 
-The existing `titan/broker/` (singular) package and its Angel One
+The existing `titan/broker/` (singular) package and its YFinance
 implementation are preserved as-is during this milestone. Future
 milestones will migrate broker adapters from the old interface to
 the new `titan/brokers/` abstraction.
@@ -158,7 +158,7 @@ Dataclasses with mutable fields.
 3. **Extensibility.** Adding a new broker requires only implementing
    the `Broker` ABC and registering it with the factory.
 4. **Future-proofing.** The abstraction supports all targeted brokers
-   (Angel One, Zerodha, Dhan, Upstox, Interactive Brokers, Alpaca,
+   (YFinance, Zerodha, Dhan, Upstox, Interactive Brokers, Alpaca,
    Binance) without redesign.
 5. **Frozen contracts.** All models are immutable — no subtle mutation
    bugs across provider boundaries.
@@ -193,8 +193,8 @@ Dataclasses with mutable fields.
 
 ### Short Term
 
-- Migrate the existing Angel One adapter from `titan/broker/` to
-  `titan/brokers/angel_one/`.
+- Migrate the existing YFinance adapter from `titan/broker/` to
+  `titan/brokers/yfinance/`.
 - Add Zerodha, Dhan, Upstox adapter implementations.
 - Add streaming market data interface (`MarketDataStream`).
 

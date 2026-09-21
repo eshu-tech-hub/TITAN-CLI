@@ -29,7 +29,7 @@ but no analytics.
 ### Constraints
 
 - No estimation of implied volatility — consume supplied values only.
-- No dependency on any broker SDK (Angel One, SmartAPI, etc.).
+- No dependency on any broker SDK (YFinance, yfinance, etc.).
 - No numpy, scipy, or Black-Scholes.
 - Must support weekly, monthly, and quarterly expiries without
   redesign.

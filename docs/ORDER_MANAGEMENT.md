@@ -140,7 +140,7 @@ from titan.brokers.factory import BrokerFactory
 # Set up the engine.
 book = OrderBook()
 router = OrderRouter()
-router.register_broker(BrokerType.ANGEL_ONE, angel_one_broker)
+router.register_broker(BrokerType.yfinance, yfinance_broker)
 engine = ExecutionEngine(order_book=book, router=router)
 
 # Execute a trade.

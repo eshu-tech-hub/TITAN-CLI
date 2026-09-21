@@ -67,7 +67,7 @@ Future milestones can add without redesign:
 
 ## Boundary Rule
 
-The Open Interest Intelligence Engine does not import broker code, SmartAPI, or
+The Open Interest Intelligence Engine does not import broker code, yfinance, or
 live data clients. It only analyzes `OptionChainSnapshot` objects.
 
 

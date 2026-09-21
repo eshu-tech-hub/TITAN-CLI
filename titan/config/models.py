@@ -25,7 +25,7 @@ class LogLevel(StrEnum):
 
 class BrokerProvider(StrEnum):
     PAPER = "paper"
-    ANGEL_ONE = "angel_one"
+    YFINANCE = "yfinance"
 
 
 # ── App ──
@@ -46,7 +46,7 @@ class AppConfig:
 
 @dataclass(frozen=True, slots=True)
 class BrokerConfig:
-    provider: str = "angel_one"
+    provider: str = "paper"
     exchange: str = "nse"
     api_key: str = ""
     client_id: str = ""

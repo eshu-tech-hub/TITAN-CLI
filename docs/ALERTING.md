@@ -146,11 +146,11 @@ result = engine.evaluate_threshold(
 # Track state transitions
 result = engine.evaluate_state_change(
     name="broker_connection",
-    key="broker:angel_one:connection",
+    key="broker:paper:connection",
     new_state="disconnected",
     source=AlertSource.BROKER,
     title="Broker Disconnected",
-    message="Angel One broker connection lost",
+    message="YFinance broker connection lost",
 )
 ```
 

@@ -119,49 +119,49 @@ class TradeJournalScreen(VerticalScroll):
         """Return to the previous view via the shell router."""
         try:
             self.app.action_go_back()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_up_line(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_up(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_down_line(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_down(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_up(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_down(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_top(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_bottom(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     @property

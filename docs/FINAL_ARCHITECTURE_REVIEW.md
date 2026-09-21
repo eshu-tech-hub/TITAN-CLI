@@ -60,7 +60,7 @@ cli
 |----------|-------|----------|
 | Fully self-contained (no cross-package titan imports) | 6 | logging, audit, alerting, recovery, deployment, monitoring |
 | Standard-library only (no third-party deps) | 14 of 21 | All L0 packages, most analysis packages |
-| Broker-optional (lazy imports) | 1 | brokers.angelone |
+| Broker-optional (lazy imports) | 1 | brokers.YFinance |
 | Hub/orchestrator (imports many) | 1 | pipeline (imports 12+ packages) |
 
 **Assessment:** Package boundaries are **well-enforced**. The broker abstraction layer correctly isolates broker SDK dependencies behind lazy imports, satisfying the AGENTS.md requirement that "Core TITAN modules must not depend directly on broker SDKs."
@@ -101,7 +101,7 @@ class Broker(ABC):
 ```
 
 - PaperBroker implements the full interface
-- AngelOneBroker implements the full interface via SmartAPI adapter
+- YFinanceBroker implements the full interface via yfinance adapter
 - Zero coupling between broker implementations
 
 **Assessment:** Broker abstraction is **production-quality** and satisfies the institutional requirement for broker interchangeability.
@@ -160,8 +160,8 @@ The TradePipeline implements a **10-stage execution pipeline** with:
 
 ### 4.2 Test Categories
 
-- **Unit tests:** No network, no broker API, no SmartAPI dependency
-- **Integration tests:** Broker SDKs, SmartAPI, external APIs
+- **Unit tests:** No network, no broker API, no yfinance dependency
+- **Integration tests:** Broker SDKs, yfinance, external APIs
 - **Performance tests:** CPU, memory, latency, throughput, stress, failure injection, recovery, stability
 
 ### 4.3 Test Architecture Assessment

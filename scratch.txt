@@ -1,0 +1,32 @@
+        self.publisher = None
+
+    def _publish_status_event(self, event) -> None:
+        if self.publisher and not self._stop_event.is_set():
+            try:
+                status = self._build_paper_status()
+                self.publisher.publish("paper.status", status)
+            except Exception:
+                pass
+
+    def start(self) -> None:
+        if self._thread is not None and self._thread.is_alive():
+            raise TitanRuntimeError("Local transport server is already running.")
+
+        self._stop_event.clear()
+        
+        # Initialize ZeroMQ Publisher
+        from titan.runtime.models import RuntimeEventType
+        from titan.runtime.publisher import StatePublisher
+        self.publisher = StatePublisher()
+        
+        self.service.engine.event_bus.subscribe(
+            RuntimeEventType.SCHEDULER_TICK, self._publish_status_event
+        )
+        self.service.engine.event_bus.subscribe(
+            RuntimeEventType.PIPELINE_EXECUTED, self._publish_status_event
+        )
+
+        self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            self._server_socket.bind(("127.0.0.1", self.port))

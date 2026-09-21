@@ -94,15 +94,20 @@ class DashboardScreen(VerticalScroll):
         self._refresh_state()
 
     def _refresh_state(self) -> None:
-        """Collect state from managers and update all widgets."""
-        if self._state_builder is not None:
+        if getattr(self, "_state_builder", None) is not None:
             try:
                 self._state = self._state_builder()
-            except Exception:  # noqa: BLE001
+            except Exception:
+                self._state = DashboardState()
+        else:
+            from titan.tui.layout import _get_dashboard_data, build_dashboard_state
+            raw_data = _get_dashboard_data()
+            if raw_data:
+                self._state = build_dashboard_state(raw_data)
+            else:
                 self._state = DashboardState()
         self._update_widgets()
         self._update_refresh_indicator()
-
     def _update_widgets(self) -> None:
         """Push current state to all card widgets."""
         if self._runtime_card is not None:

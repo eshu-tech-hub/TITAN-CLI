@@ -253,7 +253,7 @@ class TestOrderEvent:
 
 class TestOrderRoute:
     def test_defaults(self) -> None:
-        route = OrderRoute(broker_type=BrokerType.ANGEL_ONE)
+        route = OrderRoute(broker_type=BrokerType.PAPER)
         assert route.broker_order_id is None
         assert route.status == OrderState.NEW
 
@@ -550,11 +550,11 @@ class TestOrderModel:
         assert updated.average_price == Decimal("100.00")
 
     def test_with_state_route(self) -> None:
-        route = OrderRoute(broker_type=BrokerType.ANGEL_ONE)
+        route = OrderRoute(broker_type=BrokerType.PAPER)
         order = _make_order()
         updated = order.with_state(OrderState.SUBMITTED, route=route)
         assert updated.route is not None
-        assert updated.route.broker_type == BrokerType.ANGEL_ONE
+        assert updated.route.broker_type == BrokerType.PAPER
 
     def test_serialization(self) -> None:
         order = _make_order(symbol="RELIANCE", quantity=10)
@@ -695,23 +695,23 @@ class TestOrderRouter:
     def test_register_and_route(self) -> None:
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
-        assert BrokerType.ANGEL_ONE in router.registered_brokers()
+        router.register_broker(BrokerType.PAPER, broker)
+        assert BrokerType.PAPER in router.registered_brokers()
 
     def test_unregister(self) -> None:
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
-        router.unregister_broker(BrokerType.ANGEL_ONE)
+        router.register_broker(BrokerType.PAPER, broker)
+        router.unregister_broker(BrokerType.PAPER)
         assert router.registered_brokers() == []
 
     def test_route_order(self) -> None:
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         order = _make_order(
             state=OrderState.VALIDATED,
-            route=OrderRoute(broker_type=BrokerType.ANGEL_ONE),
+            route=OrderRoute(broker_type=BrokerType.PAPER),
         )
         report = router.route(order)
         assert report.success is True
@@ -728,10 +728,10 @@ class TestOrderRouter:
         router = OrderRouter()
         broker = _MockBroker()
         broker.disconnect()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         order = _make_order(
             state=OrderState.VALIDATED,
-            route=OrderRoute(broker_type=BrokerType.ANGEL_ONE),
+            route=OrderRoute(broker_type=BrokerType.PAPER),
         )
         with pytest.raises(BrokerUnavailableError):
             router.route(order)
@@ -740,10 +740,10 @@ class TestOrderRouter:
         router = OrderRouter()
         broker = _MockBroker()
         broker.set_next_status(BrokerOrderStatus.FILLED)
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         order = _make_order(
             state=OrderState.VALIDATED,
-            route=OrderRoute(broker_type=BrokerType.ANGEL_ONE),
+            route=OrderRoute(broker_type=BrokerType.PAPER),
         )
         report = router.route(order)
         assert report.success is True
@@ -753,10 +753,10 @@ class TestOrderRouter:
         router = OrderRouter()
         broker = _MockBroker()
         broker.set_next_status(BrokerOrderStatus.REJECTED)
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         order = _make_order(
             state=OrderState.VALIDATED,
-            route=OrderRoute(broker_type=BrokerType.ANGEL_ONE),
+            route=OrderRoute(broker_type=BrokerType.PAPER),
         )
         report = router.route(order)
         assert report.state == OrderState.REJECTED
@@ -795,7 +795,7 @@ class TestExecutionEngine:
         book = OrderBook()
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         engine = ExecutionEngine(order_book=book, router=router)
         req = _make_request()
         result = engine.execute(req)
@@ -809,7 +809,7 @@ class TestExecutionEngine:
         router = OrderRouter()
         broker = _MockBroker()
         broker.set_next_status(BrokerOrderStatus.FILLED)
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         engine = ExecutionEngine(order_book=book, router=router)
         req = _make_request()
         result = engine.execute(req)
@@ -841,7 +841,7 @@ class TestExecutionEngine:
         book = OrderBook()
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         engine = ExecutionEngine(order_book=book, router=router)
         req = _make_request()
         result = engine.execute(req)
@@ -903,7 +903,7 @@ class TestAuditTrail:
         book = OrderBook()
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         engine = ExecutionEngine(order_book=book, router=router)
         req = _make_request()
         result = engine.execute(req)
@@ -938,7 +938,7 @@ class TestMultipleOrders:
         book = OrderBook()
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         engine = ExecutionEngine(order_book=book, router=router)
 
         req1 = _make_request(symbol="RELIANCE")
@@ -953,7 +953,7 @@ class TestMultipleOrders:
         book = OrderBook()
         router = OrderRouter()
         broker = _MockBroker()
-        router.register_broker(BrokerType.ANGEL_ONE, broker)
+        router.register_broker(BrokerType.PAPER, broker)
         engine = ExecutionEngine(order_book=book, router=router)
 
         engine.execute(_make_request(symbol="RELIANCE"))

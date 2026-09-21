@@ -453,7 +453,7 @@ Similar to multi-account, profile defaults could accept a broker
 parameter:
 
 ```python
-profile_defaults("production", broker="angel_one")
+profile_defaults("production", broker="yfinance")
 profile_defaults("production", broker="zerodha")
 ```
 

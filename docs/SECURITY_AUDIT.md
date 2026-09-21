@@ -24,7 +24,7 @@ The codebase demonstrates good security fundamentals: no hardcoded secrets, Pyda
 | Secret Type | Storage Location | Protection | Status |
 |-------------|-----------------|------------|--------|
 | Broker API keys | Environment variables / `.env` | dotenv loading | Acceptable |
-| SmartAPI credentials | Environment variables / `.env` | dotenv loading | Acceptable |
+| yfinance credentials | Environment variables / `.env` | dotenv loading | Acceptable |
 | TOTP seeds | Environment variables / `.env` | dotenv loading | Acceptable |
 | Prometheus endpoint | Configuration | Localhost binding | **Fixed** |
 
@@ -130,7 +130,7 @@ The codebase demonstrates good security fundamentals: no hardcoded secrets, Pyda
 | `loguru` | >=0.7.0 | No known CVEs |
 | `typer` | >=0.16.0 | No known CVEs |
 | `rich` | >=14.0.0 | No known CVEs |
-| `smartapi-python` | >=1.0.0 (optional) | Broker SDK - external |
+| `yfinance-python` | >=1.0.0 (optional) | Broker SDK - external |
 | `pyotp` | >=2.0.0 (optional) | No known CVEs |
 
 ### 4.2 Supply Chain Assessment

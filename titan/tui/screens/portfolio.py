@@ -135,7 +135,7 @@ class PortfolioDashboardScreen(VerticalScroll):
             self._sector_widget.allocation = self.state.allocation
             self._strategy_widget.allocation = self.state.allocation
 
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
         self._update_refresh_indicator()

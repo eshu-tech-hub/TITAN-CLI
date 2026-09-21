@@ -235,6 +235,9 @@ def start(
     detach: Annotated[
         bool, typer.Option("--detach", "-d", help="Run in background")
     ] = False,
+    symbols: Annotated[
+        list[str], typer.Option("--symbol", "-s", help="Target symbols")
+    ] = ["RELIANCE"],
 ) -> None:
     """Start the runtime engine."""
     logger.info("Runtime start command executed")
@@ -254,6 +257,9 @@ def start(
         import sys
 
         titan_exe = [sys.executable, "-m", "titan", "runtime", "start"]
+        if symbols:
+            for sym in symbols:
+                titan_exe.extend(["--symbol", sym])
         if verbose:
             titan_exe.append("--verbose")
 
@@ -277,6 +283,8 @@ def start(
         return
 
     engine = get_runtime_engine()
+    if symbols:
+        engine.watchlist = [s.upper() for s in symbols]
     service = RuntimeService(engine)
     
     from titan.cli.common import _runtime_engine

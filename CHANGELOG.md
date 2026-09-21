@@ -4,7 +4,7 @@
 ### Added
 - **M1:** Core CLI framework leveraging Typer and Rich.
 - **M2:** Base RuntimeEngine and EventBus for orchestrating algorithmic pipelines.
-- **M3:** SmartAPI integration and generic Broker interface for live trading execution.
+- **M3:** YFinance integration and generic Broker interface for live trading execution.
 - **M4:** Market intelligence layer including Option Greeks and regime analysis (Charm, Vanna).
 - **M5:** Decision Engine with deterministic signal constraints and consensus logic.
 - **M6:** Trade and Decision Journaling with local persistence.

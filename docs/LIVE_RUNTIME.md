@@ -484,7 +484,7 @@ During `start()`, it calls `broker.connect()`. During `stop()`, it calls
 
 The runtime is broker-agnostic — any `Broker` implementation works:
 - `PaperBroker` (for simulation/dry-run)
-- `AngelOneBroker` (for live Angel One trading)
+- `YFinanceBroker` (for live YFinance trading)
 - Any future broker adapter
 
 ## Failure Handling

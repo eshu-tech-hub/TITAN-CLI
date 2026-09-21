@@ -9,7 +9,7 @@ load_dotenv()
 class Settings(BaseSettings):
     app_name: str = "TITAN CLI"
     app_version: str = "1.0.0"
-    broker: str = "ANGEL_ONE"
+    broker: str = "PAPER"
     database: str = "titan.db"
     log_level: str = "INFO"
     environment: str = "development"

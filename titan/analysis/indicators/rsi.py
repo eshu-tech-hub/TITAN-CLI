@@ -1,11 +1,20 @@
+"""Relative Strength Index (RSI) — vectorised via polars."""
+
+from __future__ import annotations
+
+import polars as pl
+
 from titan.analysis.models import IndicatorResult
 from titan.analysis.period_indicator import PeriodIndicator
 from titan.market.series import MarketDataSeries
 
 
 class RSI(PeriodIndicator):
-    """
-    Relative Strength Index (RSI).
+    """Relative Strength Index (RSI).
+
+    Computes RSI using polars vectorised diff/clip expressions,
+    eliminating the Python for-loop entirely. Wilder's initial
+    simple average is used for the first period of gains/losses.
     """
 
     @property
@@ -15,27 +24,24 @@ class RSI(PeriodIndicator):
     def calculate(self, data: MarketDataSeries) -> IndicatorResult:
         self.validate_data(data)
 
-        closes = data.closes
+        closes: pl.Series = pl.Series("close", data.closes, dtype=pl.Float64)
 
-        gains = []
-        losses = []
+        # Vectorised price differences (drops the leading null automatically)
+        delta: pl.Series = closes.diff().drop_nulls()
 
-        for i in range(1, len(closes)):
-            change = closes[i] - closes[i - 1]
+        # Separate gains (positive) and losses (absolute value of negative)
+        gains: pl.Series = delta.clip(lower_bound=0.0)
+        losses: pl.Series = (-delta).clip(lower_bound=0.0)
 
-            gains.append(max(change, 0))
-            losses.append(abs(min(change, 0)))
+        # Wilder's simple average over the last `period` bars
+        avg_gain: float = gains.tail(self.period).mean()  # type: ignore[assignment]
+        avg_loss: float = losses.tail(self.period).mean()  # type: ignore[assignment]
 
-        avg_gain = sum(gains[-self.period :]) / self.period
-        avg_loss = sum(losses[-self.period :]) / self.period
-
-        if avg_loss == 0:
+        if avg_loss == 0.0:
             value = 100.0
         else:
             rs = avg_gain / avg_loss
-            value = 100 - (100 / (1 + rs))
+            value = 100.0 - (100.0 / (1.0 + rs))
 
-        return IndicatorResult(
-            name=self.name,
-            value=value,
-        )
+        return IndicatorResult(name=self.name, value=value)
+

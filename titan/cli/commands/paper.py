@@ -40,10 +40,11 @@ def _get_broker():
 
 def _is_running() -> bool:
     from titan.runtime.local_transport import LocalTransport
-
     try:
-        return bool(LocalTransport().paper_status().get("running", False))
-    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError):
+        raw = LocalTransport().paper_status()
+        if not raw: return False
+        return raw.get("session", {}).get("running", raw.get("running", False))
+    except Exception:
         return False
 
 
@@ -233,19 +234,80 @@ def _display_checklist(checklist: StartupChecklist) -> None:
 # ── Report Building ───────────────────────────────────────
 
 
-def _build_session_data() -> dict[str, Any]:
-    from titan.runtime.local_transport import LocalTransport
 
+def _flatten_status(raw: dict) -> dict:
+    if not raw: return {"running": False}
+    flat = {}
+    flat.update(raw.get("session", {}))
+    flat.update(raw.get("account", {}))
+    flat.update(raw.get("portfolio", {}))
+    flat.update(raw.get("performance", {}))
+    flat["positions"] = raw.get("positions", [])
+    flat["orders"] = raw.get("orders", [])
+    flat["trades"] = raw.get("trades", [])
+    # Also handle some missing aliasing
+    if "open_positions_count" in flat:
+        flat["open_positions"] = flat["open_positions_count"]
+    if "closed_trades_count" in flat:
+        flat["closed_trades"] = flat["closed_trades_count"]
+    if "total_orders_count" in flat:
+        flat["total_orders"] = flat["total_orders_count"]
+    if "filled_orders_count" in flat:
+        flat["filled_orders"] = flat["filled_orders_count"]
+    return flat
+
+def _build_session_data() -> dict:
+    from titan.runtime.local_transport import LocalTransport
     try:
         transport = LocalTransport()
-        return transport.paper_status()
-    except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError):
+        return _flatten_status(transport.paper_status())
+    except Exception:
         return {"running": False}
 
-
-def _build_report_data() -> dict[str, Any]:
+def _build_report_data() -> dict:
     from titan.runtime.local_transport import LocalTransport
-
+    try:
+        data = _flatten_status(LocalTransport().paper_status())
+        if not data.get("running"):
+            return {"error": "No active paper session"}
+            
+        return {
+            "session": {
+                "start_time": data.get("start_time"),
+                "uptime_seconds": data.get("session_uptime_seconds", 0.0),
+                "initial_cash": data.get("initial_cash", 0.0),
+            },
+            "portfolio": {
+                "cash": data.get("cash_balance", 0.0),
+                "equity": data.get("portfolio_value", 0.0),
+                "buying_power": data.get("buying_power", 0.0),
+                "exposure": data.get("exposure", 0.0),
+                "position_count": data.get("open_positions", 0),
+                "daily_pnl": data.get("daily_pnl", 0.0),
+                "total_pnl": data.get("total_pnl", 0.0),
+                "drawdown": data.get("drawdown", 0.0),
+            },
+            "performance": {
+                "total_trades": data.get("total_trades", 0),
+                "winning_trades": data.get("winning_trades", 0),
+                "losing_trades": data.get("losing_trades", 0),
+                "win_rate": data.get("win_rate", 0.0),
+                "profit_factor": data.get("profit_factor", 0.0),
+                "expectancy": data.get("expectancy", 0.0),
+                "avg_winner": data.get("avg_winner", 0.0),
+                "avg_loser": data.get("avg_loser", 0.0),
+                "max_drawdown": data.get("max_drawdown", 0.0),
+            },
+            "pnl": {
+                "realized": data.get("realized_pnl", 0.0),
+                "unrealized": data.get("unrealized_pnl", 0.0),
+                "total": data.get("total_pnl", 0.0),
+            },
+            "positions": data.get("positions", []),
+            "orders": data.get("orders", []),
+        }
+    except Exception:
+        return {"error": "No active paper session"}
     try:
         data = LocalTransport().paper_status()
     except (RuntimeError, ConnectionError, AttributeError, OSError, TitanRuntimeError):
@@ -513,9 +575,9 @@ def start(
     cash: Annotated[
         float, typer.Option("--cash", help="Initial cash balance")
     ] = 1000000.0,
-    symbol: Annotated[
-        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
-    ] = "RELIANCE",
+    symbols: Annotated[
+        list[str], typer.Option("--symbol", "-s", help="Target symbols to trade")
+    ] = ["RELIANCE"],
     exchange: Annotated[
         str, typer.Option("--exchange", "-e", help="Exchange segment")
     ] = "nse",
@@ -543,44 +605,47 @@ def start(
         return
 
     if verbose:
-        _start_with_progress(cash, symbol=symbol, exchange=exchange)
+        _start_with_progress(cash, symbols=symbols, exchange=exchange)
     else:
-        _start_silent(cash, symbol=symbol, exchange=exchange)
+        _start_silent(cash, symbols=symbols, exchange=exchange)
 
 
-def _start_silent(initial_cash: float, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
+def _start_silent(initial_cash: float, *, symbols: list[str] | None = None, exchange: str = "nse") -> None:
     try:
-        _launch_paper_runtime(initial_cash, symbol=symbol, exchange=exchange)
+        _launch_paper_runtime(initial_cash, symbols=symbols, exchange=exchange)
         console.print("[bold green]+[/bold green] Paper trading session started.")
     except Exception as exc:
         console.print(f"[bold red]![/bold red] Failed to start: {exc}")
         raise typer.Exit(code=3)
 
 
-def _start_with_progress(initial_cash: float, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
-    _start_silent(initial_cash, symbol=symbol, exchange=exchange)
+def _start_with_progress(initial_cash: float, *, symbols: list[str] | None = None, exchange: str = "nse") -> None:
+    _start_silent(initial_cash, symbols=symbols, exchange=exchange)
 
 
-def _launch_paper_runtime(initial_cash: float, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
+def _launch_paper_runtime(initial_cash: float, *, symbols: list[str] | None = None, exchange: str = "nse") -> None:
     import sys
 
     from titan.runtime.launcher import DetachedRuntimeLauncher
 
     launcher = DetachedRuntimeLauncher()
+    cmd = [
+        sys.executable,
+        "-m",
+        "titan",
+        "paper",
+        "serve",
+        "--cash",
+        str(initial_cash),
+        "--exchange",
+        exchange.lower(),
+    ]
+    if symbols:
+        for sym in symbols:
+            cmd.extend(["--symbol", sym.upper()])
+            
     launcher.launch(
-        [
-            sys.executable,
-            "-m",
-            "titan",
-            "paper",
-            "serve",
-            "--cash",
-            str(initial_cash),
-            "--symbol",
-            symbol.upper(),
-            "--exchange",
-            exchange.lower(),
-        ],
+        cmd,
         log_path=Path("logs") / "paper_runtime.log",
     )
 
@@ -603,9 +668,9 @@ def _wait_until_runtime_stops(timeout_seconds: float = 5.0) -> None:
 @app.command("serve", hidden=True)
 def serve(
     cash: Annotated[float, typer.Option("--cash", help="Initial cash balance")],
-    symbol: Annotated[
-        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
-    ] = "RELIANCE",
+    symbols: Annotated[
+        list[str], typer.Option("--symbol", "-s", help="Target symbols to trade")
+    ] = ["RELIANCE"],
     exchange: Annotated[
         str, typer.Option("--exchange", "-e", help="Exchange segment")
     ] = "nse",
@@ -639,14 +704,23 @@ def serve(
         broker=broker,
     )
 
+    from titan.brokers.yfinance.stream import YFinanceStreamSource
+    from titan.runtime.stream import MarketStream
+    stream_source = YFinanceStreamSource(poll_interval=60.0)
+    market_stream = MarketStream(source=stream_source)
+
     engine = RuntimeEngine(
         broker=broker,
         pipeline=pipeline,
-        target_symbol=symbol.upper(),
+        stream=market_stream,
+        watchlist=[s.upper() for s in symbols] if symbols else ["RELIANCE"],
         target_exchange=exchange.upper(),
     )
+    stream_source.subscribe(engine.watchlist)
+    market_stream.set_on_quote(engine._pipeline_runner)
     server = LocalTransportServer(RuntimeService(engine))
     try:
+        engine.watchlist = [s.upper() for s in symbols] if symbols else ["RELIANCE"]
         engine.start()
         server.start()
         engine.run_until_stopped()
@@ -701,9 +775,9 @@ def restart(
     cash: Annotated[
         float, typer.Option("--cash", help="Initial cash balance (for new session)")
     ] = 1000000.0,
-    symbol: Annotated[
-        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
-    ] = "RELIANCE",
+    symbols: Annotated[
+        list[str], typer.Option("--symbol", "-s", help="Target symbols to trade")
+    ] = ["RELIANCE"],
     exchange: Annotated[
         str, typer.Option("--exchange", "-e", help="Exchange segment")
     ] = "nse",

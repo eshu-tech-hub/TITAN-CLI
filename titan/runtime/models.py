@@ -61,6 +61,7 @@ class RuntimeEventType(Enum):
     # Pipeline events
     PIPELINE_EXECUTED = auto()
     PIPELINE_FAILED = auto()
+    TRADE_EXECUTED = auto()
 
     # Health events
     HEALTH_OK = auto()
@@ -170,6 +171,8 @@ class MarketStatus:
     stream_status: str = "disconnected"
     active_subscriptions: int = 0
     last_quote_time: datetime | None = None
+    stream_connected: bool = False
+    symbols: tuple[str, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True, slots=True)

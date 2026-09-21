@@ -137,7 +137,7 @@ ExecutionError (base)
 
 The OMS imports from `titan.brokers` (the broker abstraction layer)
 but NOT from any concrete broker adapter. The `OrderRouter` uses the
-`Broker` ABC interface. No SmartAPI, Angel One, or other
+`Broker` ABC interface. No yfinance, YFinance, or other
 broker-specific imports exist in `titan/execution/`.
 
 ## Alternatives Considered

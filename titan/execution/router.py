@@ -71,7 +71,7 @@ class OrderRouter:
             RouteNotFoundError: If no broker is registered for the order.
             BrokerUnavailableError: If the broker is not connected.
         """
-        broker_type = order.route.broker_type if order.route else BrokerType.ANGEL_ONE
+        broker_type = order.route.broker_type if order.route else BrokerType.PAPER
 
         broker = self._get_broker(broker_type)
 

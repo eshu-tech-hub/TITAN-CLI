@@ -103,13 +103,13 @@ class TestBrokerStatusInfo:
 
     def test_custom(self) -> None:
         info = BrokerStatusInfo(
-            provider="AngelOneBroker",
+            provider="PaperBroker",
             connection_status="Connected",
             is_connected=True,
             exchange="NSE",
             account_id="AB1234",
         )
-        assert info.provider == "AngelOneBroker"
+        assert info.provider == "PaperBroker"
         assert info.connection_status == "Connected"
         assert info.is_connected is True
 
@@ -131,30 +131,30 @@ class TestBrokerStatusInfo:
 class TestAccountInfo:
     def test_defaults(self) -> None:
         info = AccountInfo()
-        assert info.available_cash == "₹0"
-        assert info.used_margin == "₹0"
-        assert info.available_margin == "₹0"
-        assert info.payin == "₹0"
-        assert info.payout == "₹0"
+        assert info.available_cash == "INR 0"
+        assert info.used_margin == "INR 0"
+        assert info.available_margin == "INR 0"
+        assert info.payin == "INR 0"
+        assert info.payout == "INR 0"
 
     def test_custom(self) -> None:
         info = AccountInfo(
-            available_cash="₹98,450",
-            used_margin="₹12,000",
-            available_margin="₹88,000",
-            payin="₹50,000",
-            payout="₹0",
+            available_cash="INR 98,450",
+            used_margin="INR 12,000",
+            available_margin="INR 88,000",
+            payin="INR 50,000",
+            payout="INR 0",
         )
-        assert info.available_cash == "₹98,450"
-        assert info.used_margin == "₹12,000"
-        assert info.available_margin == "₹88,000"
-        assert info.payin == "₹50,000"
-        assert info.payout == "₹0"
+        assert info.available_cash == "INR 98,450"
+        assert info.used_margin == "INR 12,000"
+        assert info.available_margin == "INR 88,000"
+        assert info.payin == "INR 50,000"
+        assert info.payout == "INR 0"
 
     def test_frozen(self) -> None:
         info = AccountInfo()
         with pytest.raises(AttributeError):
-            info.available_cash = "₹0"  # type: ignore[misc]
+            info.available_cash = "INR 0"  # type: ignore[misc]
 
     def test_slots(self) -> None:
         info = AccountInfo()
@@ -172,24 +172,24 @@ class TestExposureInfo:
         assert info.total_positions == 0
         assert info.long_positions == 0
         assert info.short_positions == 0
-        assert info.gross_exposure == "₹0"
-        assert info.net_exposure == "₹0"
-        assert info.unrealized_pnl == "+₹0"
+        assert info.gross_exposure == "INR 0"
+        assert info.net_exposure == "INR 0"
+        assert info.unrealized_pnl == "+INR 0"
 
     def test_custom(self) -> None:
         info = ExposureInfo(
             total_positions=5,
             long_positions=3,
             short_positions=2,
-            gross_exposure="₹2,50,000",
-            net_exposure="₹50,000",
-            unrealized_pnl="+₹12,500",
+            gross_exposure="INR 2,50,000",
+            net_exposure="INR 50,000",
+            unrealized_pnl="+INR 12,500",
         )
         assert info.total_positions == 5
         assert info.long_positions == 3
         assert info.short_positions == 2
-        assert info.gross_exposure == "₹2,50,000"
-        assert info.unrealized_pnl == "+₹12,500"
+        assert info.gross_exposure == "INR 2,50,000"
+        assert info.unrealized_pnl == "+INR 12,500"
 
     def test_frozen(self) -> None:
         info = ExposureInfo()
@@ -217,8 +217,8 @@ class TestLivePositionEntry:
         assert entry.sell_qty == 0
         assert entry.avg_price == "0"
         assert entry.current_price == "0"
-        assert entry.pnl == "+₹0"
-        assert entry.realised_pnl == "+₹0"
+        assert entry.pnl == "+INR 0"
+        assert entry.realised_pnl == "+INR 0"
 
     def test_custom(self) -> None:
         entry = LivePositionEntry(
@@ -228,15 +228,15 @@ class TestLivePositionEntry:
             quantity=10,
             buy_qty=10,
             sell_qty=0,
-            avg_price="₹2,450",
-            current_price="₹2,470",
-            pnl="+₹200",
-            realised_pnl="+₹0",
+            avg_price="INR 2,450",
+            current_price="INR 2,470",
+            pnl="+INR 200",
+            realised_pnl="+INR 0",
         )
         assert entry.symbol == "RELIANCE"
         assert entry.exchange == "NSE"
         assert entry.quantity == 10
-        assert entry.pnl == "+₹200"
+        assert entry.pnl == "+INR 200"
 
     def test_frozen(self) -> None:
         entry = LivePositionEntry()
@@ -274,7 +274,7 @@ class TestLiveOrderEntry:
             order_type="LIMIT",
             quantity=10,
             filled_quantity=5,
-            price="₹2,450",
+            price="INR 2,450",
             status="PARTIALLY_FILLED",
             placed_at="09:15",
         )
@@ -316,7 +316,7 @@ class TestExecutionEntry:
             symbol="RELIANCE",
             side="buy",
             quantity=10,
-            price="₹2,450",
+            price="INR 2,450",
             time="09:15",
         )
         assert entry.trade_id == "T001"
@@ -355,7 +355,7 @@ class TestLiveScreenState:
         state = LiveScreenState(
             live_status=LiveStatusInfo(status="RUNNING"),
             broker_status=BrokerStatusInfo(provider="Paper"),
-            account=AccountInfo(available_cash="₹1,00,000"),
+            account=AccountInfo(available_cash="INR 1,00,000"),
             exposure=ExposureInfo(total_positions=3),
             positions=(LivePositionEntry(symbol="RELIANCE"),),
             orders=(LiveOrderEntry(order_id="O1"),),
@@ -364,7 +364,7 @@ class TestLiveScreenState:
         )
         assert state.live_status.status == "RUNNING"
         assert state.broker_status.provider == "Paper"
-        assert state.account.available_cash == "₹1,00,000"
+        assert state.account.available_cash == "INR 1,00,000"
         assert state.exposure.total_positions == 3
         assert len(state.positions) == 1
         assert len(state.orders) == 1
@@ -432,19 +432,19 @@ class TestLiveStatusClass:
 
 class TestPnlClass:
     def test_positive(self) -> None:
-        assert _pnl_class("+₹1,200") == "value-positive"
+        assert _pnl_class("+INR 1,200") == "value-positive"
 
     def test_negative(self) -> None:
-        assert _pnl_class("-₹500") == "value-negative"
+        assert _pnl_class("-INR 500") == "value-negative"
 
     def test_neutral_zero(self) -> None:
-        assert _pnl_class("₹0") == "value-neutral"
+        assert _pnl_class("INR 0") == "value-neutral"
 
     def test_positive_numeric(self) -> None:
         assert _pnl_class("1500") == "value-positive"
 
     def test_negative_unicode(self) -> None:
-        assert _pnl_class("\u2212₹300") == "value-negative"
+        assert _pnl_class("\u2212INR 300") == "value-negative"
 
     def test_empty(self) -> None:
         assert _pnl_class("") == "value-neutral"
@@ -629,11 +629,11 @@ class TestAccountWidget:
         w._payin = MagicMock()
         w._payout = MagicMock()
         info = AccountInfo(
-            available_cash="₹1,00,000",
-            used_margin="₹10,000",
-            available_margin="₹90,000",
-            payin="₹50,000",
-            payout="₹0",
+            available_cash="INR 1,00,000",
+            used_margin="INR 10,000",
+            available_margin="INR 90,000",
+            payin="INR 50,000",
+            payout="INR 0",
         )
         w.update_data(info)
         assert w._info == info
@@ -645,7 +645,7 @@ class TestAccountWidget:
 
     def test_update_data_before_compose(self) -> None:
         w = AccountWidget()
-        info = AccountInfo(available_cash="₹1,00,000")
+        info = AccountInfo(available_cash="INR 1,00,000")
         w.update_data(info)
         assert w._info == info
 
@@ -675,9 +675,9 @@ class TestExposureWidget:
             total_positions=5,
             long_positions=3,
             short_positions=2,
-            gross_exposure="₹2,50,000",
-            net_exposure="₹50,000",
-            unrealized_pnl="+₹12,500",
+            gross_exposure="INR 2,50,000",
+            net_exposure="INR 50,000",
+            unrealized_pnl="+INR 12,500",
         )
         w.update_data(info)
         assert w._info == info
@@ -707,7 +707,7 @@ class TestExposureWidget:
         w._gross = MagicMock()
         w._net = MagicMock()
         w._pnl = MagicMock()
-        info = ExposureInfo(unrealized_pnl="-₹500")
+        info = ExposureInfo(unrealized_pnl="-INR 500")
         w.update_data(info)
         w._pnl.update.assert_called_once()
 
@@ -809,9 +809,9 @@ class TestLivePositionsWidget:
                 symbol="RELIANCE",
                 exchange="NSE",
                 quantity=10,
-                avg_price="₹2,450",
-                current_price="₹2,470",
-                pnl="+₹200",
+                avg_price="INR 2,450",
+                current_price="INR 2,470",
+                pnl="+INR 200",
             ),
         )
         w.update_data(positions)
@@ -858,7 +858,7 @@ class TestLiveOrdersWidget:
                 side="buy",
                 order_type="LIMIT",
                 quantity=10,
-                price="₹2,450",
+                price="INR 2,450",
                 status="OPEN",
             ),
         )
@@ -906,7 +906,7 @@ class TestExecutionsWidget:
                 symbol="RELIANCE",
                 side="buy",
                 quantity=10,
-                price="₹2,450",
+                price="INR 2,450",
                 time="09:15",
             ),
         )
@@ -1034,7 +1034,7 @@ class TestReadLiveAccount:
     def test_exception(self, mock_get: MagicMock) -> None:
         mock_get.side_effect = RuntimeError("fail")
         info = _read_live_account()
-        assert info.available_cash == "₹0"
+        assert info.available_cash == "INR 0"
 
 
 class TestReadLiveExposure:
@@ -1189,7 +1189,7 @@ class TestBuildLiveState:
     ) -> None:
         mock_status.return_value = LiveStatusInfo(status="RUNNING")
         mock_broker.return_value = BrokerStatusInfo(provider="Paper")
-        mock_account.return_value = AccountInfo(available_cash="₹1,00,000")
+        mock_account.return_value = AccountInfo(available_cash="INR 1,00,000")
         mock_exposure.return_value = ExposureInfo(total_positions=2)
         mock_positions.return_value = (LivePositionEntry(symbol="RELIANCE"),)
         mock_orders.return_value = (LiveOrderEntry(order_id="O1"),)
@@ -1197,7 +1197,7 @@ class TestBuildLiveState:
         state = build_live_state()
         assert state.live_status.status == "RUNNING"
         assert state.broker_status.provider == "Paper"
-        assert state.account.available_cash == "₹1,00,000"
+        assert state.account.available_cash == "INR 1,00,000"
         assert state.exposure.total_positions == 2
         assert len(state.positions) == 1
         assert len(state.orders) == 1
@@ -1426,9 +1426,9 @@ class TestJsonSerialization:
     def test_account_to_dict(self) -> None:
         from dataclasses import asdict
 
-        info = AccountInfo(available_cash="₹1,00,000")
+        info = AccountInfo(available_cash="INR 1,00,000")
         d = asdict(info)
-        assert d["available_cash"] == "₹1,00,000"
+        assert d["available_cash"] == "INR 1,00,000"
 
     def test_exposure_to_dict(self) -> None:
         from dataclasses import asdict
@@ -1476,7 +1476,7 @@ class TestJsonSerialization:
         state = LiveScreenState(
             live_status=LiveStatusInfo(status="RUNNING"),
             broker_status=BrokerStatusInfo(provider="Paper"),
-            account=AccountInfo(available_cash="₹1,00,000"),
+            account=AccountInfo(available_cash="INR 1,00,000"),
             exposure=ExposureInfo(total_positions=3),
             positions=(LivePositionEntry(symbol="RELIANCE"),),
             orders=(LiveOrderEntry(order_id="O1"),),
@@ -1500,7 +1500,7 @@ class TestEmptyState:
         state = LiveScreenState()
         assert state.live_status.status == "Stopped"
         assert state.broker_status.provider == "None"
-        assert state.account.available_cash == "₹0"
+        assert state.account.available_cash == "INR 0"
         assert state.exposure.total_positions == 0
         assert state.positions == ()
         assert state.orders == ()

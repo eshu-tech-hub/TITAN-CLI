@@ -257,8 +257,8 @@ def test_summary_returns_evidence_object():
 def test_evidence_engine_has_no_forbidden_imports():
     evidence_dir = Path("titan/core/evidence")
     forbidden_terms = (
-        "angel_one",
-        "smartapi",
+        "yfinance",
+        "yfinance",
         "smartconnect",
         "broker",
         "options",

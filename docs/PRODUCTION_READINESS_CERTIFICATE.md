@@ -128,7 +128,7 @@ This document certifies the production readiness of the TITAN (Trading Intellige
 |---------|------|------------|--------|------------|
 | R-001 | MyPy type errors cause runtime type errors | Low | Medium | TD-001 resolution |
 | R-002 | Silent exception swallowing hides failures | Medium | Medium | TD-002 resolution |
-| R-003 | Broker SDK changes break AngelOne adapter | Low | High | Abstract interface + integration tests |
+| R-003 | Broker SDK changes break YFinance adapter | Low | High | Abstract interface + integration tests |
 | R-004 | Deprecated datetime.utcnow() removed in future Python | Low | Low | Already fixed in source (tests remain) |
 | R-005 | Secrets exposure via .env permissions | Medium | High | TD-005 + OS-level permissions |
 | R-006 | Analyzer boilerplate drift causes inconsistencies | Low | Low | TD-003 extraction to base class |

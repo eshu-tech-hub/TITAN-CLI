@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 class HeartbeatRegistry:
     """Deterministic registry for component check-ins without background threads."""
 
-    def __init__(self, timeout_seconds: float = 30.0) -> None:
+    def __init__(self, timeout_seconds: float = 300.0) -> None:
         self.timeout_seconds = timeout_seconds
         self._beats: dict[str, datetime] = {}
 

@@ -7,7 +7,8 @@ TITAN's architecture has been audited against its core institutional-grade princ
 
 | Principle | Status | Evidence |
 |---|---|---|
-| **Layering (UI -> Runtime -> Domain -> Storage)** | Pass | cli/ and 	ui/ invoke untime/ directly. Domain logic (market/, execution/) does not leak into UI. |
+| **Layering (UI -> Runtime -> Domain -> Storage)** | Pass | cli/ and 	ui/ invoke 
+untime/ directly. Domain logic (market/, execution/) does not leak into UI. |
 | **Dependency Direction (No Circular Imports)** | Pass | The dependency graph resolves strictly. Subsystems interface via models/DTOs rather than cross-importing active managers. |
 | **Broker Isolation** | Pass | 	itan/broker/ implementations are decoupled from RuntimeEngine. The system can switch brokers seamlessly via configuration. |
 | **Analytics Isolation** | Pass | 	itan/analysis/ relies purely on MarketData DTOs and has zero awareness of broker state or order routing. |

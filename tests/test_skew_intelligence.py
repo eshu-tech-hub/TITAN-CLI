@@ -815,8 +815,8 @@ class TestValidation:
 def test_skew_has_no_forbidden_imports():
     analytics_dir = Path("titan/options/analytics")
     forbidden_terms = (
-        "angel_one",
-        "smartapi",
+        "yfinance",
+        "yfinance",
         "smartconnect",
         "broker",
         "black_scholes",

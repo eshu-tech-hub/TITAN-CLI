@@ -54,11 +54,11 @@ pytest
 Unit tests:
 - No network access.
 - No broker API calls.
-- No SmartAPI dependency.
+- No YFinance dependency.
 
 Integration tests:
 - Broker SDKs.
-- SmartAPI.
+- YFinance.
 - External APIs.
 
 ---

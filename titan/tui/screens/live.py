@@ -121,13 +121,18 @@ class LiveScreen(VerticalScroll):
         self._refresh_state()
 
     def _refresh_state(self) -> None:
-        if self._state_builder is not None:
-            try:
-                self._state = self._state_builder()
-            except Exception:  # noqa: BLE001
-                self._state = LiveScreenState()
-        self._update_widgets()
-        self._update_refresh_indicator()
+        try:
+            if self._state_builder is not None:
+                try:
+                    self._state = self._state_builder()
+                except Exception:  # noqa: BLE001
+                    self._state = LiveScreenState()
+            self._update_widgets()
+            self._update_refresh_indicator()
+        except Exception as e:
+            import traceback
+            with open("tui_ui_crash.log", "a") as f:
+                f.write(f"UI RENDER CRASH: {e}\n{traceback.format_exc()}\n")
 
     def _update_widgets(self) -> None:
         if self._live_status_widget is not None:
@@ -206,49 +211,49 @@ class LiveScreen(VerticalScroll):
         """Return to the previous view via the shell router."""
         try:
             self.app.action_go_back()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_up_line(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_up(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_down_line(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_down(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_up(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_down(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_top(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_bottom(self) -> None:
         try:
             container = self.query_one("#widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     @property

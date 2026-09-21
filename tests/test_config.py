@@ -77,7 +77,7 @@ class TestAppConfig:
 class TestBrokerConfig:
     def test_defaults(self) -> None:
         cfg = BrokerConfig()
-        assert cfg.provider == "angel_one"
+        assert cfg.provider == "paper"
         assert cfg.exchange == "nse"
         assert cfg.paper_initial_cash == Decimal(100000)
         assert cfg.max_retries == 3
@@ -85,7 +85,7 @@ class TestBrokerConfig:
     def test_frozen(self) -> None:
         cfg = BrokerConfig()
         with pytest.raises(AttributeError):
-            cfg.provider = "angel_one"  # type: ignore[misc]
+            cfg.provider = "paper"  # type: ignore[misc]
 
 
 class TestRuntimeConfig:

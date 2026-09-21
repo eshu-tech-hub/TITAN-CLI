@@ -29,7 +29,7 @@ titan/brokers/
 
 ```
 TITAN Core  ──►  Broker Abstraction  ◄──  Broker Adapter
-     │                                      (e.g. AngelOneBroker)
+     │                                      (e.g. YFinanceBroker)
      │                                              │
      └── never imports broker SDKs ────────────── SDK
 ```
@@ -72,7 +72,7 @@ All models are frozen dataclasses. Located in `models.py`.
 
 | Enum | Values |
 |---|---|
-| `BrokerType` | `ANGEL_ONE`, `ZERODHA`, `DHAN`, `UPSTOX`, `INTERACTIVE_BROKERS`, `ALPACA`, `BINANCE` |
+| `BrokerType` | `yfinance`, `ZERODHA`, `DHAN`, `UPSTOX`, `INTERACTIVE_BROKERS`, `ALPACA`, `BINANCE` |
 | `ConnectionStatus` | `CONNECTED`, `DISCONNECTED`, `CONNECTING`, `RECONNECTING`, `ERROR` |
 | `OrderStatus` | `PENDING`, `OPEN`, `PARTIALLY_FILLED`, `FILLED`, `CANCELLED`, `REJECTED`, `EXPIRED` |
 | `OrderSide` | `BUY`, `SELL` |
@@ -110,8 +110,8 @@ All models are frozen dataclasses. Located in `models.py`.
 
 ```python
 factory = BrokerFactory()
-factory.register(BrokerType.ANGEL_ONE, AngelOneBroker)
-broker = factory.create(BrokerType.ANGEL_ONE, api_key="...")
+factory.register(BrokerType.yfinance, YFinanceBroker)
+broker = factory.create(BrokerType.yfinance, api_key="...")
 ```
 
 Methods:
@@ -138,7 +138,7 @@ Methods:
 
 The abstraction supports the following brokers without redesign:
 
-- Angel One
+- YFinance
 - Zerodha
 - Dhan
 - Upstox

@@ -595,7 +595,7 @@ def _pnl_class(value: str) -> str:
         return "value-negative"
     if stripped.startswith("+"):
         return "value-positive"
-    cleaned = stripped.replace("\u20b9", "").replace(",", "").strip()
+    cleaned = stripped.replace("\u20b9", "").replace("INR", "").replace(",", "").strip()
     if cleaned:
         try:
             if float(cleaned) > 0:

@@ -1,0 +1,100 @@
+    """Build RuntimeScreenState by reading all managers (read-only).
+
+    All manager access is try/except guarded for resilience.
+    """
+    engine_info = _read_runtime_engine()
+    stream_info = _read_runtime_stream()
+    pipeline_info = _read_runtime_pipeline()
+    event_bus_info = _read_runtime_event_bus()
+    components = _read_runtime_components()
+    events = _read_runtime_events()
+
+    now = datetime.now().strftime("%H:%M:%S")  # noqa: DTZ005 - local time for display
+
+    return RuntimeScreenState(
+        engine=engine_info,
+        stream=stream_info,
+        pipeline=pipeline_info,
+        event_bus=event_bus_info,
+        components=components,
+        events=events,
+        last_refresh=now,
+    )
+
+
+def _read_runtime_engine() -> RuntimeEngineInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        status = engine.status.name
+        is_running = engine.is_running
+        
+        uptime = "00:00:00"
+        scheduler_active = False
+        try:
+            report = engine.generate_report()
+            uptime = _format_uptime(report.performance.uptime_seconds)
+            scheduler_active = report.scheduler.active
+        except Exception:
+            pass
+
+        return RuntimeEngineInfo(
+            status=status,
+            uptime=uptime,
+            is_running=is_running,
+            scheduler_active=scheduler_active,
+        )
+    except Exception:  # noqa: BLE001
+        return RuntimeEngineInfo()
+
+
+def _read_runtime_stream() -> RuntimeStreamInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return RuntimeStreamInfo(
+            connected=report.market.stream_status.lower() == "connected",
+            symbols_tracked=report.market.active_subscriptions,
+            tick_rate="N/A",
+        )
+    except Exception:  # noqa: BLE001
+        return RuntimeStreamInfo()
+
+
+def _read_runtime_pipeline() -> RuntimePipelineInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+
+        engine = get_runtime_engine()
+        report = engine.generate_report()
+        return RuntimePipelineInfo(
+            executions=report.scheduler.pipeline_executions,
+            avg_runtime="N/A",
+            last_run=_format_relative_time(report.scheduler.last_pipeline_time),
+        )
+    except Exception:  # noqa: BLE001
+        return RuntimePipelineInfo()
+
+
+def _read_runtime_event_bus() -> RuntimeEventBusInfo:
+    try:
+        from titan.cli.common import get_runtime_engine
+        from titan.runtime.models import RuntimeEventType
+
+        engine = get_runtime_engine()
+        bus = engine.event_bus
+        total_subscribers = 0
+        for event_type in RuntimeEventType:
+            total_subscribers += bus.listener_count(event_type)
+        return RuntimeEventBusInfo(
+            published=0,
+            subscribers=total_subscribers,
+        )
+    except Exception:  # noqa: BLE001
+        return RuntimeEventBusInfo()
+
+
+def _read_runtime_components() -> tuple[RuntimeComponentInfo, ...]:

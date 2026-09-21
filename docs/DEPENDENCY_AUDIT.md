@@ -21,7 +21,7 @@ A thorough review of TITAN's dependency chain has been conducted. The project re
 ## Optional Dependencies
 
 ### Broker (`[broker]`)
-- `smartapi-python (>=1.0.0)`: Integration for AngelOne SmartAPI.
+- `yfinance-python (>=1.0.0)`: Integration for YFinance yfinance.
 - `pyotp (>=2.0.0)`: TOTP token generation for broker authentication.
 
 ### Development (`[dev]`)

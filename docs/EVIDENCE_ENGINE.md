@@ -83,7 +83,7 @@ Evidence(
 ## Boundary Rule
 
 The evidence engine must remain independent. It must not import broker code,
-SmartAPI, market calculations, option formulas, news providers, or the decision
+yfinance, market calculations, option formulas, news providers, or the decision
 engine.
 
 

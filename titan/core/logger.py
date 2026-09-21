@@ -24,6 +24,7 @@ logger.add(
     retention="30 days",
     level="DEBUG",
     encoding="utf-8",
+    serialize=True,
 )
 
 __all__ = ["logger"]

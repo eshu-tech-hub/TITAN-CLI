@@ -474,7 +474,7 @@ def _pnl_class(value: str) -> str:
         return "value-negative"
     if stripped.startswith("+"):
         return "value-positive"
-    cleaned = stripped.replace("₹", "").replace(",", "").strip()
+    cleaned = stripped.replace("₹", "").replace("INR", "").replace(",", "").strip()
     if cleaned:
         try:
             if float(cleaned) > 0:

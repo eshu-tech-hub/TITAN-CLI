@@ -11,7 +11,7 @@ from titan.decision.replay import DecisionReplayService
 from titan.pipeline.pipeline import TradePipeline
 from titan.portfolio.replay import PortfolioReplayService
 from titan.runtime.events import RuntimeEventBus
-from titan.runtime.exceptions import RuntimeError, SchedulerError, StreamError
+from titan.runtime.exceptions import RuntimeError, SchedulerError
 from titan.runtime.health import HealthCheck
 from titan.runtime.models import (
     HealthStatus,
@@ -63,12 +63,20 @@ class RuntimeEngine:
     supervisor: RuntimeSupervisor = field(default_factory=RuntimeSupervisor)
     health: HealthCheck = field(default_factory=HealthCheck)
     subscriptions: SubscriptionManager = field(default_factory=SubscriptionManager)
-    target_symbol: str = field(default="RELIANCE")
+    watchlist: list[str] = field(default_factory=lambda: ["^NSEI"])
+    @property
+    def target_symbol(self) -> str:
+        return self.watchlist[0] if self.watchlist else "^NSEI"
+    @target_symbol.setter
+    def target_symbol(self, value: str) -> None:
+        self.watchlist = [value]
     target_exchange: str = field(default="NSE")
     _status: RuntimeStatus = field(default=RuntimeStatus.STOPPED, init=False)
     _start_time: datetime | None = field(default=None, init=False)
     _error: str = field(default="", init=False)
     _stop_event: Event = field(default_factory=Event, init=False)
+    _gemini_last_called: dict[str, float] = field(default_factory=dict, init=False)
+    _ai_enabled: bool = field(default=False, init=False)
     _pipeline_executions: int = field(default=0, init=False)
     decision_journal: DecisionJournal = field(default_factory=DecisionJournal)
     decision_replay: DecisionReplayService = field(init=False)
@@ -96,11 +104,7 @@ class RuntimeEngine:
     # ── Lifecycle ─────────────────────────────────────────────
 
     def start(self) -> None:
-        """Start the runtime engine and all components.
-
-        Raises:
-            RuntimeError: If already running or startup fails.
-        """
+        """Start the runtime engine and all components."""
         if self._status in (RuntimeStatus.RUNNING, RuntimeStatus.STARTING):
             raise RuntimeError("Runtime is already running.")
         if self._status == RuntimeStatus.PAUSED:
@@ -134,6 +138,9 @@ class RuntimeEngine:
             )
 
         except Exception as exc:
+            import traceback
+            with open("tui_ipc_debug.log", "a") as f:
+                f.write(f"Runtime Start Error: {traceback.format_exc()}\n")
             self._status = RuntimeStatus.ERROR
             self._error = str(exc)
             self.health.report_unhealthy("runtime", error=str(exc))
@@ -144,7 +151,6 @@ class RuntimeEngine:
             )
             self._shutdown_components()
             raise RuntimeError(f"Failed to start runtime: {exc}") from exc
-
     def run_until_stopped(self) -> None:
         """Run the scheduler loop until :meth:`stop` is requested.
 
@@ -154,6 +160,8 @@ class RuntimeEngine:
         """
         if self._status not in (RuntimeStatus.RUNNING, RuntimeStatus.PAUSED):
             raise RuntimeError("Runtime must be running before entering its loop.")
+
+        self._warmup_historical_context()
 
         while not self._stop_event.is_set() and self._status in (
             RuntimeStatus.RUNNING,
@@ -346,6 +354,8 @@ class RuntimeEngine:
             last_quote_time=(
                 self.stream.last_quote_time if self.stream is not None else None
             ),
+            stream_connected=getattr(self.stream, 'connected', getattr(self.stream, 'is_connected', False)) if self.stream else False,
+            symbols=tuple(getattr(self.stream, 'symbols', getattr(self.stream, 'subscribed_symbols', []))) if self.stream else (),
         )
 
         perf_status = PerformanceStatus(uptime_seconds=self.uptime_seconds)
@@ -370,6 +380,12 @@ class RuntimeEngine:
 
     def _validate_storage(self) -> None:
         """Validate storage connectivity and permissions."""
+        try:
+            from titan.storage.trade_persistence import trade_store
+            _ = trade_store.db_path
+        except Exception as e:
+            from titan.core.logger import logger
+            logger.warning(f"Failed to eagerly initialize SQLite trades table: {e}")
 
     def _validate_trade_journal(self) -> None:
         """Validate trade journal integrity."""
@@ -416,15 +432,76 @@ class RuntimeEngine:
             self.health.report_healthy("broker")
         self.event_bus.publish_type(RuntimeEventType.BROKER_DISCONNECTED, "runtime")
 
+    def _warmup_historical_context(self) -> None:
+        import pandas as pd
+        import yfinance as yf
+
+        from titan.brokers.models import Exchange
+        from titan.market.models import Candle
+        from titan.market.series import MarketDataSeries
+        
+        logger.info("Initiating historical context warmup")
+        for symbol in self.watchlist:
+            try:
+                yf_sym = symbol if symbol.startswith("^") else (symbol if symbol.endswith(".NS") else f"{symbol}.NS")
+                df = yf.download(yf_sym, period="2d", interval="1m", progress=False)
+                if df.empty:
+                    continue
+                
+                # Feed the last day's data through pipeline
+                exchanges = self.broker.profile().enabled_exchanges
+                exchange_val = exchanges[0] if exchanges else Exchange.NSE
+                
+                for ts, row in df.iterrows():
+                    last_price = float(row["Close"].iloc[0]) if isinstance(row["Close"], pd.Series) else float(row["Close"])
+                    vol_val = row.get("Volume", 0)
+                    volume = int(vol_val.iloc[0]) if isinstance(vol_val, pd.Series) else int(vol_val)
+                    
+                    dt = ts.to_pydatetime()
+                    if dt.tzinfo is None:
+                        from datetime import UTC
+                        dt = dt.replace(tzinfo=UTC)
+                    else:
+                        from datetime import UTC
+                        dt = dt.astimezone(UTC)
+                    
+                    candle = Candle(
+                        timestamp=dt,
+                        open=float(row["Open"].iloc[0]) if isinstance(row["Open"], pd.Series) else float(row["Open"]),
+                        high=float(row["High"].iloc[0]) if isinstance(row["High"], pd.Series) else float(row["High"]),
+                        low=float(row["Low"].iloc[0]) if isinstance(row["Low"], pd.Series) else float(row["Low"]),
+                        close=last_price,
+                        volume=volume
+                    )
+                    market_data = MarketDataSeries(candles=[candle])
+                    self.pipeline.run(symbol=symbol, exchange=exchange_val, market_data=market_data, abort_on_fatal=False)
+                    
+                logger.info(f"Historical warmup complete for {symbol}: {len(df)} candles")
+            except Exception as e:
+                logger.warning(f"Historical warmup failed for {symbol}: {e}")
+
     def _start_stream(self) -> None:
         """Start the market data stream."""
         if self.stream is not None:
             try:
+                if not self.watchlist:
+                    self.watchlist = ["^NSEI"]
+                if hasattr(self.stream, "source") and hasattr(self.stream.source, "subscribe"):
+                    self.stream.source.subscribe(self.watchlist)
+                
+                if hasattr(self.stream, "set_on_quote"):
+                    self.stream.set_on_quote(self._pipeline_runner)
+                elif hasattr(self.stream, "source") and hasattr(self.stream.source, "set_on_quote"):
+                    self.stream.source.set_on_quote(self._pipeline_runner)
+                    
                 self.stream.start()
                 self.health.report_healthy("stream")
-            except StreamError as e:
+            except Exception as e:
+                import traceback
+                with open("tui_ipc_debug.log", "a") as f:
+                    f.write(f"Stream Start Error: {traceback.format_exc()}\n")
                 self.health.report_unhealthy("stream", error=str(e))
-
+                raise
     def _stop_stream(self) -> None:
         """Stop the market data stream."""
         if self.stream is not None:
@@ -458,7 +535,7 @@ class RuntimeEngine:
             else:
                 self.health.report_healthy("scheduler")
 
-    def _pipeline_runner(self) -> Any:
+    def _pipeline_runner(self, quote=None) -> Any:
         """Default pipeline runner for the scheduler.
 
         Can be overridden by setting scheduler.runner directly.
@@ -472,8 +549,99 @@ class RuntimeEngine:
         self._pipeline_executions += 1
         exchanges = self.broker.profile().enabled_exchanges
         exchange_val = exchanges[0] if exchanges else Exchange.NSE
-        symbol = self.target_symbol or "RELIANCE"
-        report = self.pipeline.run(symbol=symbol, exchange=exchange_val)
+        symbol = quote.symbol if quote else (self.watchlist[0] if self.watchlist else "RELIANCE")
+        
+        market_data = None
+        if quote is not None:
+            from titan.market.models import Candle
+            from titan.market.series import MarketDataSeries
+            candle = Candle(
+                timestamp=quote.timestamp,
+                open=float(quote.last_price),
+                high=float(quote.last_price),
+                low=float(quote.last_price),
+                close=float(quote.last_price),
+                volume=int(quote.volume)
+            )
+            market_data = MarketDataSeries(candles=[candle])
+
+        try:
+            report = self.pipeline.run(symbol=symbol, exchange=exchange_val, market_data=market_data)
+        except Exception as e:
+            import traceback
+            with open("pipeline_crash.log", "a") as f:
+                f.write(f"PIPELINE CRASH:\n{traceback.format_exc()}\n")
+            # Return an empty report or re-raise? "Do not re-raise, let the engine survive"
+            import uuid
+            from datetime import UTC, datetime
+
+            from titan.pipeline.models import PipelineReport, PipelineStatus
+            report = PipelineReport(
+                pipeline_id=str(uuid.uuid4()),
+                symbol=symbol,
+                exchange=exchange_val,
+                status=PipelineStatus.FAILED,
+                stages=(),
+                evidence_count=0,
+                decision_action=None,
+                orders_submitted=0,
+                orders_accepted=0,
+                orders_rejected=0,
+                broker_order_ids=(),
+                execution_result=None,
+                warnings=(),
+                errors=(str(e),),
+                start_time=datetime.now(UTC),
+                end_time=datetime.now(UTC),
+                total_duration_ms=0.0
+            )
+
+        # Gemini AI Synthesis Hook / Quant Mode Bypass
+        from titan.pipeline.models import PipelineStatus
+        if getattr(report, "status", None) == PipelineStatus.SUCCESS:
+            import time
+
+            from titan.core.logger import logger
+            
+            AI_ENABLED = getattr(self, "_ai_enabled", False)
+            
+            if not AI_ENABLED:
+                logger.info(f"[Quant Mode] AI bypassed. Executing purely on Technicals & Greeks for {symbol}.")
+            else:
+                # Rate limiting cache
+                if not hasattr(self, "_gemini_last_called"):
+                    self._gemini_last_called = {}
+                    
+                current_time = time.time()
+                last_called = self._gemini_last_called.get(symbol, 0.0)
+                
+                # 60 second cooldown per symbol
+                if current_time - last_called >= 60.0:
+                    try:
+                        from titan.ai.models import PromptContext
+                        from titan.ai.providers.gemini import GeminiAIProvider
+                        
+                        gemini = GeminiAIProvider()
+                        metrics_summary = f"Symbol: {symbol}, Decision: {report.decision_action}, Evidence: {report.evidence_count}"
+                        ctx = PromptContext(
+                            template_name="trade_bias",
+                            system_prompt="You are an institutional trading AI.",
+                            user_prompt=f"Given these metrics: {metrics_summary}. Respond with LONG, SHORT, or HOLD."
+                        )
+                        ai_response = gemini.generate(ctx)
+                        logger.info(f"Gemini synthesis for {symbol}: {ai_response.content}")
+                        
+                        # Update cache on success
+                        self._gemini_last_called[symbol] = current_time
+                        
+                    except Exception as ai_e:
+                        logger.warning(f"Gemini synthesis failed: {ai_e}")
+                        # If rate limited (429), back off by artificially extending the last called time
+                        if "429" in str(ai_e):
+                            logger.warning(f"Gemini Rate Limit hit for {symbol}. Applying 5-minute backoff.")
+                            self._gemini_last_called[symbol] = current_time + 240.0  # 4 mins + 1 min normal = 5 mins
+                            logger.warning("Disabling AI for session due to rate limits. Falling back to Pure Quant mode.")
+                            self._ai_enabled = False
 
         # Record execution results if any orders were submitted
         if report.orders_submitted > 0:
@@ -494,5 +662,14 @@ class RuntimeEngine:
                     reason="Pipeline execution",
                     broker_reference=broker_id,
                 )
+                
+                # SQLite Persistence Hook
+                try:
+                    from titan.storage.trade_persistence import trade_store
+                    updated_entry = self.trade_journal.get_trade(entry.trade_id)
+                    if updated_entry:
+                        trade_store.save(updated_entry)
+                except Exception as e:
+                    logger.error(f"Failed to persist trade {entry.trade_id} to SQLite: {e}")
 
         return report

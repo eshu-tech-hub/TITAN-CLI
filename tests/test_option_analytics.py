@@ -247,7 +247,7 @@ def test_analytics_package_exports_all_analyzers():
 
 def test_option_analytics_has_no_broker_imports():
     analytics_dir = Path("titan/options/analytics")
-    forbidden_terms = ("angel_one", "smartapi", "smartconnect", "broker")
+    forbidden_terms = ("yfinance", "yfinance", "smartconnect", "broker")
 
     for path in analytics_dir.glob("*.py"):
         tree = ast.parse(path.read_text())

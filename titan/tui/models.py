@@ -174,11 +174,11 @@ class PaperSessionInfo:
 class PaperAccountInfo:
     """Snapshot of paper account funds and margin state."""
 
-    available_cash: str = "₹0"
-    used_margin: str = "₹0"
-    available_margin: str = "₹0"
-    payin: str = "₹0"
-    payout: str = "₹0"
+    available_cash: str = "INR 0"
+    used_margin: str = "INR 0"
+    available_margin: str = "INR 0"
+    payin: str = "INR 0"
+    payout: str = "INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -200,10 +200,10 @@ class PaperOrderEntry:
 class PaperPortfolioInfo:
     """Snapshot of paper portfolio state."""
 
-    cash: str = "₹0"
-    equity: str = "₹0"
-    unrealized_pnl: str = "+₹0"
-    realized_pnl: str = "+₹0"
+    cash: str = "INR 0"
+    equity: str = "INR 0"
+    unrealized_pnl: str = "+INR 0"
+    realized_pnl: str = "+INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -225,7 +225,7 @@ class PaperPositionEntry:
     quantity: int = 0
     avg_price: str = "0"
     current_price: str = "0"
-    unrealized_pnl: str = "+₹0"
+    unrealized_pnl: str = "+INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -236,7 +236,7 @@ class PaperTradeEntry:
     side: str = ""
     quantity: int = 0
     price: str = "0"
-    pnl: str = "+₹0"
+    pnl: str = "+INR 0"
     time: str = ""
 
 
@@ -405,11 +405,11 @@ class BrokerStatusInfo:
 class AccountInfo:
     """Snapshot of live account funds and margin state."""
 
-    available_cash: str = "₹0"
-    used_margin: str = "₹0"
-    available_margin: str = "₹0"
-    payin: str = "₹0"
-    payout: str = "₹0"
+    available_cash: str = "INR 0"
+    used_margin: str = "INR 0"
+    available_margin: str = "INR 0"
+    payin: str = "INR 0"
+    payout: str = "INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -419,9 +419,9 @@ class ExposureInfo:
     total_positions: int = 0
     long_positions: int = 0
     short_positions: int = 0
-    gross_exposure: str = "₹0"
-    net_exposure: str = "₹0"
-    unrealized_pnl: str = "+₹0"
+    gross_exposure: str = "INR 0"
+    net_exposure: str = "INR 0"
+    unrealized_pnl: str = "+INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -436,8 +436,8 @@ class LivePositionEntry:
     sell_qty: int = 0
     avg_price: str = "0"
     current_price: str = "0"
-    pnl: str = "+₹0"
-    realised_pnl: str = "+₹0"
+    pnl: str = "+INR 0"
+    realised_pnl: str = "+INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -915,13 +915,13 @@ class DecisionScreenState:
 
 @dataclass(frozen=True, slots=True)
 class TradeJournalSummaryInfo:
-    today_pnl: str = "₹0"
-    open_risk: str = "₹0"
-    exposure: str = "₹0"
+    today_pnl: str = "INR 0"
+    open_risk: str = "INR 0"
+    exposure: str = "INR 0"
     win_percent: str = "0.0%"
     current_drawdown: str = "0.0%"
-    largest_winner: str = "₹0"
-    largest_loser: str = "₹0"
+    largest_winner: str = "INR 0"
+    largest_loser: str = "INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -930,9 +930,9 @@ class TradeHistoryEntry:
     symbol: str = ""
     direction: str = ""
     quantity: int = 0
-    entry_price: str = "₹0"
-    exit_price: str = "₹0"
-    net_pnl: str = "₹0"
+    entry_price: str = "INR 0"
+    exit_price: str = "INR 0"
+    net_pnl: str = "INR 0"
     status: str = ""
     open_time: str = ""
 
@@ -1064,7 +1064,7 @@ class RegimePerformanceEntry:
     trades: int = 0
     win_rate: str = "0.0%"
     profit_factor: str = "0.00"
-    net_pnl: str = "₹0"
+    net_pnl: str = "INR 0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -1076,8 +1076,8 @@ class StrategyScorecardInfo:
     win_rate: str = "0.0%"
     profit_factor: str = "0.00"
     expectancy: str = "0.00R"
-    net_pnl: str = "₹0"
-    max_drawdown: str = "₹0"
+    net_pnl: str = "INR 0"
+    max_drawdown: str = "INR 0"
     regimes: tuple[RegimePerformanceEntry, ...] = ()
 
 

@@ -48,6 +48,10 @@ class ExecutionValidator:
         if not issues and required_capital is not None:
             issues.extend(self._check_funds_available(broker, required_capital))
             issues.extend(self._check_margin_available(broker, required_capital))
+            
+        if not issues:
+            issues.extend(self._check_position_limits(broker, plan))
+            issues.extend(self._check_daily_loss(broker))
 
         return ValidationResult(
             valid=len(issues) == 0,

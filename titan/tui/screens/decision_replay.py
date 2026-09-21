@@ -205,28 +205,28 @@ class DecisionReplayScreen(VerticalScroll):
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_down(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_top(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_home(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_bottom(self) -> None:
         try:
             container = self.query_one("#replay-widgets-container", VerticalScroll)
             container.scroll_end(animate=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     @property

@@ -192,7 +192,7 @@ The following 6 packages have **zero intra-project imports** and are fully self-
 | Each package has single responsibility | **PASS** | All 25 packages are cohesive and focused |
 | No god packages | **PASS** | Maximum 25 subpackages; `pipeline` is the largest orchestrator at 11 dependencies |
 | Shared types in appropriate location | **WARN** | `core.evidence` serves as universal foundation (imported by 13 packages) - correct placement |
-| Optional broker SDK isolation | **PASS** | `smartapi-python` and `pyotp` are optional extras, not core dependencies |
+| Optional broker SDK isolation | **PASS** | `yfinance` and `pyotp` are optional extras, not core dependencies |
 
 ### 5.2 Package Cohesion Assessment
 

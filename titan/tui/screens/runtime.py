@@ -104,14 +104,20 @@ class RuntimeScreen(VerticalScroll):
         self._refresh_state()
 
     def _refresh_state(self) -> None:
-        if self._state_builder is not None:
+        if getattr(self, "_state_builder", None) is not None:
             try:
                 self._state = self._state_builder()
-            except Exception:  # noqa: BLE001
+            except Exception:
+                self._state = RuntimeScreenState()
+        else:
+            from titan.tui.layout import _get_runtime_data, build_runtime_state
+            raw_data = _get_runtime_data()
+            if raw_data:
+                self._state = build_runtime_state(raw_data)
+            else:
                 self._state = RuntimeScreenState()
         self._update_widgets()
         self._update_refresh_indicator()
-
     def _update_widgets(self) -> None:
         if self._engine_widget is not None:
             self._engine_widget.update_data(self._state.engine)
@@ -230,7 +236,7 @@ class RuntimeScreen(VerticalScroll):
         """Return to the previous view via the shell router."""
         try:
             self.app.action_go_back()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def action_scroll_up(self) -> None:

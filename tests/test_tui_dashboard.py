@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -83,11 +83,11 @@ class TestMarketInfo:
     def test_connected(self) -> None:
         info = MarketInfo(
             broker_connected=True,
-            broker_provider="AngelOne",
+            broker_provider="YFinance",
             stream_connected=True,
             symbols_tracked=24,
         )
-        assert info.broker_provider == "AngelOne"
+        assert info.broker_provider == "YFinance"
         assert info.symbols_tracked == 24
 
 
@@ -315,7 +315,8 @@ class TestDashboardScreenUnit:
         assert screen.state.runtime.status == "Running"
         assert screen.state.market.symbols_tracked == 10
 
-    def test_refresh_state_without_builder(self) -> None:
+    @patch("titan.runtime.local_transport.LocalTransport.status", side_effect=ConnectionRefusedError)
+    def test_refresh_state_without_builder(self, mock_status) -> None:
         screen = DashboardScreen()
         screen._refresh_state()
         assert screen.state.runtime.status == "Unknown"

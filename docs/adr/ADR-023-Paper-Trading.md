@@ -11,8 +11,8 @@
 TITAN's Trade Pipeline (ADR-022) orchestrates the complete trading workflow from
 market data to broker execution. The Execution Orchestrator (ADR-021) submits
 orders through a `Broker` abstraction (ADR-017). Currently, the only concrete
-broker implementation is Angel One (ADR-019), which requires network access and
-a live SmartAPI account.
+broker implementation is YFinance (ADR-019), which requires network access and
+a live yfinance account.
 
 Before this ADR:
 
@@ -30,7 +30,7 @@ We introduce `titan/paper/` with the following architecture:
 ### PaperBroker
 
 `PaperBroker` implements the full `Broker` ABC from `titan/brokers/broker.py`,
-making it a drop-in replacement for any live broker (AngelOneBroker, etc.).
+making it a drop-in replacement for any live broker (YFinanceBroker, etc.).
 Upstream code (Trade Pipeline, Execution Orchestrator, Decision Engine) does
 not need to change.
 

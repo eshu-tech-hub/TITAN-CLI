@@ -214,7 +214,7 @@ RuntimeError
 
 We considered adding `subscribe(symbol, exchange)`, `unsubscribe()`, and
 `on_quote()` to the `Broker` interface. This would have required all
-existing broker adapters (AngelOneBroker, PaperBroker) to implement
+existing broker adapters (YFinanceBroker, PaperBroker) to implement
 streaming methods, even though only a subset of live brokers support
 WebSocket data.
 
@@ -238,7 +238,7 @@ for the stream reader, scheduler, and heartbeat.
 - The runtime needs at most 3-4 concurrent threads — threading with
   `queue.Queue` is simpler, more testable, and matches the existing
   code style.
-- All existing broker SDKs (Angel One, etc.) are synchronous.
+- All existing broker SDKs (YFinance, etc.) are synchronous.
 
 ### 3. External Message Queue (Redis Pub/Sub, RabbitMQ)
 

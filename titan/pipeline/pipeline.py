@@ -519,6 +519,42 @@ class TradePipeline:
         snapshot = ctx.metadata.get("option_chain_snapshot")
         if snapshot is None:
             return result
+            
+        # Black-Scholes Greeks Auto-Calculator Injection
+        if snapshot.underlying_price is not None:
+            try:
+                import dataclasses
+                from datetime import UTC, datetime
+
+                from titan.options.pricing.black_scholes import calculate_greeks
+                
+                spot = snapshot.underlying_price
+                time_to_expiry_years = max(0.001, (snapshot.expiry - datetime.now(UTC)).total_seconds() / (365.25 * 86400))
+                risk_free_rate = 0.05
+                
+                new_strikes = []
+                for strike in snapshot.strikes:
+                    strike_dict = dataclasses.asdict(strike)
+                    K = strike.strike_price
+                    
+                    # Compute Call Greeks if IV is present and delta is missing
+                    if strike.call_implied_volatility and strike.call_delta is None:
+                        cg = calculate_greeks(spot, K, time_to_expiry_years, strike.call_implied_volatility, risk_free_rate, "CE")
+                        strike_dict.update({"call_delta": cg["delta"], "call_gamma": cg["gamma"], "call_theta": cg["theta"], "call_vega": cg["vega"]})
+                        
+                    # Compute Put Greeks if IV is present and delta is missing
+                    if strike.put_implied_volatility and strike.put_delta is None:
+                        pg = calculate_greeks(spot, K, time_to_expiry_years, strike.put_implied_volatility, risk_free_rate, "PE")
+                        strike_dict.update({"put_delta": pg["delta"], "put_gamma": pg["gamma"], "put_theta": pg["theta"], "put_vega": pg["vega"]})
+                        
+                    from titan.options.analytics.models import OptionStrikeSnapshot
+                    new_strikes.append(OptionStrikeSnapshot(**strike_dict))
+                    
+                snapshot = dataclasses.replace(snapshot, strikes=tuple(new_strikes))
+                ctx.metadata["option_chain_snapshot"] = snapshot
+            except Exception as e:
+                from titan.core.logger import logger
+                logger.warning(f"Failed to auto-calculate Greeks: {e}")
 
         try:
             chain = self._option_chain_analyzer.analyze(snapshot)

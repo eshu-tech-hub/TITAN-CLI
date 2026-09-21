@@ -52,7 +52,7 @@ from titan.brokers import (
 
 class TestBrokerType:
     def test_values(self) -> None:
-        assert BrokerType.ANGEL_ONE.value == "angel_one"
+        assert BrokerType.ZERODHA.value == "ZERODHA"
         assert BrokerType.ZERODHA.value == "zerodha"
         assert BrokerType.DHAN.value == "dhan"
         assert BrokerType.UPSTOX.value == "upstox"
@@ -671,8 +671,8 @@ class TestConcreteBroker:
 class TestBrokerFactory:
     def test_register_and_create(self) -> None:
         factory = BrokerFactory()
-        factory.register(BrokerType.ANGEL_ONE, _TestBroker)
-        broker = factory.create(BrokerType.ANGEL_ONE)
+        factory.register(BrokerType.ZERODHA, _TestBroker)
+        broker = factory.create(BrokerType.ZERODHA)
         assert isinstance(broker, _TestBroker)
 
     def test_create_unregistered_raises_error(self) -> None:
@@ -682,9 +682,9 @@ class TestBrokerFactory:
 
     def test_duplicate_registration_raises_error(self) -> None:
         factory = BrokerFactory()
-        factory.register(BrokerType.ANGEL_ONE, _TestBroker)
+        factory.register(BrokerType.ZERODHA, _TestBroker)
         with pytest.raises(BrokerError, match="already registered"):
-            factory.register(BrokerType.ANGEL_ONE, _TestBroker)
+            factory.register(BrokerType.ZERODHA, _TestBroker)
 
     def test_register_invalid_class_raises_error(self) -> None:
         factory = BrokerFactory()
@@ -693,20 +693,20 @@ class TestBrokerFactory:
             pass
 
         with pytest.raises(BrokerError, match="must implement the Broker interface"):
-            factory.register(BrokerType.ANGEL_ONE, NotABroker)  # type: ignore[type-abstract]
+            factory.register(BrokerType.ZERODHA, NotABroker)  # type: ignore[type-abstract]
 
     def test_supported_brokers(self) -> None:
         factory = BrokerFactory()
         assert factory.supported_brokers() == []
-        factory.register(BrokerType.ANGEL_ONE, _TestBroker)
         factory.register(BrokerType.ZERODHA, _TestBroker)
-        assert BrokerType.ANGEL_ONE in factory.supported_brokers()
+        factory.register(BrokerType.ZERODHA, _TestBroker)
+        assert BrokerType.ZERODHA in factory.supported_brokers()
         assert BrokerType.ZERODHA in factory.supported_brokers()
 
     def test_create_with_kwargs(self) -> None:
         factory = BrokerFactory()
-        factory.register(BrokerType.ANGEL_ONE, _TestBrokerWithConfig)
-        broker = factory.create(BrokerType.ANGEL_ONE, api_key="test-key")
+        factory.register(BrokerType.ZERODHA, _TestBrokerWithConfig)
+        broker = factory.create(BrokerType.ZERODHA, api_key="test-key")
         assert isinstance(broker, _TestBrokerWithConfig)
         assert broker.api_key == "test-key"
 

@@ -26,12 +26,44 @@ class LocalTransportServer:
         self._server_socket: socket.socket | None = None
         self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
+        self.publisher = None
+
+    def _publish_status_event(self, event) -> None:
+        if self.publisher and not self._stop_event.is_set():
+            try:
+                status = self._build_paper_status()
+                self.publisher.publish("paper.status", status)
+            except Exception:  # noqa: BLE001, S110
+                pass
+
+    def _publish_trade_event(self, event) -> None:
+        if self.publisher and not self._stop_event.is_set():
+            try:
+                self.publisher.publish("paper.trade", event.data)
+            except Exception:  # noqa: BLE001, S110
+                pass
 
     def start(self) -> None:
         if self._thread is not None and self._thread.is_alive():
             raise TitanRuntimeError("Local transport server is already running.")
 
         self._stop_event.clear()
+        
+        # Initialize ZeroMQ Publisher
+        from titan.runtime.models import RuntimeEventType
+        from titan.runtime.publisher import StatePublisher
+        self.publisher = StatePublisher()
+        
+        self.service.engine.event_bus.subscribe(
+            RuntimeEventType.SCHEDULER_TICK, self._publish_status_event
+        )
+        self.service.engine.event_bus.subscribe(
+            RuntimeEventType.PIPELINE_EXECUTED, self._publish_status_event
+        )
+        self.service.engine.event_bus.subscribe(
+            RuntimeEventType.TRADE_EXECUTED, self._publish_trade_event
+        )
+
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
@@ -52,6 +84,13 @@ class LocalTransportServer:
 
     def stop(self) -> None:
         self._stop_event.set()
+        if self.publisher:
+            try:
+                self.publisher.close()
+            except Exception:  # noqa: BLE001, S110
+                pass
+            self.publisher = None
+            
         if self._server_socket:
             try:
                 self._server_socket.close()
@@ -102,158 +141,31 @@ class LocalTransportServer:
             try:
                 report = self.service.status()
                 return {"status": "ok", "data": _report_to_dict(report)}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"status": "error", "message": str(e)}
         elif command == "stop":
             try:
                 self.service.stop()
                 return {"status": "ok"}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"status": "error", "message": str(e)}
         elif command == "enable_paper":
             try:
                 self.service.enable_paper()
                 return {"status": "ok"}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"status": "error", "message": str(e)}
         elif command == "disable_paper":
             try:
                 self.service.disable_paper()
                 return {"status": "ok"}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"status": "error", "message": str(e)}
         elif command == "paper_status":
             try:
-                broker = self.service.engine.broker
-                from datetime import datetime
-                from decimal import Decimal
-
-                from titan.paper.broker import PaperBroker
-
-                if not isinstance(broker, PaperBroker):
-                    return {
-                        "status": "error",
-                        "message": "The active runtime is not using the paper broker.",
-                    }
-
-                open_positions = (
-                    broker.position_engine.open_positions()
-                    if hasattr(broker, "position_engine")
-                    else []
-                )
-                if hasattr(broker, "portfolio"):
-                    portfolio_state = broker.portfolio.compute_state(open_positions)
-                else:
-                    portfolio_state = None
-
-                perf = None
-                if hasattr(broker, "performance") and portfolio_state:
-                    perf = broker.performance.compute(portfolio_state)
-
-                all_orders = (
-                    broker.journal.all_orders() if hasattr(broker, "journal") else []
-                )
-                all_trades = (
-                    broker.journal.to_broker_trades()
-                    if hasattr(broker, "journal")
-                    else []
-                )
-
-                realized_pnl = sum((p.realized_pnl for p in open_positions), Decimal(0))
-
-                def _d(v):
-                    return float(v) if v is not None else 0.0
-
-                data = {
-                    "running": self.service.engine.is_running,
-                    "connected": broker.is_connected(),
-                    "initial_cash": _d(getattr(broker, "_initial_cash", 100000.0)),
-                    "cash_balance": (
-                        _d(portfolio_state.cash) if portfolio_state else 0.0
-                    ),
-                    "portfolio_value": (
-                        _d(portfolio_state.equity) if portfolio_state else 0.0
-                    ),
-                    "buying_power": (
-                        _d(portfolio_state.buying_power) if portfolio_state else 0.0
-                    ),
-                    "exposure": (
-                        _d(portfolio_state.exposure) if portfolio_state else 0.0
-                    ),
-                    "open_positions": len(open_positions),
-                    "closed_trades": len(all_trades),
-                    "total_orders": len(all_orders),
-                    "filled_orders": sum(
-                        1
-                        for o in all_orders
-                        if getattr(o.status, "value", str(o.status)) == "filled"
-                    ),
-                    "realized_pnl": _d(realized_pnl),
-                    "unrealized_pnl": _d(
-                        (portfolio_state.total_pnl - realized_pnl)
-                        if portfolio_state
-                        else 0.0
-                    ),
-                    "total_pnl": (
-                        _d(portfolio_state.total_pnl) if portfolio_state else 0.0
-                    ),
-                    "daily_pnl": (
-                        _d(portfolio_state.daily_pnl) if portfolio_state else 0.0
-                    ),
-                    "drawdown": (
-                        _d(portfolio_state.drawdown) if portfolio_state else 0.0
-                    ),
-                    "win_rate": _d(perf.win_rate) if perf else 0.0,
-                    "loss_rate": _d(perf.loss_rate) if perf else 0.0,
-                    "profit_factor": _d(perf.profit_factor) if perf else 0.0,
-                    "max_drawdown": _d(perf.max_drawdown) if perf else 0.0,
-                    "total_trades": perf.total_trades if perf else 0,
-                    "winning_trades": perf.winning_trades if perf else 0,
-                    "losing_trades": perf.losing_trades if perf else 0,
-                    "expectancy": _d(perf.expectancy) if perf else 0.0,
-                    "session_uptime_seconds": self.service.engine.uptime_seconds,
-                    "start_time": getattr(
-                        self.service.engine, "_start_time", datetime.now(UTC)
-                    ).isoformat(),
-                    "positions": [
-                        {
-                            "symbol": position.symbol,
-                            "quantity": position.quantity,
-                            "average_price": _d(position.average_price),
-                            "current_price": _d(broker.ltp(position.symbol)),
-                            "unrealized_pnl": _d(position.unrealized_pnl),
-                            "realized_pnl": _d(position.realized_pnl),
-                        }
-                        for position in open_positions
-                    ],
-                    "orders": [
-                        {
-                            "order_id": order.broker_order_id,
-                            "symbol": order.symbol,
-                            "side": order.side.value if hasattr(order.side, "value") else str(order.side),
-                            "type": order.order_type.value if hasattr(order.order_type, "value") else str(order.order_type),
-                            "quantity": order.quantity,
-                            "filled_quantity": order.filled_quantity,
-                            "status": order.status.value if hasattr(order.status, "value") else str(order.status),
-                            "price": _d(getattr(order, "average_price", getattr(order, "price", 0))),
-                            "placed_at": order.placed_at.isoformat() if hasattr(order, "placed_at") and order.placed_at else None,
-                        }
-                        for order in all_orders
-                    ],
-                    "trades": [
-                        {
-                            "symbol": trade.symbol,
-                            "side": trade.side.value if hasattr(trade.side, "value") else str(trade.side),
-                            "quantity": trade.quantity,
-                            "price": _d(getattr(trade, "price", 0)),
-                            "pnl": _d(getattr(trade, "pnl", 0)),
-                            "timestamp": trade.timestamp.isoformat() if hasattr(trade, "timestamp") and trade.timestamp else None,
-                        }
-                        for trade in all_trades[-20:]
-                    ]
-                }
-                return {"status": "ok", "data": data}
-            except Exception as e:
+                response = self._build_paper_status()
+                return {"status": "ok", "data": response.model_dump(mode="json")}
+            except Exception as e:  # noqa: BLE001
                 return {"status": "error", "message": str(e)}
         elif command == "live_status":
             try:
@@ -304,14 +216,158 @@ class LocalTransportServer:
                             "status": o.status.value if hasattr(o.status, "value") else str(o.status),
                         }
                         for o in orders
-                    ]
+                    ],
+                    "market_status": {
+                        "stream_connected": getattr(self.service.engine.stream, 'connected', getattr(self.service.engine.stream, 'is_connected', False)) if self.service.engine.stream else False,
+                        "symbols": list(getattr(self.service.engine.stream, 'symbols', getattr(self.service.engine.stream, 'subscribed_symbols', []))) if self.service.engine.stream else [],
+                    }
                 }
                 return {"status": "ok", "data": data}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"status": "error", "message": str(e)}
         else:
             return {"status": "error", "message": f"Unknown command: {command}"}
 
+
+
+    def _build_paper_status(self):
+        broker = self.service.engine.broker
+        from datetime import datetime
+        from decimal import Decimal
+
+        from titan.paper.broker import PaperBroker
+
+        if not isinstance(broker, PaperBroker):
+            raise TypeError("The active runtime is not using the paper broker.")
+
+        open_positions = (
+            broker.position_engine.open_positions()
+            if hasattr(broker, "position_engine")
+            else []
+        )
+        if hasattr(broker, "portfolio"):
+            portfolio_state = broker.portfolio.compute_state(open_positions)
+        else:
+            portfolio_state = None
+
+        perf = None
+        if hasattr(broker, "performance") and portfolio_state:
+            perf = broker.performance.compute(portfolio_state)
+
+        all_orders = (
+            broker.journal.all_orders() if hasattr(broker, "journal") else []
+        )
+        all_trades = (
+            broker.journal.to_broker_trades()
+            if hasattr(broker, "journal")
+            else []
+        )
+
+        realized_pnl = sum((p.realized_pnl for p in open_positions), Decimal(0))
+
+        def _d(v):
+            return float(v) if v is not None else 0.0
+
+        from titan.ipc.models import (
+            PaperAccountPayload,
+            PaperOrderPayload,
+            PaperPerformancePayload,
+            PaperPortfolioPayload,
+            PaperPositionPayload,
+            PaperSessionPayload,
+            PaperStatusResponse,
+            PaperTradePayload,
+        )
+
+        initial_cash = _d(getattr(broker, "_initial_cash", 100000.0))
+        buying_power = _d(portfolio_state.buying_power) if portfolio_state else 0.0
+        used_margin = initial_cash - buying_power if buying_power < initial_cash else 0.0
+
+        session_payload = PaperSessionPayload(
+            running=self.service.engine.is_running,
+            connected=broker.is_connected(),
+            stream_connected=getattr(self.service.engine.stream, 'connected', getattr(self.service.engine.stream, 'is_connected', False)),
+            stream_symbols=getattr(self.service.engine.stream, 'symbols', getattr(self.service.engine.stream, 'subscribed_symbols', [])),
+            session_uptime_seconds=self.service.engine.uptime_seconds,
+            start_time=getattr(self.service.engine, "_start_time", datetime.now(UTC)),
+        )
+        account_payload = PaperAccountPayload(
+            initial_cash=initial_cash,
+            cash_balance=_d(portfolio_state.cash) if portfolio_state else 0.0,
+            buying_power=buying_power,
+            used_margin=used_margin,
+            payout=0.0,
+        )
+        portfolio_payload = PaperPortfolioPayload(
+            portfolio_value=_d(portfolio_state.equity) if portfolio_state else 0.0,
+            exposure=_d(portfolio_state.exposure) if portfolio_state else 0.0,
+            open_positions_count=len(open_positions),
+            realized_pnl=_d(realized_pnl),
+            unrealized_pnl=_d((portfolio_state.total_pnl - realized_pnl) if portfolio_state else 0.0),
+            total_pnl=_d(portfolio_state.total_pnl) if portfolio_state else 0.0,
+            daily_pnl=_d(portfolio_state.daily_pnl) if portfolio_state else 0.0,
+            drawdown=_d(portfolio_state.drawdown) if portfolio_state else 0.0,
+        )
+        performance_payload = PaperPerformancePayload(
+            closed_trades_count=len(all_trades),
+            total_orders_count=len(all_orders),
+            filled_orders_count=sum(1 for o in all_orders if getattr(o.status, "value", str(o.status)) == "filled"),
+            win_rate=_d(perf.win_rate) if perf else 0.0,
+            loss_rate=_d(perf.loss_rate) if perf else 0.0,
+            profit_factor=_d(perf.profit_factor) if perf else 0.0,
+            max_drawdown=_d(perf.max_drawdown) if perf else 0.0,
+            total_trades=perf.total_trades if perf else 0,
+            winning_trades=perf.winning_trades if perf else 0,
+            losing_trades=perf.losing_trades if perf else 0,
+            expectancy=_d(perf.expectancy) if perf else 0.0,
+        )
+        positions_payload = [
+            PaperPositionPayload(
+                symbol=position.symbol,
+                quantity=position.quantity,
+                average_price=_d(position.average_price),
+                current_price=_d(broker.ltp(position.symbol)),
+                unrealized_pnl=_d(position.unrealized_pnl),
+                realized_pnl=_d(position.realized_pnl),
+            )
+            for position in open_positions
+        ]
+        orders_payload = [
+            PaperOrderPayload(
+                order_id=order.broker_order_id,
+                symbol=order.symbol,
+                side=order.side.value if hasattr(order.side, "value") else str(order.side),
+                type=order.order_type.value if hasattr(order.order_type, "value") else str(order.order_type),
+                quantity=order.quantity,
+                filled_quantity=order.filled_quantity,
+                status=order.status.value if hasattr(order.status, "value") else str(order.status),
+                price=_d(getattr(order, "average_price", getattr(order, "price", 0))),
+                placed_at=order.placed_at if hasattr(order, "placed_at") else None,
+            )
+            for order in all_orders
+        ]
+        trades_payload = [
+            PaperTradePayload(
+                symbol=trade.symbol,
+                side=trade.side.value if hasattr(trade.side, "value") else str(trade.side),
+                quantity=trade.quantity,
+                price=_d(getattr(trade, "price", 0)),
+                pnl=_d(getattr(trade, "pnl", 0)),
+                timestamp=trade.timestamp if hasattr(trade, "timestamp") else None,
+            )
+            for trade in all_trades[-20:]
+        ]
+
+        return PaperStatusResponse(
+            status="ok",
+            session=session_payload,
+            account=account_payload,
+            portfolio=portfolio_payload,
+            performance=performance_payload,
+            positions=positions_payload,
+            orders=orders_payload,
+            trades=trades_payload,
+        )
 
 def _report_to_dict(report: RuntimeReport) -> dict[str, Any]:
     data = asdict(report)
@@ -359,7 +415,7 @@ class LocalTransport(RuntimeTransport):
             )
         except TimeoutError:
             raise TitanRuntimeError("Timeout waiting for runtime engine response.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             raise TitanRuntimeError(f"IPC error: {e}")
 
     def start(self) -> None:
@@ -435,7 +491,7 @@ class LocalTransport(RuntimeTransport):
                 return None
             try:
                 return datetime.fromisoformat(s)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return None
 
         # Component health
@@ -451,7 +507,7 @@ class LocalTransport(RuntimeTransport):
                     component_name=ch.get("component_name", ""),
                     status=status_enum,
                     status_changed_at=parse_dt(ch.get("status_changed_at"))
-                    or datetime.now(),
+                    or datetime.now(),  # noqa: DTZ005
                     last_update=parse_dt(ch.get("last_update")),
                     latency_ms=ch.get("latency_ms", 0.0),
                     error=ch.get("error", ""),
@@ -485,6 +541,8 @@ class LocalTransport(RuntimeTransport):
             stream_status=data.get("market", {}).get("stream_status", "disconnected"),
             active_subscriptions=data.get("market", {}).get("active_subscriptions", 0),
             last_quote_time=parse_dt(data.get("market", {}).get("last_quote_time")),
+            stream_connected=data.get("market", {}).get("stream_connected", False),
+            symbols=tuple(data.get("market", {}).get("symbols", [])),
         )
 
         perf = PerformanceStatus(
@@ -512,5 +570,5 @@ class LocalTransport(RuntimeTransport):
             recovery=RecoveryStatus(),
             paper=PaperBrokerStatus(active=data.get("paper", {}).get("active", False)),
             portfolio=PortfolioStatus(),
-            timestamp=parse_dt(data.get("timestamp")) or datetime.now(),
+            timestamp=parse_dt(data.get("timestamp")) or datetime.now(),  # noqa: DTZ005
         )

@@ -22,7 +22,7 @@ TITAN employs a stringent testing philosophy, executing comprehensive validation
 The test suite consists of approximately 300 highly targeted assertions. The transition to the synchronous `RuntimeSupervisor` in M8.4 seamlessly retrofitted existing legacy tests without degrading historical coverage. Our regression confidence is exceptionally high.
 
 ## Excluded Areas
-- **Live Broker Integration**: We intentionally exclude live API hits (e.g., SmartAPI tokens) from the automated CI suite to avoid side effects and credential leakage. External broker boundaries are strictly mocked.
+- **Live Broker Integration**: We intentionally exclude live API hits (e.g., yfinance tokens) from the automated CI suite to avoid side effects and credential leakage. External broker boundaries are strictly mocked.
 - **TUI Visual Assertions**: Automated testing covers TUI state logic and message passing, but visual rendering (pixel-level tests) is evaluated manually.
 
 ## Certification Conclusion

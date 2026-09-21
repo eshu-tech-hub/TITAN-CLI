@@ -21,4 +21,14 @@ logs/
 *.db
 
 # Test cache
-.pytest_cache/
+.pytest_cache/.env
+data/*.db
+data/
+logs/
+__pycache__/
+*.pyc
+.venv/
+tg_chat_ids.txt
+pump_ticks.py
+test_gemini.py
+system_audit.py

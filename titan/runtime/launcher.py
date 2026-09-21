@@ -19,7 +19,7 @@ class DetachedRuntimeLauncher:
     """Launch a runtime process and wait until its IPC service is ready."""
 
     port: int = DEFAULT_PORT
-    readiness_timeout_seconds: float = 5.0
+    readiness_timeout_seconds: float = 30.0
     poll_interval_seconds: float = 0.05
 
     def __post_init__(self) -> None:

@@ -137,10 +137,11 @@ def reset_alert_manager() -> None:
 
 _PROVIDER_MAP: dict[str, str] = {
     "paper": "PAPER",
-    "angel_one": "ANGEL_ONE",
+
     "zerodha": "ZERODHA",
     "dhan": "DHAN",
     "upstox": "UPSTOX",
+    "yfinance": "YFINANCE",
 }
 
 
@@ -164,16 +165,17 @@ def create_broker(config: TitanConfig) -> Broker:
 
         return PaperBroker(initial_cash=Decimal(str(config.broker.paper_initial_cash)))
 
-    if broker_type.name == "ANGEL_ONE":
-        try:
-            from titan.brokers.angelone.adapter import AngelOneBroker
 
-            return AngelOneBroker(
-                api_key=config.broker.api_key,
-                client_id=config.broker.client_id,
-                pin=config.broker.pin,
-                totp_secret=config.broker.totp_secret,
-            )
+    if broker_type.name == "YFINANCE":
+        try:
+            from pathlib import Path
+
+            from titan.brokers.yfinance.adapter import YahooFinanceBroker
+            from titan.storage.market_data import MarketDataStore
+            
+            Path("data").mkdir(exist_ok=True)
+            store = MarketDataStore("data/market_data.duckdb")
+            return YahooFinanceBroker(store=store)
         except ImportError:
             pass
 
@@ -186,10 +188,18 @@ def create_broker(config: TitanConfig) -> Broker:
 
 def create_runtime_engine(
     config: TitanConfig,
-    *,
-    target_symbol: str = "RELIANCE",
-    target_exchange: str = "NSE",
+    run_mode=None,
+    symbols: list[str] | None = None,
+    **kwargs,
 ) -> RuntimeEngine:
+    # Safely extract optional kwargs
+    target_symbol = kwargs.pop("target_symbol", "RELIANCE")
+    target_exchange = kwargs.pop("target_exchange", "NSE")
+    watchlist = kwargs.pop("watchlist", None)
+    
+    if not watchlist:
+        watchlist = symbols if symbols else [target_symbol]
+    from titan.brokers.yfinance.stream import YFinanceStreamSource
     from titan.execution.allocator import ExecutionAllocator
     from titan.execution.book import OrderBook
     from titan.execution.execution import ExecutionEngine
@@ -199,6 +209,7 @@ def create_runtime_engine(
     from titan.execution.validator import ExecutionValidator
     from titan.pipeline.pipeline import TradePipeline
     from titan.runtime.runtime import RuntimeEngine
+    from titan.runtime.stream import MarketStream
     from titan.trading.strategies.momentum import MomentumStrategy
 
     broker = create_broker(config)
@@ -212,12 +223,22 @@ def create_runtime_engine(
         oms=ExecutionEngine(order_book=OrderBook(), router=OrderRouter()),
         broker=broker,
     )
-    return RuntimeEngine(
+
+    stream_source = YFinanceStreamSource(poll_interval=60.0) # Polling 1-min candles
+    market_stream = MarketStream(source=stream_source)
+    
+    engine = RuntimeEngine(
         broker=broker,
         pipeline=pipeline,
-        target_symbol=target_symbol,
+        stream=market_stream,
+        watchlist=watchlist,
         target_exchange=target_exchange,
     )
+    
+    # Run pipeline directly on quote reception
+    market_stream.set_on_quote(engine._pipeline_runner)
+    
+    return engine
 
 
 __all__ = [

@@ -780,8 +780,8 @@ class TestTradePipelineForbiddenImports:
         import titan.pipeline.pipeline as mod
 
         source = open(mod.__file__).read()
-        assert "smartapi" not in source.lower()
-        assert "angelone" not in source.lower()
+        assert "yfinance" not in source.lower()
+        assert "yfinance" not in source.lower()
 
     def test_no_analysis_indicator_imports(self):
         import titan.pipeline.pipeline as mod

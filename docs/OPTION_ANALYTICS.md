@@ -7,7 +7,7 @@ analyzer consumes only `OptionChainSnapshot` and returns `AnalysisResult`.
 
 Broker adapters, API clients, and raw option-chain vendors must normalize data
 before it reaches this package. This keeps option analytics reusable across
-Angel One, other brokers, historical backtests, simulations, and offline
+YFinance, other brokers, historical backtests, simulations, and offline
 research.
 
 ## Responsibilities
@@ -114,7 +114,7 @@ add:
 
 ## Boundary Rule
 
-This package must not import broker packages, SmartAPI, Angel One modules, or
+This package must not import broker packages, yfinance, YFinance modules, or
 make API calls. It only operates on normalized `OptionChainSnapshot` data.
 
 

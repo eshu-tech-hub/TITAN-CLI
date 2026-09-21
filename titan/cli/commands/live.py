@@ -341,9 +341,9 @@ def start(
         bool, typer.Option("--dry-run", help="Validate only, do not start")
     ] = False,
     force: Annotated[bool, typer.Option("--force", help="Skip safety checks")] = False,
-    symbol: Annotated[
-        str, typer.Option("--symbol", "-s", help="Target symbol to trade")
-    ] = "RELIANCE",
+    symbols: Annotated[
+        list[str], typer.Option("--symbol", "-s", help="Target symbols to trade")
+    ] = ["RELIANCE"],
     exchange: Annotated[
         str, typer.Option("--exchange", "-e", help="Exchange segment")
     ] = "nse",
@@ -374,19 +374,21 @@ def start(
         return
 
     if verbose:
-        _start_with_progress(config, symbol=symbol, exchange=exchange)
+        _start_with_progress(config, symbols=symbols, exchange=exchange)
     else:
-        _start_silent(config, symbol=symbol, exchange=exchange)
+        _start_silent(config, symbols=symbols, exchange=exchange)
 
 
-def _start_silent(config: TitanConfig, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
+def _start_silent(config: TitanConfig, *, symbols: list[str] | None = None, exchange: str = "nse") -> None:
     try:
         engine = create_runtime_engine(
             config,
-            target_symbol=symbol.upper(),
+            symbols=symbols,
             target_exchange=exchange.upper(),
         )
         set_runtime_engine(engine)
+        if symbols:
+            engine.watchlist = [s.upper() for s in symbols]
         engine.start()
 
         dm = get_deployment_manager()
@@ -407,7 +409,7 @@ def _start_silent(config: TitanConfig, *, symbol: str = "RELIANCE", exchange: st
         raise typer.Exit(code=3)
 
 
-def _start_with_progress(config: TitanConfig, *, symbol: str = "RELIANCE", exchange: str = "nse") -> None:
+def _start_with_progress(config: TitanConfig, *, symbols: list[str] | None = None, exchange: str = "nse") -> None:
     steps = [
         "Loading configuration",
         "Creating broker",
@@ -437,10 +439,12 @@ def _start_with_progress(config: TitanConfig, *, symbol: str = "RELIANCE", excha
         try:
             engine = create_runtime_engine(
                 config,
-                target_symbol=symbol.upper(),
+                symbols=symbols,
                 target_exchange=exchange.upper(),
             )
             set_runtime_engine(engine)
+            if symbols:
+                engine.watchlist = [s.upper() for s in symbols]
             engine.start()
 
             try:

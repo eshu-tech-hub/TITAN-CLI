@@ -1,4 +1,16 @@
+"""Momentum strategy — indicator engine vectorised via polars.
+
+EMA and RSI are computed in a single polars DataFrame pipeline using
+``ewm_mean(span=..., adjust=False)`` for O(n) Rust-level performance.
+The final-row values are extracted with ``df.row(-1, named=True)`` and
+injected into the ``TradeSignal.metadata`` dict for TUI and router use.
+"""
+
+from __future__ import annotations
+
 from dataclasses import dataclass
+
+import polars as pl
 
 from titan.market.series import MarketDataSeries
 from titan.trading.strategies.base import SignalType, Strategy, TradeSignal
@@ -6,77 +18,107 @@ from titan.trading.strategies.base import SignalType, Strategy, TradeSignal
 
 @dataclass
 class MomentumStrategy(Strategy):
-    """Momentum strategy using fast/slow EMAs and RSI."""
-    
+    """Momentum strategy using fast/slow EMAs and RSI.
+
+    All indicators are computed via polars vectorised expressions,
+    replacing the previous Python for-loop implementations.
+
+    Attributes:
+        fast_period: Span for the fast EMA (default 9).
+        slow_period:  Span for the slow EMA (default 21).
+        rsi_period:   Span for the RSI EWM smoothing (default 14).
+        stop_loss_pct:   Stop-loss distance as a fraction of price.
+        take_profit_pct: Take-profit distance as a fraction of price.
+    """
+
     fast_period: int = 9
     slow_period: int = 21
     rsi_period: int = 14
     stop_loss_pct: float = 0.015
     take_profit_pct: float = 0.03
-    
-    def _calculate_ema(self, prices: list[float], period: int) -> list[float]:
-        if not prices:
-            return []
-        ema = [prices[0]]
-        multiplier = 2 / (period + 1)
-        for price in prices[1:]:
-            ema.append((price - ema[-1]) * multiplier + ema[-1])
-        return ema
-        
-    def _calculate_rsi(self, prices: list[float], period: int) -> list[float]:
-        if len(prices) < period + 1:
-            return [50.0] * len(prices)
-            
-        deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
-        gains = [d if d > 0 else 0.0 for d in deltas]
-        losses = [-d if d < 0 else 0.0 for d in deltas]
-        
-        avg_gain = sum(gains[:period]) / period
-        avg_loss = sum(losses[:period]) / period
-        
-        rsi = [50.0] * period
-        
-        if avg_loss == 0:
-            rsi.append(100.0)
-        else:
-            rs = avg_gain / avg_loss
-            rsi.append(100.0 - (100.0 / (1.0 + rs)))
-            
-        for i in range(period, len(deltas)):
-            avg_gain = (avg_gain * (period - 1) + gains[i]) / period
-            avg_loss = (avg_loss * (period - 1) + losses[i]) / period
-            if avg_loss == 0:
-                rsi.append(100.0)
-            else:
-                rs = avg_gain / avg_loss
-                rsi.append(100.0 - (100.0 / (1.0 + rs)))
-                
-        return rsi
+
+    def _build_indicators(self, closes: list[float]) -> dict[str, float]:
+        """Compute EMA(fast), EMA(slow), RSI in one polars pipeline.
+
+        Returns a dict with the *last-row* values for each indicator,
+        ready to be consumed by ``generate_signal`` and packed into
+        ``TradeSignal.metadata``.
+        """
+        df = pl.DataFrame({"close": closes})
+
+        # ── EMA (exponential weighted mean, pandas-compatible) ────────────
+        df = df.with_columns(
+            [
+                pl.col("close")
+                .ewm_mean(span=self.fast_period, adjust=False)
+                .alias("ema_fast"),
+                pl.col("close")
+                .ewm_mean(span=self.slow_period, adjust=False)
+                .alias("ema_slow"),
+            ]
+        )
+
+        # ── RSI via EWM gain/loss smoothing ──────────────────────────────
+        delta = pl.col("close").diff()
+        gain = (
+            pl.when(delta > 0)
+            .then(delta)
+            .otherwise(0.0)
+            .ewm_mean(span=self.rsi_period, adjust=False)
+        )
+        loss = (
+            pl.when(delta < 0)
+            .then(delta.abs())
+            .otherwise(0.0)
+            .ewm_mean(span=self.rsi_period, adjust=False)
+        )
+        rs = gain / loss
+        df = df.with_columns(
+            (100.0 - (100.0 / (1.0 + rs))).alias("rsi_14"),
+        )
+
+        # Extract final row as a named dict
+        return df.row(-1, named=True)  # type: ignore[return-value]
 
     def generate_signal(self, data: MarketDataSeries) -> TradeSignal:
+        """Analyse market data and generate a trade signal."""
         closes = data.closes
+
         if len(closes) < self.slow_period + 1:
-            return TradeSignal(SignalType.HOLD, "", closes[-1] if closes else 0.0)
-            
+            return TradeSignal(
+                signal=SignalType.HOLD,
+                symbol="",
+                price=closes[-1] if closes else 0.0,
+            )
+
         current_price = closes[-1]
-        
-        fast_ema = self._calculate_ema(closes, self.fast_period)
-        slow_ema = self._calculate_ema(closes, self.slow_period)
-        rsi = self._calculate_rsi(closes, self.rsi_period)
-        
-        if len(fast_ema) < 2 or len(slow_ema) < 2 or len(rsi) < 1:
-            return TradeSignal(SignalType.HOLD, "", current_price)
-            
-        current_fast = fast_ema[-1]
-        current_slow = slow_ema[-1]
-        prev_fast = fast_ema[-2]
-        prev_slow = slow_ema[-2]
-        current_rsi = rsi[-1]
-        
+
+        # Run entire indicator suite in one polars pass
+        last = self._build_indicators(closes)
+
+        ema_fast: float = last["ema_fast"]
+        ema_slow: float = last["ema_slow"]
+        rsi_14: float = last.get("rsi_14") or 50.0  # guard against NaN on short series
+
+        # Previous-bar values for crossover detection
+        prev = self._build_indicators(closes[:-1])
+        prev_fast: float = prev["ema_fast"]
+        prev_slow: float = prev["ema_slow"]
+
+        meta = {
+            "ema_fast": ema_fast,
+            "ema_slow": ema_slow,
+            "rsi_14": rsi_14,
+            # Legacy key aliases for existing TUI/router consumers
+            "fast_ema": ema_fast,
+            "slow_ema": ema_slow,
+            "rsi": rsi_14,
+        }
+
         symbol = ""
-        
-        # BUY Logic: Fast crosses above Slow AND RSI > 50
-        if prev_fast <= prev_slow and current_fast > current_slow and current_rsi > 50:
+
+        # BUY: fast crosses above slow AND RSI > 50
+        if prev_fast <= prev_slow and ema_fast > ema_slow and rsi_14 > 50:
             sl = current_price * (1.0 - self.stop_loss_pct)
             tp = current_price * (1.0 + self.take_profit_pct)
             return TradeSignal(
@@ -85,11 +127,11 @@ class MomentumStrategy(Strategy):
                 price=current_price,
                 stop_loss=sl,
                 take_profit=tp,
-                metadata={"rsi": current_rsi, "fast_ema": current_fast, "slow_ema": current_slow}
+                metadata=meta,
             )
-            
-        # SELL / EXIT Logic: Fast crosses below Slow OR RSI < 45
-        if (prev_fast >= prev_slow and current_fast < current_slow) or current_rsi < 45:
+
+        # SELL / EXIT: fast crosses below slow OR RSI < 45
+        if (prev_fast >= prev_slow and ema_fast < ema_slow) or rsi_14 < 45:
             sl = current_price * (1.0 + self.stop_loss_pct)
             tp = current_price * (1.0 - self.take_profit_pct)
             return TradeSignal(
@@ -98,12 +140,13 @@ class MomentumStrategy(Strategy):
                 price=current_price,
                 stop_loss=sl,
                 take_profit=tp,
-                metadata={"rsi": current_rsi, "fast_ema": current_fast, "slow_ema": current_slow}
+                metadata=meta,
             )
-            
+
         return TradeSignal(
             signal=SignalType.HOLD,
             symbol=symbol,
             price=current_price,
-            metadata={"rsi": current_rsi, "fast_ema": current_fast, "slow_ema": current_slow}
+            metadata=meta,
         )
+

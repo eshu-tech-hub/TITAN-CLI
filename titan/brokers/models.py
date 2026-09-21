@@ -12,7 +12,6 @@ class BrokerType(str, Enum):
     Values are used for factory registration and configuration lookup.
     """
 
-    ANGEL_ONE = "angel_one"
     ZERODHA = "zerodha"
     DHAN = "dhan"
     UPSTOX = "upstox"
@@ -20,6 +19,7 @@ class BrokerType(str, Enum):
     ALPACA = "alpaca"
     BINANCE = "binance"
     PAPER = "paper"
+    YFINANCE = "yfinance"
 
 
 class ConnectionStatus(str, Enum):
